@@ -121,7 +121,7 @@ void Init(void) {
 	zoom = 20;
 	trans_x = 0;
 	trans_y = zoom / 3;
-	rot_x = 50;
+	rot_x = 0;
 	rot_y = -60;
 	glEnable(GL_DEPTH_TEST);
 }
@@ -143,10 +143,10 @@ void SpecialKeys(int key, int x, int y) {
 	switch (key)
 	{
 	case GLUT_KEY_RIGHT:
-		hm->move_root_particle(Vector3d(-0.1, 0.0, 0));
+		hm->move_root_particle(Vector3d(0, 0.0, -0.1));
 		break;
 	case GLUT_KEY_LEFT:
-		hm->move_root_particle(Vector3d(0.1, 0.0, 0));
+		hm->move_root_particle(Vector3d(0, 0.0, 0.1));
 		break;
 	case GLUT_KEY_UP:
 		hm->move_root_particle(Vector3d(0.0, .1, .0));

@@ -6,8 +6,8 @@ HairModel::HairModel() {
 	rest_particle = new Particle();
 	smoothed_rest_particle = new Particle();
 	
-	for (int i = 0; i < 1; i++) {
-		size.push_back(128);
+	for (int i = 0; i < 10; i++) {
+		size.push_back(32);
 	}
 
 	resize(particle->pos, size);
@@ -41,7 +41,7 @@ void HairModel::init(Particle *p) {
 			double y = t * 0.1;
 			double z = sin(t);
 
-			p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
+			p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
 			//p->pos[i][j] = Vector3d(i / p->pos.size(), -j / p->pos.size(),0);
 			//p->pos[i][j] = Vector3d(0.1*x,0.1*-y,0.1*z + (2.0 * i / p->pos.size()));
@@ -289,7 +289,7 @@ void HairModel::integrate_internal_hair_force() {
 
 void HairModel::integrate_external_force() {
 	double dt = 9.25887e-05;
-	Vector3d gravity(0.0, -10.0, 0.0);
+	Vector3d gravity(0.0, -100.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			particle->force[i][j] += gravity;
