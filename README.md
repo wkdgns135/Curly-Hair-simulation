@@ -1,5 +1,5 @@
 # Curly-Hair-simulation
-This project about https://graphics.pixar.com/library/CurlyHairA/paper.pdf use C++ and OpenGL
+This project about https://graphics.pixar.com/library/CurlyHairA/paper.pdf use C++ and OpenGL <br>
 if you want a test this project you should follow https://pig-tag.tistory.com/6 
 
 # Hair model
