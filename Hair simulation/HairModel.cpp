@@ -135,14 +135,18 @@ void HairModel::draw_frame(Particle *p) {
 }
 
 void HairModel::simulation() {
-	for (int iter1 = 0; iter1 < 2; iter1++) {
-		for (int iter2 = 0; iter2 < 15; iter2++) {
+	//Outer loop iteration
+	for (int iter1 = 0; iter1 < 2; iter1++) { 
+		//Force loop iteration
+		for (int iter2 = 0; iter2 < 15; iter2++) { 
 			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
 			smoothed_particle->velocity = smoothing_function(particle->velocity, rest_particle->rest_length, alpha_c, false);
 			compute_frame(smoothed_particle);
 
 			integrate_internal_hair_force();
 			integrate_external_force();
+
+			//Damping loop iteration
 			for (int iter3 = 0; iter3 < iter2 * 10; iter3++) {
 				integrate_damping_force();
 			}
