@@ -51,7 +51,7 @@ void HairModel::init(Particle *p) {
 }
 
 void HairModel::pre_compute() {
-	//rest ÆÄÆ¼Å¬°£ÀÇ Æò±Õ ±æÀÌ °è»ê
+	//rest íŒŒí‹°í´ê°„ì˜ í‰ê·  ê¸¸ì´ ê³„ì‚°
 	for (int i = 0; i < rest_particle->pos.size(); i++) {
 		double sum = 0;
 		for (int j = 0; j < rest_particle->pos[i].size() - 1; j++) {
@@ -64,7 +64,7 @@ void HairModel::pre_compute() {
 		rest_particle->rest_length.push_back(sum);
 	}
 
-	//smoothed µÈ rest ÆÄÆ¼Å¬ À§Ä¡ ÀúÀå
+	//smoothed ëœ rest íŒŒí‹°í´ ìœ„ì¹˜ ì €ì¥
 	smoothed_rest_particle->pos = smoothing_function(rest_particle->pos, rest_particle->rest_length, alpha_b, true);
 	
 	//smoothed curve frame pre-compute
@@ -217,7 +217,6 @@ void HairModel::core_spring_force(int i, int j) {
 	b_hat.normalize();
 
 	Vector3d force = b_hat * k_c * (b.norm() - b_bar.norm());
-
 	particle->force[i][j] -= force;
 }
 
@@ -229,7 +228,6 @@ void HairModel::core_damping_force(int i, int j) {
 	b_hat.normalize();
 
 	Vector3d force = b_hat * c_c *(v.dot(b_hat));
-
 	particle->force[i][j] -= force;
 }
 
@@ -238,14 +236,14 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 
 	vector<vector<Vector3d>>  d;
 	vector<vector<Vector3d>> pos;
-	//lambda°¡ ÆÄÆ¼Å¬ À§Ä¡ÀÏ °æ¿ì returnÇÏ±âÀ§ÇÑ pos vector
+	//lambdaê°€ íŒŒí‹°í´ ìœ„ì¹˜ì¼ ê²½ìš° returní•˜ê¸°ìœ„í•œ pos vector
 	resize(d, size);
 	resize(pos, size);
 
 	copy(lambda.begin(), lambda.end(), d.begin());
 
 	for (int i = 0; i < lambda.size(); i++) {
-		//beta formulation, l = ÆÄÆ¼Å¬°£ÀÇ Æò±Õ±æÀÌ
+		//beta formulation, l = íŒŒí‹°í´ê°„ì˜ í‰ê· ê¸¸ì´
 		beta = min(1.0, 1 - exp(-l[i] / alpha));
 
 		d[i][0] = lambda[i][1] - lambda[i][0];
@@ -273,7 +271,7 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 //NOTE Internal hair force integate
 void HairModel::integrate_internal_hair_force() {
 	double dt = 9.25887e-05;
-	//spring forces °è»ê
+	//spring forces ê³„ì‚°
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_spring_force(i, j);
