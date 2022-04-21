@@ -137,6 +137,10 @@ void HairModel::draw_frame(Particle *p) {
 void HairModel::simulation() {
 	for (int iter1 = 0; iter1 < 2; iter1++) {
 		for (int iter2 = 0; iter2 < 15; iter2++) {
+			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
+			smoothed_particle->velocity = smoothing_function(particle->velocity, rest_particle->rest_length, alpha_c, false);
+			compute_frame(smoothed_particle);
+
 			integrate_internal_hair_force();
 			integrate_external_force();
 			for (int iter3 = 0; iter3 < iter2 * 10; iter3++) {
@@ -146,7 +150,7 @@ void HairModel::simulation() {
 		update_position();
 	}
 }
-
+//NOTE Stretch spring
 void HairModel::stretch_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 
@@ -173,7 +177,7 @@ void HairModel::stretch_damping_force(int i, int j) {
 	particle->force[i][j + 1] -= force;
 }
 
-
+//NOTE Bending spring
 void HairModel::bending_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
@@ -200,6 +204,7 @@ void HairModel::bending_damping_force(int i, int j) {
 	particle->force[i][j+1] -= force;
 }
 
+//XXX Core spring
 void HairModel::core_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];
@@ -269,8 +274,6 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 
 void HairModel::integrate_internal_hair_force() {
 	double dt = 9.25887e-05;
-	smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
-	compute_frame(smoothed_particle);
 	//spring forces °è»ê
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
@@ -303,7 +306,6 @@ void HairModel::integrate_external_force() {
 
 void HairModel::integrate_damping_force() {
 	double dt = 9.25887e-06;
-	smoothed_particle->velocity = smoothing_function(particle->velocity, rest_particle->rest_length, alpha_c, false);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_damping_force(i, j);
