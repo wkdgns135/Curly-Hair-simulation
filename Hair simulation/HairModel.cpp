@@ -51,7 +51,7 @@ void HairModel::init(Particle *p) {
 }
 
 void HairModel::pre_compute() {
-	//rest ÆÄÆ¼Å¬°£ÀÇ Æò±Õ ±æÀÌ °è»ê
+	//rest íŒŒí‹°í´ê°„ì˜ í‰ê·  ê¸¸ì´ ê³„ì‚°
 	for (int i = 0; i < rest_particle->pos.size(); i++) {
 		double sum = 0;
 		for (int j = 0; j < rest_particle->pos[i].size() - 1; j++) {
@@ -64,7 +64,7 @@ void HairModel::pre_compute() {
 		rest_particle->rest_length.push_back(sum);
 	}
 
-	//smoothed µÈ rest ÆÄÆ¼Å¬ À§Ä¡ ÀúÀå
+	//smoothed ëœ rest íŒŒí‹°í´ ìœ„ì¹˜ ì €ì¥
 	smoothed_rest_particle->pos = smoothing_function(rest_particle->pos, rest_particle->rest_length, alpha_b, true);
 	
 	//smoothed curve frame pre-compute
@@ -135,10 +135,18 @@ void HairModel::draw_frame(Particle *p) {
 }
 
 void HairModel::simulation() {
-	for (int iter1 = 0; iter1 < 2; iter1++) {
-		for (int iter2 = 0; iter2 < 15; iter2++) {
+	//Outer loop iteration
+	for (int iter1 = 0; iter1 < 2; iter1++) { 
+		//Force loop iteration
+		for (int iter2 = 0; iter2 < 15; iter2++) { 
+			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
+			smoothed_particle->velocity = smoothing_function(particle->velocity, rest_particle->rest_length, alpha_c, false);
+			compute_frame(smoothed_particle);
+
 			integrate_internal_hair_force();
 			integrate_external_force();
+
+			//Damping loop iteration
 			for (int iter3 = 0; iter3 < iter2 * 10; iter3++) {
 				integrate_damping_force();
 			}
@@ -146,7 +154,7 @@ void HairModel::simulation() {
 		update_position();
 	}
 }
-
+//NOTE Stretch spring
 void HairModel::stretch_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 
@@ -173,7 +181,7 @@ void HairModel::stretch_damping_force(int i, int j) {
 	particle->force[i][j + 1] -= force;
 }
 
-
+//NOTE Bending spring
 void HairModel::bending_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
@@ -200,6 +208,7 @@ void HairModel::bending_damping_force(int i, int j) {
 	particle->force[i][j+1] -= force;
 }
 
+//FIXME Core spring
 void HairModel::core_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];
@@ -208,11 +217,7 @@ void HairModel::core_spring_force(int i, int j) {
 	b_hat.normalize();
 
 	Vector3d force = b_hat * k_c * (b.norm() - b_bar.norm());
-	b_hat = -b_hat;
-	multiply_vector(b_hat, force, force);
-
-	particle->force[i][j] += force;
-	particle->force[i][j+1] -= force;
+	particle->force[i][j] -= force;
 }
 
 void HairModel::core_damping_force(int i, int j) {
@@ -223,11 +228,7 @@ void HairModel::core_damping_force(int i, int j) {
 	b_hat.normalize();
 
 	Vector3d force = b_hat * c_c *(v.dot(b_hat));
-	b_hat = -b_hat;
-	multiply_vector(b_hat, force, force);
-
-	particle->force[i][j] += force;
-	particle->force[i][j + 1] -= force;
+	particle->force[i][j] -= force;
 }
 
 vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>> lambda, vector<double> l,double alpha, bool is_position) {
@@ -235,14 +236,14 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 
 	vector<vector<Vector3d>>  d;
 	vector<vector<Vector3d>> pos;
-	//lambda°¡ ÆÄÆ¼Å¬ À§Ä¡ÀÏ °æ¿ì returnÇÏ±âÀ§ÇÑ pos vector
+	//lambdaê°€ íŒŒí‹°í´ ìœ„ì¹˜ì¼ ê²½ìš° returní•˜ê¸°ìœ„í•œ pos vector
 	resize(d, size);
 	resize(pos, size);
 
 	copy(lambda.begin(), lambda.end(), d.begin());
 
 	for (int i = 0; i < lambda.size(); i++) {
-		//beta formulation, l = ÆÄÆ¼Å¬°£ÀÇ Æò±Õ±æÀÌ
+		//beta formulation, l = íŒŒí‹°í´ê°„ì˜ í‰ê· ê¸¸ì´
 		beta = min(1.0, 1 - exp(-l[i] / alpha));
 
 		d[i][0] = lambda[i][1] - lambda[i][0];
@@ -267,12 +268,10 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 	return d;
 }
 
-
+//NOTE Internal hair force integate
 void HairModel::integrate_internal_hair_force() {
 	double dt = 9.25887e-05;
-	smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
-	compute_frame(smoothed_particle);
-	//spring forces °è»ê
+	//spring forces ê³„ì‚°
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_spring_force(i, j);
@@ -287,9 +286,10 @@ void HairModel::integrate_internal_hair_force() {
 	}
 }
 
+//NOTE External force integate
 void HairModel::integrate_external_force() {
 	double dt = 9.25887e-05;
-	Vector3d gravity(0.0, -100.0, 0.0);
+	Vector3d gravity(0.0, -500.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			particle->force[i][j] += gravity;
@@ -302,9 +302,9 @@ void HairModel::integrate_external_force() {
 	}
 }
 
+//NOTE Damping force integrate
 void HairModel::integrate_damping_force() {
 	double dt = 9.25887e-06;
-	smoothed_particle->velocity = smoothing_function(particle->velocity, rest_particle->rest_length, alpha_c, false);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_damping_force(i, j);
