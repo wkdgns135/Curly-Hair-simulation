@@ -270,7 +270,6 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 void HairModel::integrate_internal_hair_force() {
 	double dt = 9.25887e-05;
 	smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
-
 	compute_frame(smoothed_particle);
 	//spring forces °è»ê
 	for (int i = 0; i < particle->pos.size(); i++) {

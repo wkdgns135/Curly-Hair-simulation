@@ -55,7 +55,7 @@ void Draw() {
 
 	//hm->draw_frame(hm->smoothed_rest_particle);
 	//rest_curves();
-	//smoothed_rest_curves();
+	smoothed_rest_curves();
 
 	glDisable(GL_LIGHTING);
 }
@@ -121,8 +121,8 @@ void Init(void) {
 	zoom = 20;
 	trans_x = 0;
 	trans_y = zoom / 3;
-	rot_x = 0;
-	rot_y = -60;
+	rot_x = 45;
+	rot_y = -90;
 	glEnable(GL_DEPTH_TEST);
 }
 
