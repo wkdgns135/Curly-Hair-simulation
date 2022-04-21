@@ -6,8 +6,8 @@ HairModel::HairModel() {
 	rest_particle = new Particle();
 	smoothed_rest_particle = new Particle();
 	
-	for (int i = 0; i < 10; i++) {
-		size.push_back(32);
+	for (int i = 0; i < 1; i++) {
+		size.push_back(128);
 	}
 
 	resize(particle->pos, size);
