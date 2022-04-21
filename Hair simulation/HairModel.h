@@ -20,8 +20,8 @@ public:
 	double			k_b			= 30000;//30000;
 	double			c_b			= 7500;// 5000;
 	double			alpha_c		= 1;
-	double			k_c			= 15000;// 15000;
-	double			c_c			= 1000;// 100;
+	double			k_c			= 30000;// 15000;
+	double			c_c			= 2000;// 100;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 public:

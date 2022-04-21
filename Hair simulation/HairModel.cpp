@@ -208,7 +208,7 @@ void HairModel::bending_damping_force(int i, int j) {
 	particle->force[i][j+1] -= force;
 }
 
-//XXX Core spring
+//FIXME Core spring
 void HairModel::core_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];
@@ -217,11 +217,8 @@ void HairModel::core_spring_force(int i, int j) {
 	b_hat.normalize();
 
 	Vector3d force = b_hat * k_c * (b.norm() - b_bar.norm());
-	b_hat = -b_hat;
 
-	multiply_vector(b_hat, force, force);
-	particle->force[i][j] += force;
-	particle->force[i][j+1] -= force;
+	particle->force[i][j] -= force;
 }
 
 void HairModel::core_damping_force(int i, int j) {
@@ -232,10 +229,8 @@ void HairModel::core_damping_force(int i, int j) {
 	b_hat.normalize();
 
 	Vector3d force = b_hat * c_c *(v.dot(b_hat));
-	b_hat = -b_hat;
-	multiply_vector(b_hat, force, force);
-	particle->force[i][j] += force;
-	particle->force[i][j + 1] -= force;
+
+	particle->force[i][j] -= force;
 }
 
 vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>> lambda, vector<double> l,double alpha, bool is_position) {
@@ -275,7 +270,7 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 	return d;
 }
 
-
+//NOTE Internal hair force integate
 void HairModel::integrate_internal_hair_force() {
 	double dt = 9.25887e-05;
 	//spring forces °è»ê
@@ -293,9 +288,10 @@ void HairModel::integrate_internal_hair_force() {
 	}
 }
 
+//NOTE External force integate
 void HairModel::integrate_external_force() {
 	double dt = 9.25887e-05;
-	Vector3d gravity(0.0, -100.0, 0.0);
+	Vector3d gravity(0.0, -500.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			particle->force[i][j] += gravity;
@@ -308,6 +304,7 @@ void HairModel::integrate_external_force() {
 	}
 }
 
+//NOTE Damping force integrate
 void HairModel::integrate_damping_force() {
 	double dt = 9.25887e-06;
 	for (int i = 0; i < particle->pos.size(); i++) {
