@@ -208,7 +208,7 @@ void HairModel::bending_damping_force(int i, int j) {
 	particle->force[i][j+1] -= force;
 }
 
-//FIXME Core spring
+//TODO Core spring test and figure out
 void HairModel::core_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];
@@ -291,7 +291,7 @@ void HairModel::integrate_internal_hair_force() {
 //NOTE External force integate
 void HairModel::integrate_external_force() {
 	double dt = 9.25887e-05;
-	Vector3d gravity(0.0, -500.0, 0.0);
+	Vector3d gravity(0.0, -900.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			particle->force[i][j] += gravity;
