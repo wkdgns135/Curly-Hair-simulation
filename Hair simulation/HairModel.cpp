@@ -208,7 +208,7 @@ void HairModel::bending_damping_force(int i, int j) {
 	particle->force[i][j+1] -= force;
 }
 
-//FIXME Core spring
+//TODO Core spring test and figure out
 void HairModel::core_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];

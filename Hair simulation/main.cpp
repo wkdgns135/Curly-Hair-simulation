@@ -55,7 +55,7 @@ void Draw() {
 
 	//hm->draw_frame(hm->smoothed_rest_particle);
 	//rest_curves();
-	smoothed_rest_curves();
+	//smoothed_rest_curves();
 
 	glDisable(GL_LIGHTING);
 }
