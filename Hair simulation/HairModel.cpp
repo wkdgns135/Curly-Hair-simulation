@@ -291,7 +291,7 @@ void HairModel::integrate_internal_hair_force() {
 //NOTE External force integate
 void HairModel::integrate_external_force() {
 	double dt = 9.25887e-05;
-	Vector3d gravity(0.0, -900.0, 0.0);
+	Vector3d gravity(0.0, -500.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			particle->force[i][j] += gravity;
