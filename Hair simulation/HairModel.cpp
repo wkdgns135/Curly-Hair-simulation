@@ -36,6 +36,7 @@ void HairModel::init(Particle *p) {
 	for (double i = 0; i < p->pos.size(); i++) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
 
+			//radius Á¶Àı
 			double t = j * 0.2;
 			double x = cos(t);
 			double y = t * 0.1;
@@ -50,6 +51,7 @@ void HairModel::init(Particle *p) {
 	}
 }
 
+//TODO Çï¸¯½º Æã¼Ç °øºÎ, ¿Ü·Â ÁÙÀÌ±â
 void HairModel::pre_compute() {
 	//rest íŒŒí‹°í´ê°„ì˜ í‰ê·  ê¸¸ì´ ê³„ì‚°
 	for (int i = 0; i < rest_particle->pos.size(); i++) {
@@ -154,6 +156,7 @@ void HairModel::simulation() {
 		update_position();
 	}
 }
+
 //NOTE Stretch spring
 void HairModel::stretch_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
@@ -208,7 +211,7 @@ void HairModel::bending_damping_force(int i, int j) {
 	particle->force[i][j+1] -= force;
 }
 
-//TODO Core spring test and figure out
+//NOTE Core spring
 void HairModel::core_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];
@@ -289,7 +292,7 @@ void HairModel::integrate_internal_hair_force() {
 //NOTE External force integate
 void HairModel::integrate_external_force() {
 	double dt = 9.25887e-05;
-	Vector3d gravity(0.0, -500.0, 0.0);
+	Vector3d gravity(0.0, -10.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			particle->force[i][j] += gravity;
