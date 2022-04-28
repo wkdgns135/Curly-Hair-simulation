@@ -138,7 +138,7 @@ void HairModel::draw_frame(Particle *p) {
 
 void HairModel::simulation() {
 	//Outer loop iteration
-	for (int iter1 = 0; iter1 < 2; iter1++) { 
+	for (int iter1 = 0; iter1 < 30; iter1++) { 
 		//Force loop iteration
 		for (int iter2 = 0; iter2 < 15; iter2++) { 
 			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
@@ -340,6 +340,6 @@ void HairModel::update_position() {
 
 void HairModel::move_root_particle(Vector3d dest) {
 	for (auto &p : particle->pos) {
-		p[0] += dest;
+		p[0] += dest * 0.1;
 	}
 }
