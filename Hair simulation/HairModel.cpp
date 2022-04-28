@@ -138,7 +138,7 @@ void HairModel::draw_frame(Particle *p) {
 
 void HairModel::simulation() {
 	//Outer loop iteration
-	for (int iter1 = 0; iter1 < 30; iter1++) { 
+	for (int iter1 = 0; iter1 < 2; iter1++) { 
 		//Force loop iteration
 		for (int iter2 = 0; iter2 < 15; iter2++) { 
 			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
@@ -167,8 +167,10 @@ void HairModel::stretch_spring_force(int i, int j) {
 	e_hat.normalize();
 
 	Vector3d force = e_hat * (k_s * (e.norm() - rest_e.norm()));
+	
+	if (j == 0)particle->force[i][j+1] -= force;
+	else particle->force[i][j] += force;
 
-	particle->force[i][j] += force;
 	particle->force[i][j+1] -= force;
 }
 
@@ -180,7 +182,10 @@ void HairModel::stretch_damping_force(int i, int j) {
 	e_hat.normalize();
 
 	Vector3d force = e_hat * ((delta_v.dot(e_hat)) * c_s);
-	particle->force[i][j] += force;
+
+	if (j == 0)particle->force[i][j + 1] -= force;
+	else particle->force[i][j] += force;
+
 	particle->force[i][j + 1] -= force;
 }
 
@@ -188,12 +193,16 @@ void HairModel::stretch_damping_force(int i, int j) {
 void HairModel::bending_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
-	smoothed_particle->t[i][j] = t;
+	
+	//only use testing
+	//smoothed_particle->t[i][j] = t;
 
 	Vector3d e = particle->pos[i][j + 1] - particle->pos[i][j];
 	Vector3d force = (e - t) * k_b;
 
-	particle->force[i][j] += force;
+	if (j == 0)particle->force[i][j + 1] -= force;
+	else particle->force[i][j] += force;
+
 	particle->force[i][j+1] -= force;
 }
 
@@ -207,7 +216,9 @@ void HairModel::bending_damping_force(int i, int j) {
 
 	Vector3d force = (delta_v - (e_hat * (delta_v.dot(e_hat)))) * c_b;
 	
-	particle->force[i][j] += force;
+	if (j == 0)particle->force[i][j + 1] -= force;
+	else particle->force[i][j] += force;
+
 	particle->force[i][j+1] -= force;
 }
 
@@ -341,5 +352,12 @@ void HairModel::update_position() {
 void HairModel::move_root_particle(Vector3d dest) {
 	for (auto &p : particle->pos) {
 		p[0] += dest * 0.1;
+	}
+}
+
+//TODO bounsing test
+void HairModel::bouncing_test() {
+	for (auto &p : particle->pos) {
+		
 	}
 }
