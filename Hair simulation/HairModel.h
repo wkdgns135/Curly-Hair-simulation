@@ -14,14 +14,14 @@ public:
 	vector<int>		size;
 public:
 public:
-	double			k_s			= 500000;
-	double			c_s			= 4470;  //;
+	double			k_s			= 50000;
+	double			c_s			= 1000;  //;
 	double			alpha_b		= 0.1;//0.1;
-	double			k_b			= 0;//30000;
-	double			c_b			= 0;// 5000;
+	double			k_b			= 20000;//30000;
+	double			c_b			= 5000;// 5000;
 	double			alpha_c		= 1;
-	double			k_c			= 0;// 15000;
-	double			c_c			= 0;// 100;
+	double			k_c			= 15000;// 15000;
+	double			c_c			= 1000;// 100;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 public:
@@ -35,6 +35,7 @@ public:
 	void			draw_point(vector<vector<Vector3d>>);
 	void			draw_frame(Particle *p);
 	void			move_root_particle(Vector3d dest);
+	void			bouncing_test();
 
 public:
 	void			integrate_internal_hair_force(); //include springs
