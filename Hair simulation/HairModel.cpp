@@ -179,6 +179,10 @@ void HairModel::stretch_damping_force(int i, int j) {
 	Vector3d e_hat = particle->pos[i][j + 1] - particle->pos[i][j];
 	e_hat.normalize();
 
+	if ((delta_v * delta_v).norm > v_threshold) {
+
+	}
+
 	Vector3d force = e_hat * ((delta_v.dot(e_hat)) * c_s);
 
 	particle->force[i][j] += force;
@@ -211,7 +215,6 @@ void HairModel::bending_damping_force(int i, int j) {
 	Vector3d force = (delta_v - (e_hat * (delta_v.dot(e_hat)))) * c_b;
 	
 	particle->force[i][j] += force;
-
 	particle->force[i][j+1] -= force;
 }
 
@@ -297,7 +300,7 @@ void HairModel::integrate_internal_hair_force() {
 
 //NOTE External force integate
 void HairModel::integrate_external_force() {
-	double dt = 0.0009;
+	double dt = 0.0009; //9.25887e-05
 	Vector3d gravity(0.0, -10.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {

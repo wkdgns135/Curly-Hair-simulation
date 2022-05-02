@@ -14,14 +14,14 @@ public:
 	vector<int>		size;
 public:
 public:
-	double			k_s			= 50000;
+	double			k_s			= 5000;
 	double			c_s			= 1000;  //;
-	double			alpha_b		= 0.1;//0.1;
-	double			k_b			= 20000;//30000;
+	double			alpha_b		= 0.3;//0.1; 
+	double			k_b			= 3000;//30000;
 	double			c_b			= 5000;// 5000;
 	double			alpha_c		= 1;
-	double			k_c			= 15000;// 15000;
-	double			c_c			= 1000;// 100;
+	double			k_c			= 0;// 15000;
+	double			c_c			= 0;// 100;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 public:
