@@ -15,7 +15,7 @@ void resize(vector<vector<Matrix3d>> &v, vector<int> size) {
 		v[i].resize(size[i]);
 	}
 }
-
+// TODO 프레임 생성, discreate rod 방법으로 변경.
 void compute_frame(Particle *p) {
 	for (int i = 0; i < p->frames.size(); i++) {
 		Vector3d up(0, 0, 1);
