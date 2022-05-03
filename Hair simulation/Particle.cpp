@@ -42,6 +42,7 @@ Matrix3d rotation_matrix(const Vector3d &axisAngle)
 }
 
 void compute_frame(Particle *p) {
+
 	for (int i = 0; i < p->frames.size(); i++) {
 		Vector3d t = p->pos[i][1] - p->pos[i][0];
 		t.normalize();
@@ -96,25 +97,27 @@ void compute_frame(Particle *p) {
 		}
 	}
 
-	/*for (int i = 0; i < p->frames.size(); i++) {
-		Vector3d up(0, 0, 1);
-		up.normalize();
-		for (int j = 0; j < p->frames[i].size() - 1; j++) {
-			Vector3d aim = p->pos[i][j + 1] - p->pos[i][j];
-			aim.normalize();
+	//for (int i = 0; i < p->frames.size(); i++) {
+	//	Vector3d up(0, 0, 1);
+	//	up.normalize();
+	//	for (int j = 0; j < p->frames[i].size() - 1; j++) {
+	//		Vector3d aim = p->pos[i][j + 1] - p->pos[i][j];
+	//		aim.normalize();
 
-			Vector3d cross = aim.cross(up);
-			cross.normalize();
+	//		Vector3d cross = aim.cross(up);
+	//		cross.normalize();
 
-			up = cross.cross(aim);
-			up.normalize();
+	//		up = cross.cross(aim);
+	//		up.normalize();
 
-			p->frames[i][j] <<	aim.x(), up.x(), cross.x(),
-								aim.y(), up.y(), cross.y(),
-								aim.z(), up.z(), cross.z();	
+	//		p->frames[i][j] <<	
+	//			aim.x(), up.x(), cross.x(),
+	//			aim.y(), up.y(), cross.y(),
+	//			aim.z(), up.z(), cross.z();	
 
-		}
-	}*/
+	//	}
+	//}
+
 }
 
 void multiply_vector(Vector3d &v1, Vector3d &v2, Vector3d &dest) {

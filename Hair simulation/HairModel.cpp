@@ -127,7 +127,7 @@ void HairModel::draw_frame(Particle *p) {
 			glColor3f(1, 0, 0);
 			for (int k = 0; k < 3; k++) {
 				glVertex3f(p->pos[i][j].x(), p->pos[i][j].y(), p->pos[i][j].z());
-				glVertex3f(p->pos[i][j].x() + p->frames[i][j](k,0), p->pos[i][j].y() + p->frames[i][j](k, 1), p->pos[i][j].z() + p->frames[i][j](k, 2));
+				glVertex3f(p->pos[i][j].x() + p->frames[i][j](0,k), p->pos[i][j].y() + p->frames[i][j](1, k), p->pos[i][j].z() + p->frames[i][j](2, k));
 				
 			}
 			glBegin(GL_LINES);
@@ -142,7 +142,7 @@ void HairModel::draw_frame(Particle *p) {
 
 void HairModel::simulation() {
 	//Outer loop iteration
-	for (int iter1 = 0; iter1 < 2; iter1++) { 
+	for (int iter1 = 0; iter1 < 5; iter1++) { 
 		//Force loop iteration
 		for (int iter2 = 0; iter2 < 15; iter2++) { 
 			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
@@ -265,8 +265,8 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 			int index_1 = j - 1 >= 0 ? j - 1 : 0;
 			int index_2 = j - 2 >= 0 ? j - 2 : 0;
 			d[i][j] = d[i][index_1] * 2 * (1 - beta);
-			d[i][j] -= d[i][index_2] * (1 - beta) * (1 - beta);
-			d[i][j] += (lambda[i][j + 1] - lambda[i][j]) * beta * beta;
+			d[i][j] -= d[i][index_2] * ((1 - beta) * (1 - beta)); 
+			d[i][j] += (lambda[i][j + 1] - lambda[i][j]) *(beta * beta);
 		}
 	}
 
