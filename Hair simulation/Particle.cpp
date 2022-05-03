@@ -21,9 +21,9 @@ void resize(vector<vector<Matrix3d>> &v, vector<int> size) {
 const Matrix3d cross_product_matrix(const Eigen::Vector3d &v)
 {
 	Matrix3d result;
-	result << 0, -v[2], v[1],
-		v[2], 0, -v[0],
-		-v[1], v[0], 0;
+	result <<	0, -v[2], v[1],
+				v[2], 0, -v[0],
+				-v[1], v[0], 0;
 	return result;
 }
 
@@ -52,24 +52,47 @@ void compute_frame(Particle *p) {
 
 		Vector3d prev_t = t;
 		Vector3d prev_u = u;
-		p->frames[i][0] <<	t.x(), u.x(), v.x(),
-							t.y(), u.y(), v.y(),
-							t.z(), u.z(), v.z();
+
+		/*
+		p->frames[i][0] << 
+			t.x(), t.y(), t.z(),
+			u.x(), u.y(), u.z(),
+			v.x(), v.y(), v.z();
+		*/
+		
+		p->frames[i][0] <<	
+			t.x(), u.x(), v.x(),
+			t.y(), u.y(), v.y(),
+			t.z(), u.z(), v.z();
 		
 		for (int j = 1; j < p->frames[i].size()-1; j++) {
 			t = p->pos[i][j + 1] - p->pos[i][j];
 			t.normalize();
 			
 			Vector3d n = prev_t.cross(t);
+			Vector3d prev_t(p->frames[i][j - 1](0, 0), p->frames[i][j - 1](1, 0), p->frames[i][j - 1](2, 0));
+			Vector3d prev_u(p->frames[i][j - 1](0, 1), p->frames[i][j - 1](1, 1), p->frames[i][j - 1](2, 1));
+
 
 			if (n.norm() < 1e-10) {
 				u = prev_u;
 			}
 			else {
 				if (t.dot(prev_t) > 0) {
-					u =	
+					u = rotation_matrix(n*asin(n.norm()) / n.norm()) * prev_u;
+				}
+				else {
+					u = rotation_matrix(n*(M_PI - asin(n.norm())) / n.norm()) * prev_u;
 				}
 			}
+			u.normalize();
+
+			v = t.cross(u);
+			//v.normalize();
+			p->frames[i][j] <<
+				t.x(), u.x(), v.x(),
+				t.y(), u.y(), v.y(),
+				t.z(), u.z(), v.z();
 		}
 	}
 
