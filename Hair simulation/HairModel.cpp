@@ -354,9 +354,9 @@ void HairModel::move_root_particle(Vector3d dest) {
 	}
 }
 
-//TODO bounsing test
-void HairModel::bouncing_test() {
+void HairModel::bouncing_test(double n) {
 	for (auto &p : particle->pos) {
-		p[0] += sin(time_t)
+		p[0][1] -= sin(n) * 0.05;
+	
 	}
 }

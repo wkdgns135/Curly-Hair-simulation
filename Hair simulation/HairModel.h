@@ -16,14 +16,15 @@ public:
 	vector<int>		size;
 public:
 public:
+	//TODO 각 coff 별로 어떤 차이가 있는지 상세하게 테스트 하기
 	double			k_s			= 5000;
 	double			c_s			= 50;  //;
 	double			alpha_b		= 0.3;	//0.1; 
 	double			k_b			= 1000;	//30000;
 	double			c_b			= 4000;	// 5000;
 	double			alpha_c		= 0.3;
-	double			k_c			= 100;	// 15000;
-	double			c_c			= 10;	//100;
+	double			k_c			= 0;	// 15000;
+	double			c_c			= 0;	//100;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 public:
@@ -36,7 +37,7 @@ public:
 	void			draw_point(vector<vector<Vector3d>>);
 	void			draw_frame(Particle *p);
 	void			move_root_particle(Vector3d dest);
-	void			bouncing_test();
+	void			bouncing_test(double n);
 
 public:
 	void			integrate_internal_hair_force(); //include springs
