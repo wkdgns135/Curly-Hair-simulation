@@ -16,6 +16,7 @@ public:
 	vector<int>		size;
 public:
 public:
+	//TODO 각 coff 별로 어떤 차이가 있는지 상세하게 테스트 하기
 	double			k_s			= 5000;
 	double			c_s			= 50;  //;
 	double			alpha_b		= 0.3;	//0.1; 

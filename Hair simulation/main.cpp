@@ -18,7 +18,8 @@ double dt = 0.01;
 
 // 0 : bounsing test	Key(B)
 // 1 : wind test		Key(W)
-bool status[2] = { false, false }; 
+// 2 : simulation		key(SPACE)
+bool status[3] = { false, false, true}; 
 double n = 0;
 
 HairModel *hm;
@@ -175,6 +176,9 @@ void KeyboardEvent(unsigned char key, int x, int y) {
 	case 'B':
 		status[0] = !status[0];
 		break;
+	case ' ':
+		status[2] = !status[2];
+		break;
 	default:
 		break;
 	}
@@ -190,7 +194,9 @@ void upLinePrompt(int count)
 }
 
 void Update() {
-	hm->simulation();
+	if(status[2]){
+		hm->simulation();
+	}
 
 	if (status[0])
 	{
