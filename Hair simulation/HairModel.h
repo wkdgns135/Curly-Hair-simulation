@@ -2,6 +2,7 @@
 #include "Particle.h"
 #include "vector"
 #include <random>
+#include <ctime>
 
 using namespace std;
 
@@ -16,13 +17,13 @@ public:
 public:
 public:
 	double			k_s			= 5000;
-	double			c_s			= 1000;  //;
-	double			alpha_b		= 0.5;//0.1; 
-	double			k_b			= 15000;//30000;
-	double			c_b			= 4000;// 5000;
-	double			alpha_c		= 1;
-	double			k_c			= 0;// 15000;
-	double			c_c			= 0;// 100;
+	double			c_s			= 50;  //;
+	double			alpha_b		= 0.3;	//0.1; 
+	double			k_b			= 1000;	//30000;
+	double			c_b			= 4000;	// 5000;
+	double			alpha_c		= 0.3;
+	double			k_c			= 100;	// 15000;
+	double			c_c			= 10;	//100;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 public:
