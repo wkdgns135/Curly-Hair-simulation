@@ -186,8 +186,7 @@ void HairModel::stretch_damping_force(int i, int j) {
 
 	//if ((delta_v * delta_v).norm() > v_threshold) {}
 
-	Vector3d force = e_hat * ((delta_v.dot(e_hat)) * c_s);
-
+	Vector3d force = c_s * ((delta_v.dot(e_hat)) * e_hat);
 	particle->force[i][j] += force;
 	particle->force[i][j+1] -= force;
 }

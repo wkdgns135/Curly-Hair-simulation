@@ -16,7 +16,7 @@ public:
 public:
 public:
 	double			k_s			= 50000;
-	double			c_s			= 500;  //;
+	double			c_s			= 100;  //;
 	double			alpha_b		= 1;//0.1; 
 	double			k_b			= 0;//30000;
 	double			c_b			= 0;// 5000;
