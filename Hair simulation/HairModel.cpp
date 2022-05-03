@@ -6,8 +6,8 @@ HairModel::HairModel() {
 	rest_particle = new Particle();
 	smoothed_rest_particle = new Particle();
 	
-	for (int i = 0; i < 1; i++) {
-		size.push_back(128);
+	for (int i = 0; i < 10; i++) {
+		size.push_back(32);
 	}
 
 	resize(particle->pos, size);
@@ -46,11 +46,12 @@ void HairModel::init(Particle *p) {
 			double y = t * 0.2;
 			double z = sin(t) * r;
 
-			p->pos[i][j] = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
+			//p->pos[i][j] = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
-			//p->pos[i][j] = Vector3d(i / p->pos.size(), -j / p->pos.size(),0);
+			p->pos[i][j] = Vector3d(0, -j / p->pos.size() * 32, i / p->pos.size() * 32);
 			//p->pos[i][j] = Vector3d(0.1*x,0.1*-y,0.1*z + (2.0 * i / p->pos.size()));
+
 			p->velocity[i][j].setZero();
 		}
 	}
@@ -140,9 +141,11 @@ void HairModel::draw_frame(Particle *p) {
 	}
 }
 
+
+//TODO simulation
 void HairModel::simulation() {
 	//Outer loop iteration
-	for (int iter1 = 0; iter1 < 5; iter1++) { 
+	for (int iter1 = 0; iter1 < 1; iter1++) { 
 		//Force loop iteration
 		for (int iter2 = 0; iter2 < 15; iter2++) { 
 			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
@@ -165,15 +168,13 @@ void HairModel::simulation() {
 void HairModel::stretch_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 
-	Vector3d e = particle->pos[i][j+1] - particle->pos[i][j];
-	Vector3d rest_e = rest_particle->pos[i][j+1] - rest_particle->pos[i][j];
-	Vector3d e_hat = e;
-	e_hat.normalize();
+	Vector3d e = particle->pos[i][j + 1] - particle->pos[i][j];
+	Vector3d rest_e = rest_particle->pos[i][j + 1] - rest_particle->pos[i][j];
+	Vector3d e_hat = e.normalized();
 
 	Vector3d force = e_hat * (k_s * (e.norm() - rest_e.norm()));
-	
 	particle->force[i][j] += force;
-	particle->force[i][j+1] -= force;
+	particle->force[i][j + 1] -= force;
 }
 
 void HairModel::stretch_damping_force(int i, int j) {
