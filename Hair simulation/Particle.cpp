@@ -16,6 +16,31 @@ void resize(vector<vector<Matrix3d>> &v, vector<int> size) {
 	}
 }
 // TODO 프레임 생성, discreate rod 방법으로 변경.
+
+
+const Matrix3d cross_product_matrix(const Eigen::Vector3d &v)
+{
+	Matrix3d result;
+	result << 0, -v[2], v[1],
+		v[2], 0, -v[0],
+		-v[1], v[0], 0;
+	return result;
+}
+
+Matrix3d rotation_matrix(const Vector3d &axisAngle)
+{
+	double theta = axisAngle.norm();
+	Vector3d thetahat = axisAngle / theta;
+
+	if (theta == 0)
+		thetahat.setZero();
+
+	Matrix3d result;
+	result.setIdentity();
+	result = cos(theta)*result + sin(theta)*cross_product_matrix(thetahat) + (1 - cos(theta))*thetahat*thetahat.transpose();
+	return result;
+}
+
 void compute_frame(Particle *p) {
 	for (int i = 0; i < p->frames.size(); i++) {
 		Vector3d t = p->pos[i][1] - p->pos[i][0];
