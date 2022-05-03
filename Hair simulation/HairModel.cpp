@@ -33,16 +33,20 @@ HairModel::HairModel() {
 }
 
 void HairModel::init(Particle *p) {
+
 	for (double i = 0; i < p->pos.size(); i++) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
+			int size = particle->pos[i].size();
+			//radius ���
+			double r = j / size * 2 < 1 ? j / size * 2 : 1;
 
-			//radius Á¶Àý
-			double t = j * 0.2;
-			double x = cos(t);
-			double y = t * 0.1;
-			double z = sin(t);
+			double t = j * 0.3;
+			double x = cos(t) * r;
+			double y = t * 0.2;
+			double z = sin(t) * r;
 
-			p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
+			p->pos[i][j] = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
+			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
 			//p->pos[i][j] = Vector3d(i / p->pos.size(), -j / p->pos.size(),0);
 			//p->pos[i][j] = Vector3d(0.1*x,0.1*-y,0.1*z + (2.0 * i / p->pos.size()));
@@ -50,8 +54,6 @@ void HairModel::init(Particle *p) {
 		}
 	}
 }
-
-//TODO Çï¸¯½º Æã¼Ç °øºÎ, ¿Ü·Â ÁÙÀÌ±â
 void HairModel::pre_compute() {
 	//rest íŒŒí‹°í´ê°„ì˜ í‰ê·  ê¸¸ì´ ê³„ì‚°
 	for (int i = 0; i < rest_particle->pos.size(); i++) {
@@ -179,14 +181,12 @@ void HairModel::stretch_damping_force(int i, int j) {
 	Vector3d e_hat = particle->pos[i][j + 1] - particle->pos[i][j];
 	e_hat.normalize();
 
-	if ((delta_v * delta_v).norm > v_threshold) {
-
-	}
+	//if ((delta_v * delta_v).norm() > v_threshold) {}
 
 	Vector3d force = e_hat * ((delta_v.dot(e_hat)) * c_s);
 
 	particle->force[i][j] += force;
-	particle->force[i][j + 1] -= force;
+	particle->force[i][j+1] -= force;
 }
 
 //NOTE Bending spring
