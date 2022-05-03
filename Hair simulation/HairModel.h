@@ -14,14 +14,14 @@ public:
 	Particle		*rest_particle;
 	Particle		*smoothed_rest_particle;
 	vector<int>		size;
+	Vector3d		force;
 public:
-public:
-	//TODO 각 coff 별로 어떤 차이가 있는지 상세하게 테스트 하기
+	//TODO 각 coeff 별로 어떤 차이가 있는지 상세하게 테스트 하기
 	double			k_s			= 5000;
 	double			c_s			= 50;  //;
 	double			alpha_b		= 0.3;	//0.1; 
-	double			k_b			= 1000;	//30000;
-	double			c_b			= 4000;	// 5000;
+	double			k_b			= 500;	//30000;
+	double			c_b			= 3000;	// 5000;
 	double			alpha_c		= 0.3;
 	double			k_c			= 0;	// 15000;
 	double			c_c			= 0;	//100;
@@ -31,7 +31,7 @@ public:
 					HairModel();
 	void			init(Particle *p);
 	void			pre_compute();
-	void			simulation();
+	void			simulation(Vector3d _force = Vector3d(0,0,0));
 public:
 	void			draw_wire(vector<vector<Vector3d>>);
 	void			draw_point(vector<vector<Vector3d>>);

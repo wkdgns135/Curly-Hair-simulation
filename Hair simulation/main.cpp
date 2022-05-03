@@ -176,6 +176,10 @@ void KeyboardEvent(unsigned char key, int x, int y) {
 	case 'B':
 		status[0] = !status[0];
 		break;
+	case 'w':
+	case 'W':
+		status[1] = !status[1];
+		break;
 	case ' ':
 		status[2] = !status[2];
 		break;
@@ -195,9 +199,13 @@ void upLinePrompt(int count)
 
 void Update() {
 	if(status[2]){
-		hm->simulation();
+		if (status[1]) {
+			hm->simulation(Vector3d(0,0,10));
+		}
+		else {
+			hm->simulation();
+		}
 	}
-
 	if (status[0])
 	{
 		hm->bouncing_test(n);
