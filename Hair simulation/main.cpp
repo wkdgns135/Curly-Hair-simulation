@@ -176,6 +176,10 @@ void KeyboardEvent(unsigned char key, int x, int y) {
 	case 'B':
 		status[0] = !status[0];
 		break;
+	case 'w':
+	case 'W':
+		status[1] = !status[1];
+		break;
 	case ' ':
 		status[2] = !status[2];
 		break;
