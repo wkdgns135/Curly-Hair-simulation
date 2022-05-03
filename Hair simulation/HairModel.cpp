@@ -37,13 +37,12 @@ void HairModel::init(Particle *p) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
 			//radius 조절
 			int size = p->pos[i].size();
-			if (j < size / 3) {
+			double r =  j / size * 2 < 1 ? j / size * 2: 1;
 
-			}
-			double t = j * 0.1;
-			double x = cos(t) * 1;
-			double y = t;
-			double z = sin(t) * 1;
+			double t = j * 0.3;
+			double x = cos(t) * r;
+			double y = t * 0.2;
+			double z = sin(t) * r;
 
 			p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
@@ -54,8 +53,14 @@ void HairModel::init(Particle *p) {
 	}
 }
 
-void HairModel::helix_function(int index,Vector3d *v) {
+void HairModel::helix_function(int i, int j, Vector3d &v) {
 
+	double t = j * 0.1;
+	double x = cos(t) * 1;
+	double y = t;
+	double z = sin(t) * 1;
+
+	v = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
 }
 
 //TODO 헬릭스 펑션 공부, 외력 줄이기
