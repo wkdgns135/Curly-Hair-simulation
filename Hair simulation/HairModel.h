@@ -15,11 +15,11 @@ public:
 	vector<int>		size;
 public:
 public:
-	double			k_s			= 50000;
-	double			c_s			= 100;  //;
-	double			alpha_b		= 1;//0.1; 
-	double			k_b			= 0;//30000;
-	double			c_b			= 0;// 5000;
+	double			k_s			= 5000;
+	double			c_s			= 50;  //;
+	double			alpha_b		= 0.3;//0.1; 
+	double			k_b			= 3000;//30000;
+	double			c_b			= 2000;// 5000;
 	double			alpha_c		= 1;
 	double			k_c			= 0;// 15000;
 	double			c_c			= 0;// 100;

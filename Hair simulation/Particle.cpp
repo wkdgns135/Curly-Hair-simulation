@@ -43,80 +43,80 @@ Matrix3d rotation_matrix(const Vector3d &axisAngle)
 
 void compute_frame(Particle *p) {
 
-	for (int i = 0; i < p->frames.size(); i++) {
-		Vector3d t = p->pos[i][1] - p->pos[i][0];
-		t.normalize();
-		Vector3d u(t[2] - t[1], t[0] - t[2], t[1] - t[0]);
-		u.normalize();
-		Vector3d v = t.cross(u);
-		v.normalize();
-
-		Vector3d prev_t = t;
-		Vector3d prev_u = u;
-
-		/*
-		p->frames[i][0] << 
-			t.x(), t.y(), t.z(),
-			u.x(), u.y(), u.z(),
-			v.x(), v.y(), v.z();
-		*/
-		
-		p->frames[i][0] <<	
-			t.x(), u.x(), v.x(),
-			t.y(), u.y(), v.y(),
-			t.z(), u.z(), v.z();
-		
-		for (int j = 1; j < p->frames[i].size()-1; j++) {
-			t = p->pos[i][j + 1] - p->pos[i][j];
-			t.normalize();
-			
-			Vector3d n = prev_t.cross(t);
-			Vector3d prev_t(p->frames[i][j - 1](0, 0), p->frames[i][j - 1](1, 0), p->frames[i][j - 1](2, 0));
-			Vector3d prev_u(p->frames[i][j - 1](0, 1), p->frames[i][j - 1](1, 1), p->frames[i][j - 1](2, 1));
-
-
-			if (n.norm() < 1e-10) {
-				u = prev_u;
-			}
-			else {
-				if (t.dot(prev_t) > 0) {
-					u = rotation_matrix(n*asin(n.norm()) / n.norm()) * prev_u;
-				}
-				else {
-					u = rotation_matrix(n*(M_PI - asin(n.norm())) / n.norm()) * prev_u;
-				}
-			}
-			u.normalize();
-
-			v = t.cross(u);
-			//v.normalize();
-			p->frames[i][j] <<
-				t.x(), u.x(), v.x(),
-				t.y(), u.y(), v.y(),
-				t.z(), u.z(), v.z();
-		}
-	}
-
 	//for (int i = 0; i < p->frames.size(); i++) {
-	//	Vector3d up(0, 0, 1);
-	//	up.normalize();
-	//	for (int j = 0; j < p->frames[i].size() - 1; j++) {
-	//		Vector3d aim = p->pos[i][j + 1] - p->pos[i][j];
-	//		aim.normalize();
+	//	Vector3d t = p->pos[i][1] - p->pos[i][0];
+	//	t.normalize();
+	//	Vector3d u(t[2] - t[1], t[0] - t[2], t[1] - t[0]);
+	//	u.normalize();
+	//	Vector3d v = t.cross(u);
+	//	v.normalize();
 
-	//		Vector3d cross = aim.cross(up);
-	//		cross.normalize();
+	//	Vector3d prev_t = t;
+	//	Vector3d prev_u = u;
 
-	//		up = cross.cross(aim);
-	//		up.normalize();
+	//	/*
+	//	p->frames[i][0] << 
+	//		t.x(), t.y(), t.z(),
+	//		u.x(), u.y(), u.z(),
+	//		v.x(), v.y(), v.z();
+	//	*/
+	//	
+	//	p->frames[i][0] <<	
+	//		t.x(), u.x(), v.x(),
+	//		t.y(), u.y(), v.y(),
+	//		t.z(), u.z(), v.z();
+	//	
+	//	for (int j = 1; j < p->frames[i].size()-1; j++) {
+	//		t = p->pos[i][j + 1] - p->pos[i][j];
+	//		t.normalize();
+	//		
+	//		Vector3d n = prev_t.cross(t);
+	//		Vector3d prev_t(p->frames[i][j - 1](0, 0), p->frames[i][j - 1](1, 0), p->frames[i][j - 1](2, 0));
+	//		Vector3d prev_u(p->frames[i][j - 1](0, 1), p->frames[i][j - 1](1, 1), p->frames[i][j - 1](2, 1));
 
-	//		p->frames[i][j] <<	
-	//			aim.x(), up.x(), cross.x(),
-	//			aim.y(), up.y(), cross.y(),
-	//			aim.z(), up.z(), cross.z();	
 
+	//		if (n.norm() < 1e-10) {
+	//			u = prev_u;
+	//		}
+	//		else {
+	//			if (t.dot(prev_t) > 0) {
+	//				u = rotation_matrix(n*asin(n.norm()) / n.norm()) * prev_u;
+	//			}
+	//			else {
+	//				u = rotation_matrix(n*(M_PI - asin(n.norm())) / n.norm()) * prev_u;
+	//			}
+	//		}
+	//		u.normalize();
+
+	//		v = t.cross(u);
+	//		//v.normalize();
+	//		p->frames[i][j] <<
+	//			t.x(), u.x(), v.x(),
+	//			t.y(), u.y(), v.y(),
+	//			t.z(), u.z(), v.z();
 	//	}
 	//}
+
+	for (int i = 0; i < p->frames.size(); i++) {
+		Vector3d up(0, 0, 1);
+		up.normalize();
+		for (int j = 0; j < p->frames[i].size() - 1; j++) {
+			Vector3d aim = p->pos[i][j + 1] - p->pos[i][j];
+			aim.normalize();
+
+			Vector3d cross = aim.cross(up);
+			cross.normalize();
+
+			up = cross.cross(aim);
+			up.normalize();
+
+			p->frames[i][j] <<	
+				aim.x(), up.x(), cross.x(),
+				aim.y(), up.y(), cross.y(),
+				aim.z(), up.z(), cross.z();	
+
+		}
+	}
 
 }
 
