@@ -29,7 +29,7 @@ public:
 	void			init(Particle *p);
 	void			pre_compute();
 	void			simulation();
-
+	void			helix_function(int index,Vector3d *v);
 public:
 	void			draw_wire(vector<vector<Vector3d>>);
 	void			draw_point(vector<vector<Vector3d>>);
