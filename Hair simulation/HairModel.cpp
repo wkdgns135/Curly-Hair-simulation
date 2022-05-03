@@ -33,18 +33,21 @@ HairModel::HairModel() {
 }
 
 void HairModel::init(Particle *p) {
+
 	for (double i = 0; i < p->pos.size(); i++) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
+			int size = particle->pos[i].size();
+
 			//radius 조절
-			int size = p->pos[i].size();
-			double r =  j / size * 2 < 1 ? j / size * 2: 1;
+			double r = j / size * 2 < 1 ? j / size * 2 : 1;
 
 			double t = j * 0.3;
 			double x = cos(t) * r;
 			double y = t * 0.2;
 			double z = sin(t) * r;
 
-			p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
+			p->pos[i][j] = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
+			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
 			//p->pos[i][j] = Vector3d(i / p->pos.size(), -j / p->pos.size(),0);
 			//p->pos[i][j] = Vector3d(0.1*x,0.1*-y,0.1*z + (2.0 * i / p->pos.size()));
@@ -53,17 +56,6 @@ void HairModel::init(Particle *p) {
 	}
 }
 
-void HairModel::helix_function(int i, int j, Vector3d &v) {
-
-	double t = j * 0.1;
-	double x = cos(t) * 1;
-	double y = t;
-	double z = sin(t) * 1;
-
-	v = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
-}
-
-//TODO 헬릭스 펑션 공부, 외력 줄이기
 void HairModel::pre_compute() {
 	//rest 파티클간의 평균 길이 계산
 	for (int i = 0; i < rest_particle->pos.size(); i++) {

@@ -1,6 +1,7 @@
 #pragma once
 #include "Particle.h"
 #include "vector"
+#include <random>
 
 using namespace std;
 
@@ -16,7 +17,7 @@ public:
 public:
 	double			k_s			= 5000;
 	double			c_s			= 1000;  //;
-	double			alpha_b		= 0.3;//0.1; 
+	double			alpha_b		= 0.5;//0.1; 
 	double			k_b			= 3000;//30000;
 	double			c_b			= 5000;// 5000;
 	double			alpha_c		= 1;
@@ -29,7 +30,6 @@ public:
 	void			init(Particle *p);
 	void			pre_compute();
 	void			simulation();
-	void			helix_function(int i,int j,Vector3d &v);
 public:
 	void			draw_wire(vector<vector<Vector3d>>);
 	void			draw_point(vector<vector<Vector3d>>);
