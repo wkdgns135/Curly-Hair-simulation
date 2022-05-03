@@ -199,9 +199,13 @@ void upLinePrompt(int count)
 
 void Update() {
 	if(status[2]){
-		hm->simulation();
+		if (status[1]) {
+			hm->simulation(Vector3d(0,0,10));
+		}
+		else {
+			hm->simulation();
+		}
 	}
-
 	if (status[0])
 	{
 		hm->bouncing_test(n);

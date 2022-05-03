@@ -33,7 +33,7 @@ HairModel::HairModel() {
 }
 
 void HairModel::init(Particle *p) {
-
+	force.setZero();
 	for (double i = 0; i < p->pos.size(); i++) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
 			int size = particle->pos[i].size();
@@ -148,7 +148,8 @@ void HairModel::draw_frame(Particle *p) {
 
 
 //NOTE simulation
-void HairModel::simulation() {
+void HairModel::simulation(Vector3d _force) {
+	force = _force;
 	//Outer loop iteration
 	for (int iter1 = 0; iter1 < 2; iter1++) { 
 		//Force loop iteration
@@ -311,7 +312,7 @@ void HairModel::integrate_external_force() {
 	Vector3d gravity(0.0, -10.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
-			particle->force[i][j] += gravity;
+			particle->force[i][j] += gravity + force;
 
 			if (j == 0)continue;
 			Vector3d acceleration = particle->force[i][j] * particle->inverss_mass();

@@ -14,7 +14,7 @@ public:
 	Particle		*rest_particle;
 	Particle		*smoothed_rest_particle;
 	vector<int>		size;
-public:
+	Vector3d		force;
 public:
 	//TODO 각 coff 별로 어떤 차이가 있는지 상세하게 테스트 하기
 	double			k_s			= 5000;
@@ -31,13 +31,14 @@ public:
 					HairModel();
 	void			init(Particle *p);
 	void			pre_compute();
-	void			simulation();
+	void			simulation(Vector3d _force = Vector3d(0,0,0));
 public:
 	void			draw_wire(vector<vector<Vector3d>>);
 	void			draw_point(vector<vector<Vector3d>>);
 	void			draw_frame(Particle *p);
 	void			move_root_particle(Vector3d dest);
 	void			bouncing_test(double n);
+	void			wind_test();
 
 public:
 	void			integrate_internal_hair_force(); //include springs
