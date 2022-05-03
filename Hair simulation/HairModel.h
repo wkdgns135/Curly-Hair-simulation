@@ -18,8 +18,8 @@ public:
 	double			k_s			= 5000;
 	double			c_s			= 1000;  //;
 	double			alpha_b		= 0.5;//0.1; 
-	double			k_b			= 3000;//30000;
-	double			c_b			= 5000;// 5000;
+	double			k_b			= 15000;//30000;
+	double			c_b			= 4000;// 5000;
 	double			alpha_c		= 1;
 	double			k_c			= 0;// 15000;
 	double			c_c			= 0;// 100;

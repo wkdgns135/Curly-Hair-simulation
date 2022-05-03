@@ -18,6 +18,37 @@ void resize(vector<vector<Matrix3d>> &v, vector<int> size) {
 // TODO 프레임 생성, discreate rod 방법으로 변경.
 void compute_frame(Particle *p) {
 	for (int i = 0; i < p->frames.size(); i++) {
+		Vector3d t = p->pos[i][1] - p->pos[i][0];
+		t.normalize();
+		Vector3d u(t[2] - t[1], t[0] - t[2], t[1] - t[0]);
+		u.normalize();
+		Vector3d v = t.cross(u);
+		v.normalize();
+
+		Vector3d prev_t = t;
+		Vector3d prev_u = u;
+		p->frames[i][0] <<	t.x(), u.x(), v.x(),
+							t.y(), u.y(), v.y(),
+							t.z(), u.z(), v.z();
+		
+		for (int j = 1; j < p->frames[i].size()-1; j++) {
+			t = p->pos[i][j + 1] - p->pos[i][j];
+			t.normalize();
+			
+			Vector3d n = prev_t.cross(t);
+
+			if (n.norm() < 1e-10) {
+				u = prev_u;
+			}
+			else {
+				if (t.dot(prev_t) > 0) {
+					u =	
+				}
+			}
+		}
+	}
+
+	/*for (int i = 0; i < p->frames.size(); i++) {
 		Vector3d up(0, 0, 1);
 		up.normalize();
 		for (int j = 0; j < p->frames[i].size() - 1; j++) {
@@ -35,7 +66,7 @@ void compute_frame(Particle *p) {
 								aim.z(), up.z(), cross.z();	
 
 		}
-	}
+	}*/
 }
 
 void multiply_vector(Vector3d &v1, Vector3d &v2, Vector3d &dest) {
