@@ -96,9 +96,12 @@ void compute_frame(Particle *p) {
 	//}
 
 	for (int i = 0; i < p->frames.size(); i++) {
-		Vector3d up(0, 0, 1);
+		Vector3d aim = p->pos[i][1] - p->pos[i][0];
+		aim.normalize();
+		Vector3d up(aim[2] - aim[1], aim[0] - aim[2], aim[1] - aim[0]);
 		up.normalize();
-		for (int j = 0; j < p->frames[i].size() - 1; j++) {
+
+		for (int j = 1; j < p->frames[i].size() - 1; j++) {
 			Vector3d aim = p->pos[i][j + 1] - p->pos[i][j];
 			aim.normalize();
 

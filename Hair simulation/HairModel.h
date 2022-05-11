@@ -18,13 +18,13 @@ public:
 public:
 	//TODO 각 coeff 별로 어떤 차이가 있는지 상세하게 테스트 하기
 	double			k_s			= 5000;
-	double			c_s			= 50;  //;
-	double			alpha_b		= 0.3;	//0.1; 
+	double			c_s			= 20;  //;
+	double			alpha_b		= 0.23;	//0.1; 
 	double			k_b			= 500;	//30000;
 	double			c_b			= 3000;	// 5000;
-	double			alpha_c		= 0.3;
-	double			k_c			= 0;	// 15000;
-	double			c_c			= 0;	//100;
+	double			alpha_c		= 0.23;
+	double			k_c			= 500;	// 15000;
+	double			c_c			= 50;	//100;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 public:

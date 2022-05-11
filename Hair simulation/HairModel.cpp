@@ -234,8 +234,7 @@ void HairModel::core_spring_force(int i, int j) {
 	Vector3d b_hat = b;
 	b_hat.normalize();
 
-	Vector3d force = b_hat * k_c * (b.norm() - b_bar.norm());
-
+	Vector3d force = k_c * (b.norm() - b_bar.norm()) * b_hat;
 	particle->force[i][j] -= force;
 }
 
@@ -246,8 +245,7 @@ void HairModel::core_damping_force(int i, int j) {
 	Vector3d b_hat = b;
 	b_hat.normalize();
 
-	Vector3d force = b_hat * c_c *(v.dot(b_hat));
-
+	Vector3d force = c_c * ((v.dot(b_hat)) * b_hat);
 	particle->force[i][j] -= force;
 }
 
@@ -362,6 +360,5 @@ void HairModel::move_root_particle(Vector3d dest) {
 void HairModel::bouncing_test(double n) {
 	for (auto &p : particle->pos) {
 		p[0][1] -= sin(n) * 0.05;
-	
 	}
 }
