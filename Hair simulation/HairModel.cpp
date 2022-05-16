@@ -13,6 +13,8 @@ HairModel::HairModel() {
 	resize(particle->pos, size);
 	resize(particle->velocity, size);
 	resize(particle->force, size);
+	resize(particle->wetness, size);
+	resize(particle->wet_threshold, size);
 
 	resize(smoothed_particle->pos, size);
 	resize(smoothed_particle->velocity, size);
@@ -82,14 +84,10 @@ void HairModel::pre_compute() {
 	//smoothed curve frame pre-compute
 	compute_frame(smoothed_rest_particle);
 	for (int i = 0; i < smoothed_rest_particle->pos.size(); i++) {
-		//smoothed_rest_particle->t[i][0] = Vector3d(0, 0, 0);
-		
 		for (int j = 1; j < smoothed_rest_particle->pos[i].size() - 1; j++) {
 			Vector3d e = rest_particle->pos[i][j + 1] - rest_particle->pos[i][j];
 			
 			smoothed_rest_particle->t[i][j] = smoothed_rest_particle->frames[i][j - 1].transpose() * e;
-			//smoothed_rest_particle->frames[i][j].t = multiply_reference_vector_init(smoothed_rest_particle->frames[i][j-1], e);
-			//smoothed_rest_particle->frames[i][j].t = e;
 		}
 	}
 }
