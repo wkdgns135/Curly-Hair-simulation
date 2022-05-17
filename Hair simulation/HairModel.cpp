@@ -43,7 +43,11 @@ void HairModel::init(Particle *p) {
 }
 
 void HairModel::wet_init(Particle *p) {
-	//TODO bending 정도에 따라 Threshold 값 변하는 식 만들기
+	/*
+	TODO 각 Particle에 습도를 나타내는 계수와 이를 제한하는 
+	Threshold 변수를 생성,Threshold 변수는 원본 컬에 영향을 받아 
+	벤딩이 클수록 불규칙하고 벤딩이 작을수록 규칙적이어야 함.
+	*/
 	for (int i = 0; i < p->m.size(); i++) {
 		for (int j = 0; j < p->m[i].size(); j++) {
 			p->m[i][j] = 1;
