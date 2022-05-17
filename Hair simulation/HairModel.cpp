@@ -48,6 +48,7 @@ void HairModel::wet_init(Particle *p) {
 	Threshold 변수를 생성,Threshold 변수는 원본 컬에 영향을 받아 
 	벤딩이 클수록 불규칙하고 벤딩이 작을수록 규칙적이어야 함.
 	*/
+
 	for (int i = 0; i < p->m.size(); i++) {
 		for (int j = 0; j < p->m[i].size(); j++) {
 			p->m[i][j] = 1;
@@ -103,6 +104,14 @@ void HairModel::pre_compute() {
 	//smoothed 된 rest 파티클 위치 저장
 	smoothed_rest_particle->pos = smoothing_function(rest_particle->pos, rest_particle->rest_length, alpha_b, true);
 	
+	for (int i = 0; i < particle->m.size(); i++) {
+		for (int j = 0; j < particle->m[i].size(); j++) {
+			double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
+			particle->wet_threshold[i][j] = exp(length);
+			//length = 벤딩이 단순할수록 0에 수렴 최대 1
+		}
+	}
+
 	//smoothed curve frame pre-compute
 	compute_frame(smoothed_rest_particle);
 	for (int i = 0; i < smoothed_rest_particle->pos.size(); i++) {
@@ -154,7 +163,6 @@ void HairModel::draw_frame(Particle *p) {
 			for (int k = 0; k < 3; k++) {
 				glVertex3f(p->pos[i][j].x(), p->pos[i][j].y(), p->pos[i][j].z());
 				glVertex3f(p->pos[i][j].x() + p->frames[i][j](0,k), p->pos[i][j].y() + p->frames[i][j](1, k), p->pos[i][j].z() + p->frames[i][j](2, k));
-				
 			}
 			glBegin(GL_LINES);
 			glColor3f(0, 1, 0);
@@ -197,8 +205,9 @@ void HairModel::stretch_spring_force(int i, int j) {
 	Vector3d e = particle->pos[i][j + 1] - particle->pos[i][j];
 	Vector3d rest_e = rest_particle->pos[i][j + 1] - rest_particle->pos[i][j];
 	Vector3d e_hat = e.normalized();
-
-	Vector3d force = e_hat * (k_s * (e.norm() - rest_e.norm()));
+	
+	double ks = k_s * particle->wetness[i][j];
+	Vector3d force = e_hat * (ks * (e.norm() - rest_e.norm()));
 	particle->force[i][j] += force;
 	particle->force[i][j + 1] -= force;
 }
@@ -254,7 +263,9 @@ void HairModel::core_spring_force(int i, int j) {
 	Vector3d b_hat = b;
 	b_hat.normalize();
 
-	Vector3d force = k_c * (b.norm() - b_bar.norm()) * b_hat;
+	double kc = k_c * particle->wetness[i][j];
+
+	Vector3d force = kc * (b.norm() - b_bar.norm()) * b_hat;
 	particle->force[i][j] -= force;
 }
 
