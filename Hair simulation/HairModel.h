@@ -16,7 +16,6 @@ public:
 	vector<int>		size;
 	Vector3d		force;
 public:
-	//TODO 각 coeff 별로 어떤 차이가 있는지 상세하게 테스트 하기
 	double			k_s			= 5000;
 	double			c_s			= 20;  //;
 	double			alpha_b		= 0.23;	//0.1; 
@@ -31,6 +30,8 @@ public:
 					HairModel();
 	void			init(Particle *p);
 	void			pre_compute();
+	void			helix_function(Particle *p);
+	void			wet_init(Particle *p);
 	void			simulation(Vector3d _force = Vector3d(0,0,0));
 public:
 	void			draw_wire(vector<vector<Vector3d>>);

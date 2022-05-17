@@ -13,6 +13,7 @@ HairModel::HairModel() {
 	resize(particle->pos, size);
 	resize(particle->velocity, size);
 	resize(particle->force, size);
+	resize(particle->m, size);
 	resize(particle->wetness, size);
 	resize(particle->wet_threshold, size);
 
@@ -35,7 +36,24 @@ HairModel::HairModel() {
 }
 
 void HairModel::init(Particle *p) {
+	//exturn force clear
 	force.setZero();
+	helix_function(p);
+	wet_init(p);
+}
+
+void HairModel::wet_init(Particle *p) {
+	//TODO bending 정도에 따라 Threshold 값 변하는 식 만들기
+	for (int i = 0; i < p->m.size(); i++) {
+		for (int j = 0; j < p->m[i].size(); j++) {
+			p->m[i][j] = 1;
+			p->wetness[i][j] = 1;
+			p->wet_threshold[i][j] = 1;
+		}
+	}
+}
+
+void HairModel::helix_function(Particle *p) {
 	for (double i = 0; i < p->pos.size(); i++) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
 			int size = particle->pos[i].size();
@@ -47,16 +65,16 @@ void HairModel::init(Particle *p) {
 			double x = cos(t) * r;
 			double y = t * 0.2;
 			double z = sin(t) * r;
-			
+
 			//helix hair
 			p->pos[i][j] = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
-			
+
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
-			
+
 			//straight hair
 			//p->pos[i][j] = Vector3d(0, -j / p->pos.size() * 32, i / p->pos.size() * 32);
-			
+
 			//p->pos[i][j] = Vector3d(0.1*x,0.1*-y,0.1*z + (2.0 * i / p->pos.size()));
 
 			p->velocity[i][j].setZero();
@@ -295,7 +313,7 @@ void HairModel::integrate_internal_hair_force() {
 			core_spring_force(i, j);
 
 			if (j == 0)continue;
-			Vector3d acceleration = particle->force[i][j] * particle->inverss_mass();
+			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
 		}
@@ -311,7 +329,7 @@ void HairModel::integrate_external_force() {
 			particle->force[i][j] += gravity + force;
 
 			if (j == 0)continue;
-			Vector3d acceleration = particle->force[i][j] * particle->inverss_mass();
+			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
 		}
@@ -328,7 +346,7 @@ void HairModel::integrate_damping_force() {
 			core_damping_force(i, j);
 
 			if (j == 0)continue;
-			Vector3d acceleration = particle->force[i][j] * particle->inverss_mass();
+			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
 		}
