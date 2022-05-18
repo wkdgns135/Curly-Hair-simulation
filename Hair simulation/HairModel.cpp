@@ -39,23 +39,6 @@ void HairModel::init(Particle *p) {
 	//exturn force clear
 	force.setZero();
 	helix_function(p);
-	wet_init(p);
-}
-
-void HairModel::wet_init(Particle *p) {
-	/*
-	TODO 각 Particle에 습도를 나타내는 계수와 이를 제한하는 
-	Threshold 변수를 생성,Threshold 변수는 원본 컬에 영향을 받아 
-	벤딩이 클수록 불규칙하고 벤딩이 작을수록 규칙적이어야 함.
-	*/
-
-	for (int i = 0; i < p->m.size(); i++) {
-		for (int j = 0; j < p->m[i].size(); j++) {
-			p->m[i][j] = 1;
-			p->wetness[i][j] = 1;
-			p->wet_threshold[i][j] = 1;
-		}
-	}
 }
 
 void HairModel::helix_function(Particle *p) {
@@ -108,12 +91,13 @@ void HairModel::pre_compute() {
 	for (int i = 0; i < particle->m.size(); i++) {
 		for (int j = 0; j < particle->m[i].size(); j++) {
 			double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
-			particle->m[i][j] = (1 - length);
-			particle->wet_threshold[i][j] = min(exp(length), particle->m[i][j] * 0.4 + 1);
+			particle->wet_threshold[i][j] = min(exp(length), 1.4);
+			particle->wetness[i][j] = 1.0 - length;
 			//cout << particle->wet_threshold[i][j] << endl;
 			//threshold = 단순할수록 1에 수렴 복잡할수록 증가
 		}
 	}
+	wetting_function(0);
 
 	//smoothed curve frame pre-compute
 	compute_frame(smoothed_rest_particle);
@@ -198,6 +182,26 @@ void HairModel::simulation(Vector3d _force) {
 			}
 		}
 		update_position();
+	}
+}
+
+void HairModel::wetting_function(double n) {
+	for (int i = 0; i < particle->m.size(); i++) {
+		bool flag = false;
+		for (int j = 0; j < particle->m[i].size(); j++) {
+			particle->wetness[i][j] += n;
+			if (particle->wetness[i][j] > particle->wet_threshold[i][j])
+				particle->wetness[i][j] = particle->wet_threshold[i][j];
+
+			//particle->m[i][j] = exp(particle->wetness[i][j] * wet_c);
+			//cout << particle->m[i][j] << endl;
+
+			int x = exp(particle->wet_threshold[i][j]);
+
+			if(j % 2 == 0)particle->m[i][j] = 2;
+			else particle->m[i][j] = 1;
+			cout << particle->m[i][j] << endl;
+		}
 	}
 }
 

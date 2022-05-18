@@ -22,16 +22,17 @@ public:
 	double			k_b			= 500;	//30000;
 	double			c_b			= 3000;	// 5000;
 	double			alpha_c		= 0.23;
-	double			k_c			= 500;	// 15000;
-	double			c_c			= 50;	//100;
+	double			k_c			= 0;	// 15000;
+	double			c_c			= 0;	//100;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
+	double			total_wet	= 1;
+	double			wet_c		= 1;
 public:
 					HairModel();
 	void			init(Particle *p);
 	void			pre_compute();
 	void			helix_function(Particle *p);
-	void			wet_init(Particle *p);
 	void			simulation(Vector3d _force = Vector3d(0,0,0));
 public:
 	void			draw_wire(vector<vector<Vector3d>>);
@@ -41,6 +42,7 @@ public:
 	void			bouncing_test(double n);
 
 public:
+	void			wetting_function(double n);
 	void			integrate_internal_hair_force(); //include springs
 	void			integrate_external_force();
 	void			integrate_damping_force();
