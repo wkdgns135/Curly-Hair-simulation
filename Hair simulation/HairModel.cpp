@@ -107,8 +107,9 @@ void HairModel::pre_compute() {
 	for (int i = 0; i < particle->m.size(); i++) {
 		for (int j = 0; j < particle->m[i].size(); j++) {
 			double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
+			particle->m[i][j] = (1 - length);
 			particle->wet_threshold[i][j] = exp(length);
-			//length = 벤딩이 단순할수록 0에 수렴 최대 1
+			//threshold = 단순할수록 1에 수렴 복잡할수록 증가
 		}
 	}
 
