@@ -13,6 +13,9 @@ HairModel::HairModel() {
 	resize(particle->pos, size);
 	resize(particle->velocity, size);
 	resize(particle->force, size);
+	resize(particle->m, size);
+	resize(particle->wetness, size);
+	resize(particle->wet_threshold, size);
 
 	resize(smoothed_particle->pos, size);
 	resize(smoothed_particle->velocity, size);
@@ -33,7 +36,29 @@ HairModel::HairModel() {
 }
 
 void HairModel::init(Particle *p) {
+	//exturn force clear
 	force.setZero();
+	helix_function(p);
+	wet_init(p);
+}
+
+void HairModel::wet_init(Particle *p) {
+	/*
+	TODO °¢ Particle¿¡ ½Àµµ¸¦ ³ªÅ¸³»´Â °è¼ö¿Í ÀÌ¸¦ Á¦ÇÑÇÏ´Â 
+	Threshold º¯¼ö¸¦ »ý¼º,Threshold º¯¼ö´Â ¿øº» ÄÃ¿¡ ¿µÇâÀ» ¹Þ¾Æ 
+	º¥µùÀÌ Å¬¼ö·Ï ºÒ±ÔÄ¢ÇÏ°í º¥µùÀÌ ÀÛÀ»¼ö·Ï ±ÔÄ¢ÀûÀÌ¾î¾ß ÇÔ.
+	*/
+
+	for (int i = 0; i < p->m.size(); i++) {
+		for (int j = 0; j < p->m[i].size(); j++) {
+			p->m[i][j] = 1;
+			p->wetness[i][j] = 1;
+			p->wet_threshold[i][j] = 1;
+		}
+	}
+}
+
+void HairModel::helix_function(Particle *p) {
 	for (double i = 0; i < p->pos.size(); i++) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
 			int size = particle->pos[i].size();
@@ -44,16 +69,16 @@ void HairModel::init(Particle *p) {
 			double x = cos(t) * r;
 			double y = t * 0.2;
 			double z = sin(t) * r;
-			
+
 			//helix hair
 			p->pos[i][j] = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
-			
+
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
-			
+
 			//straight hair
 			//p->pos[i][j] = Vector3d(0, -j / p->pos.size() * 32, i / p->pos.size() * 32);
-			
+
 			//p->pos[i][j] = Vector3d(0.1*x,0.1*-y,0.1*z + (2.0 * i / p->pos.size()));
 
 			p->velocity[i][j].setZero();
@@ -77,17 +102,24 @@ void HairModel::pre_compute() {
 	//smoothed Ã«ÂÅ“ rest Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ Ã¬Å“â€žÃ¬Â¹Ëœ Ã¬Â â‚¬Ã¬Å¾Â¥
 	smoothed_rest_particle->pos = smoothing_function(rest_particle->pos, rest_particle->rest_length, alpha_b, true);
 	
+	
+	for (int i = 0; i < particle->m.size(); i++) {
+		for (int j = 0; j < particle->m[i].size(); j++) {
+			double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
+			particle->m[i][j] = (1 - length);
+			particle->wet_threshold[i][j] = min(exp(length), particle->m[i][j] * 0.4 + 1);
+			//cout << particle->wet_threshold[i][j] << endl;
+			//threshold = ´Ü¼øÇÒ¼ö·Ï 1¿¡ ¼ö·Å º¹ÀâÇÒ¼ö·Ï Áõ°¡
+		}
+	}
+
 	//smoothed curve frame pre-compute
 	compute_frame(smoothed_rest_particle);
 	for (int i = 0; i < smoothed_rest_particle->pos.size(); i++) {
-		//smoothed_rest_particle->t[i][0] = Vector3d(0, 0, 0);
-		
 		for (int j = 1; j < smoothed_rest_particle->pos[i].size() - 1; j++) {
 			Vector3d e = rest_particle->pos[i][j + 1] - rest_particle->pos[i][j];
 			
 			smoothed_rest_particle->t[i][j] = smoothed_rest_particle->frames[i][j - 1].transpose() * e;
-			//smoothed_rest_particle->frames[i][j].t = multiply_reference_vector_init(smoothed_rest_particle->frames[i][j-1], e);
-			//smoothed_rest_particle->frames[i][j].t = e;
 		}
 	}
 }
@@ -132,7 +164,6 @@ void HairModel::draw_frame(Particle *p) {
 			for (int k = 0; k < 3; k++) {
 				glVertex3f(p->pos[i][j].x(), p->pos[i][j].y(), p->pos[i][j].z());
 				glVertex3f(p->pos[i][j].x() + p->frames[i][j](0,k), p->pos[i][j].y() + p->frames[i][j](1, k), p->pos[i][j].z() + p->frames[i][j](2, k));
-				
 			}
 			glBegin(GL_LINES);
 			glColor3f(0, 1, 0);
@@ -175,8 +206,9 @@ void HairModel::stretch_spring_force(int i, int j) {
 	Vector3d e = particle->pos[i][j + 1] - particle->pos[i][j];
 	Vector3d rest_e = rest_particle->pos[i][j + 1] - rest_particle->pos[i][j];
 	Vector3d e_hat = e.normalized();
-
-	Vector3d force = e_hat * (k_s * (e.norm() - rest_e.norm()));
+	
+	double ks = k_s * particle->wetness[i][j];
+	Vector3d force = e_hat * (ks * (e.norm() - rest_e.norm()));
 	particle->force[i][j] += force;
 	particle->force[i][j + 1] -= force;
 }
@@ -232,7 +264,9 @@ void HairModel::core_spring_force(int i, int j) {
 	Vector3d b_hat = b;
 	b_hat.normalize();
 
-	Vector3d force = k_c * (b.norm() - b_bar.norm()) * b_hat;
+	double kc = k_c * particle->wetness[i][j];
+
+	Vector3d force = kc * (b.norm() - b_bar.norm()) * b_hat;
 	particle->force[i][j] -= force;
 }
 
@@ -295,7 +329,7 @@ void HairModel::integrate_internal_hair_force() {
 			core_spring_force(i, j);
 
 			if (j == 0)continue;
-			Vector3d acceleration = particle->force[i][j] * particle->inverss_mass();
+			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
 		}
@@ -311,7 +345,7 @@ void HairModel::integrate_external_force() {
 			particle->force[i][j] += gravity + force;
 
 			if (j == 0)continue;
-			Vector3d acceleration = particle->force[i][j] * particle->inverss_mass();
+			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
 		}
@@ -328,7 +362,7 @@ void HairModel::integrate_damping_force() {
 			core_damping_force(i, j);
 
 			if (j == 0)continue;
-			Vector3d acceleration = particle->force[i][j] * particle->inverss_mass();
+			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
 		}

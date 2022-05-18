@@ -16,6 +16,13 @@ void resize(vector<vector<Matrix3d>> &v, vector<int> size) {
 	}
 }
 
+void resize(vector<vector<double>> &v, vector<int> size) {
+	v.resize(size.size());
+	for (int i = 0; i < v.size(); i++) {
+		v[i].resize(size[i]);
+	}
+}
+
 const Matrix3d cross_product_matrix(const Eigen::Vector3d &v)
 {
 	Matrix3d result;

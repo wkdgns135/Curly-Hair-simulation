@@ -11,34 +11,23 @@
 using namespace std;
 using namespace Eigen;
 
-struct Frame {
-public:
-	Vec3<double> aim;
-	Vec3<double> cross;
-	Vec3<double> up;
-	Vec3<double> pos;
-	Vec3<double> t;
-};
-
 class Particle
 {
-public:
-	double m = 1;
 public:
 	vector<vector<Vector3d>>	pos;
 	vector<vector<Vector3d>>	velocity;
 	vector<vector<Vector3d>>	force;
 	vector<vector<Matrix3d>>	frames;
 	vector<vector<Vector3d>>	t;
+	vector<vector<double>>		m;
+	vector<vector<double>>		wetness;
+	vector<vector<double>>		wet_threshold;
 	vector<double>				rest_length;
-
-public:
-	double			inverss_mass(void) { return 1 / m; }
-	//void			set_colvector(Vector3d, int, int);
 };
 
 void resize(vector<vector<Vector3d>> &v, vector<int> size);
 void resize(vector<vector<Matrix3d>> &v, vector<int> size);
+void resize(vector<vector<double>> &v, vector<int> size);
 
 void compute_frame(Particle *p);
 void multiply_vector(Vector3d &v1, Vector3d &v2, Vector3d &dest);
