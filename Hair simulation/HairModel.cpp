@@ -45,8 +45,7 @@ void HairModel::helix_function(Particle *p) {
 	for (double i = 0; i < p->pos.size(); i++) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
 			int size = particle->pos[i].size();
-
-			//radius ����
+			//radius ï¿½ï¿½ï¿½
 			double r = j / size * 2 < 1 ? j / size * 2 : 1;
 
 			double t = j * 0.3;
@@ -69,9 +68,8 @@ void HairModel::helix_function(Particle *p) {
 		}
 	}
 }
-
 void HairModel::pre_compute() {
-	//rest ��ƼŬ���� ��� ���� ���
+	//rest Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ÃªÂ°â€žÃ¬ÂËœ Ã­Ââ€°ÃªÂ·Â  ÃªÂ¸Â¸Ã¬ÂÂ´ ÃªÂ³â€žÃ¬â€šÂ°
 	for (int i = 0; i < rest_particle->pos.size(); i++) {
 		double sum = 0;
 		for (int j = 0; j < rest_particle->pos[i].size() - 1; j++) {
@@ -84,7 +82,7 @@ void HairModel::pre_compute() {
 		rest_particle->rest_length.push_back(sum);
 	}
 
-	//smoothed �� rest ��ƼŬ ��ġ ����
+	//smoothed Ã«ÂÅ“ rest Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ Ã¬Å“â€žÃ¬Â¹Ëœ Ã¬Â â‚¬Ã¬Å¾Â¥
 	smoothed_rest_particle->pos = smoothing_function(rest_particle->pos, rest_particle->rest_length, alpha_b, true);
 	
 	
@@ -94,7 +92,7 @@ void HairModel::pre_compute() {
 			particle->wet_threshold[i][j] = exp(length);//min(exp(length), 1.4);
 			particle->wetness[i][j] = 1.0 - length;
 			//cout << particle->wet_threshold[i][j] << endl;
-			//threshold = �ܼ��Ҽ��� 1�� ���� �����Ҽ��� ����
+			//threshold = ´Ü¼øÇÒ¼ö·Ï 1¿¡ ¼ö·Å º¹ÀâÇÒ¼ö·Ï Áõ°¡
 		}
 	}
 	wetting_function(0);
@@ -306,14 +304,14 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 
 	vector<vector<Vector3d>>  d;
 	vector<vector<Vector3d>> pos;
-	//lambda�� ��ƼŬ ��ġ�� ��� return�ϱ����� pos vector
+	//lambdaÃªÂ°â‚¬ Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ Ã¬Å“â€žÃ¬Â¹ËœÃ¬ÂÂ¼ ÃªÂ²Â½Ã¬Å¡Â° returnÃ­â€¢ËœÃªÂ¸Â°Ã¬Å“â€žÃ­â€¢Å“ pos vector
 	resize(d, size);
 	resize(pos, size);
 
 	copy(lambda.begin(), lambda.end(), d.begin());
 
 	for (int i = 0; i < lambda.size(); i++) {
-		//beta formulation, l = ��ƼŬ���� ��ձ���
+		//beta formulation, l = Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ÃªÂ°â€žÃ¬ÂËœ Ã­Ââ€°ÃªÂ·Â ÃªÂ¸Â¸Ã¬ÂÂ´
 		beta = min(1.0, 1 - exp(-l[i] / alpha));
 
 		d[i][0] = lambda[i][1] - lambda[i][0];
@@ -342,7 +340,8 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 void HairModel::integrate_internal_hair_force() {
 	double dt = 0.0009; //9.25887e-05
 	//double dt = 9.25887e-05; //9.25887e-05
-	//spring forces ���
+	//spring forces °è»ê
+	//spring forces Â°Ã¨Â»Ãª
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_spring_force(i, j);
