@@ -91,7 +91,7 @@ void HairModel::pre_compute() {
 	for (int i = 0; i < particle->m.size(); i++) {
 		for (int j = 0; j < particle->m[i].size(); j++) {
 			double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
-			particle->wet_threshold[i][j] = min(exp(length), 1.4);
+			particle->wet_threshold[i][j] = exp(length);//min(exp(length), 1.4);
 			particle->wetness[i][j] = 1.0 - length;
 			//cout << particle->wet_threshold[i][j] << endl;
 			//threshold = 단순할수록 1에 수렴 복잡할수록 증가
@@ -197,9 +197,13 @@ void HairModel::wetting_function(double n) {
 			//cout << particle->m[i][j] << endl;
 
 			int x = exp(particle->wet_threshold[i][j]);
-
-			if(j % 2 == 0)particle->m[i][j] = 2;
-			else particle->m[i][j] = 1;
+			
+			//cout << particle->wet_threshold[i][j] << endl;
+			//particle->m[i][j] = particle->wet_threshold[i][j];
+			//particle->m[i][j] = 2 - particle->wet_threshold[i][j];
+			if (j % 2 != 0)particle->m[i][j] = 2 - particle->wet_threshold[i][j];
+			else particle->m[i][j] = 10;
+			particle->m[i][j] = 1;
 			cout << particle->m[i][j] << endl;
 		}
 	}
@@ -287,6 +291,16 @@ void HairModel::core_damping_force(int i, int j) {
 	particle->force[i][j] -= force;
 }
 
+void HairModel::wet_force(int i, int j) {
+	if (j == particle->pos[i].size() - 1)return;
+	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];
+	Vector3d b_hat = b;
+	b_hat.normalize();
+
+	Vector3d force = wet_c * b;
+	particle->force[i][j] -= force;
+}
+
 vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>> lambda, vector<double> l,double alpha, bool is_position) {
 	double beta = 0.0;
 
@@ -327,6 +341,7 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 //NOTE Internal hair force integate
 void HairModel::integrate_internal_hair_force() {
 	double dt = 0.0009; //9.25887e-05
+	//double dt = 9.25887e-05; //9.25887e-05
 	//spring forces 계산
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
@@ -345,6 +360,7 @@ void HairModel::integrate_internal_hair_force() {
 //NOTE External force integate
 void HairModel::integrate_external_force() {
 	double dt = 0.0009; //9.25887e-05
+	//double dt = 9.25887e-05; //9.25887e-05
 	Vector3d gravity(0.0, -10.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
@@ -360,12 +376,15 @@ void HairModel::integrate_external_force() {
 
 //NOTE Damping force integrate
 void HairModel::integrate_damping_force() {
-	double dt = 0.00009;// 9.25887e-06
+
+	double dt = 0.00009;// 9.25887e-06s
+	//double dt = 9.25887e-06;// 9.25887e-06
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_damping_force(i, j);
 			bending_damping_force(i, j);
 			core_damping_force(i, j);
+			wet_force(i, j);
 
 			if (j == 0)continue;
 			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
@@ -376,6 +395,7 @@ void HairModel::integrate_damping_force() {
 }
 void HairModel::update_position() {
 	double dt = 0.01; //0.00138883;
+	//double dt = 0.00138883; //0.00138883;
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 1; j < particle->pos[i].size(); j++) {
 			particle->pos[i][j] += particle->velocity[i][j] * dt;
