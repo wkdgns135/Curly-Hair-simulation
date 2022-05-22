@@ -55,13 +55,13 @@ void Draw() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	
-	//posed_curves();
+	posed_curves();
 	//smoothed_posed_curves();
 	//hm->draw_frame(hm->smoothed_particle);
 
 	//hm->draw_frame(hm->smoothed_rest_particle);
-	rest_curves();
-	smoothed_rest_curves();
+	//rest_curves();
+	//smoothed_rest_curves();
 
 	glDisable(GL_LIGHTING);
 }

@@ -39,30 +39,13 @@ void HairModel::init(Particle *p) {
 	//exturn force clear
 	force.setZero();
 	helix_function(p);
-	wet_init(p);
-}
-
-void HairModel::wet_init(Particle *p) {
-	/*
-	TODO �� Particle�� ������ ��Ÿ���� ����� �̸� �����ϴ� 
-	Threshold ������ ����,Threshold ������ ���� �ÿ� ������ �޾� 
-	������ Ŭ���� �ұ�Ģ�ϰ� ������ �������� ��Ģ���̾�� ��.
-	*/
-
-	for (int i = 0; i < p->m.size(); i++) {
-		for (int j = 0; j < p->m[i].size(); j++) {
-			p->m[i][j] = 1;
-			p->wetness[i][j] = 1;
-			p->wet_threshold[i][j] = 1;
-		}
-	}
 }
 
 void HairModel::helix_function(Particle *p) {
 	for (double i = 0; i < p->pos.size(); i++) {
 		for (double j = 0; j < p->pos[i].size(); j++) {
 			int size = particle->pos[i].size();
-			//radius ���
+			//radius ï¿½ï¿½ï¿½
 			double r = j / size * 2 < 1 ? j / size * 2 : 1;
 
 			double t = j * 0.3;
@@ -86,7 +69,7 @@ void HairModel::helix_function(Particle *p) {
 	}
 }
 void HairModel::pre_compute() {
-	//rest íŒŒí‹°í´ê°„ì˜ í‰ê·  ê¸¸ì´ ê³„ì‚°
+	//rest Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ÃªÂ°â€žÃ¬ÂËœ Ã­Ââ€°ÃªÂ·Â  ÃªÂ¸Â¸Ã¬ÂÂ´ ÃªÂ³â€žÃ¬â€šÂ°
 	for (int i = 0; i < rest_particle->pos.size(); i++) {
 		double sum = 0;
 		for (int j = 0; j < rest_particle->pos[i].size() - 1; j++) {
@@ -99,19 +82,20 @@ void HairModel::pre_compute() {
 		rest_particle->rest_length.push_back(sum);
 	}
 
-	//smoothed ëœ rest íŒŒí‹°í´ ìœ„ì¹˜ ì €ìž¥
+	//smoothed Ã«ÂÅ“ rest Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ Ã¬Å“â€žÃ¬Â¹Ëœ Ã¬Â â‚¬Ã¬Å¾Â¥
 	smoothed_rest_particle->pos = smoothing_function(rest_particle->pos, rest_particle->rest_length, alpha_b, true);
 	
 	
 	for (int i = 0; i < particle->m.size(); i++) {
 		for (int j = 0; j < particle->m[i].size(); j++) {
 			double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
-			particle->m[i][j] = (1 - length);
-			particle->wet_threshold[i][j] = min(exp(length), particle->m[i][j] * 0.4 + 1);
+			particle->wet_threshold[i][j] = exp(length);//min(exp(length), 1.4);
+			particle->wetness[i][j] = 1.0 - length;
 			//cout << particle->wet_threshold[i][j] << endl;
-			//threshold = �ܼ��Ҽ��� 1�� ���� �����Ҽ��� ����
+			//threshold = ´Ü¼øÇÒ¼ö·Ï 1¿¡ ¼ö·Å º¹ÀâÇÒ¼ö·Ï Áõ°¡
 		}
 	}
+	wetting_function(0);
 
 	//smoothed curve frame pre-compute
 	compute_frame(smoothed_rest_particle);
@@ -199,6 +183,30 @@ void HairModel::simulation(Vector3d _force) {
 	}
 }
 
+void HairModel::wetting_function(double n) {
+	for (int i = 0; i < particle->m.size(); i++) {
+		bool flag = false;
+		for (int j = 0; j < particle->m[i].size(); j++) {
+			particle->wetness[i][j] += n;
+			if (particle->wetness[i][j] > particle->wet_threshold[i][j])
+				particle->wetness[i][j] = particle->wet_threshold[i][j];
+
+			//particle->m[i][j] = exp(particle->wetness[i][j] * wet_c);
+			//cout << particle->m[i][j] << endl;
+
+			int x = exp(particle->wet_threshold[i][j]);
+			
+			//cout << particle->wet_threshold[i][j] << endl;
+			//particle->m[i][j] = particle->wet_threshold[i][j];
+			//particle->m[i][j] = 2 - particle->wet_threshold[i][j];
+			if (j % 2 != 0)particle->m[i][j] = 2 - particle->wet_threshold[i][j];
+			else particle->m[i][j] = 10;
+			particle->m[i][j] = 1;
+			cout << particle->m[i][j] << endl;
+		}
+	}
+}
+
 //NOTE Stretch spring
 void HairModel::stretch_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
@@ -281,19 +289,29 @@ void HairModel::core_damping_force(int i, int j) {
 	particle->force[i][j] -= force;
 }
 
+void HairModel::wet_force(int i, int j) {
+	if (j == particle->pos[i].size() - 1)return;
+	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];
+	Vector3d b_hat = b;
+	b_hat.normalize();
+
+	Vector3d force = wet_c * b;
+	particle->force[i][j] -= force;
+}
+
 vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>> lambda, vector<double> l,double alpha, bool is_position) {
 	double beta = 0.0;
 
 	vector<vector<Vector3d>>  d;
 	vector<vector<Vector3d>> pos;
-	//lambdaê°€ íŒŒí‹°í´ ìœ„ì¹˜ì¼ ê²½ìš° returní•˜ê¸°ìœ„í•œ pos vector
+	//lambdaÃªÂ°â‚¬ Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ Ã¬Å“â€žÃ¬Â¹ËœÃ¬ÂÂ¼ ÃªÂ²Â½Ã¬Å¡Â° returnÃ­â€¢ËœÃªÂ¸Â°Ã¬Å“â€žÃ­â€¢Å“ pos vector
 	resize(d, size);
 	resize(pos, size);
 
 	copy(lambda.begin(), lambda.end(), d.begin());
 
 	for (int i = 0; i < lambda.size(); i++) {
-		//beta formulation, l = íŒŒí‹°í´ê°„ì˜ í‰ê· ê¸¸ì´
+		//beta formulation, l = Ã­Å’Å’Ã­â€¹Â°Ã­ÂÂ´ÃªÂ°â€žÃ¬ÂËœ Ã­Ââ€°ÃªÂ·Â ÃªÂ¸Â¸Ã¬ÂÂ´
 		beta = min(1.0, 1 - exp(-l[i] / alpha));
 
 		d[i][0] = lambda[i][1] - lambda[i][0];
@@ -321,7 +339,9 @@ vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>>
 //NOTE Internal hair force integate
 void HairModel::integrate_internal_hair_force() {
 	double dt = 0.0009; //9.25887e-05
+	//double dt = 9.25887e-05; //9.25887e-05
 	//spring forces °è»ê
+	//spring forces Â°Ã¨Â»Ãª
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_spring_force(i, j);
@@ -339,6 +359,7 @@ void HairModel::integrate_internal_hair_force() {
 //NOTE External force integate
 void HairModel::integrate_external_force() {
 	double dt = 0.0009; //9.25887e-05
+	//double dt = 9.25887e-05; //9.25887e-05
 	Vector3d gravity(0.0, -10.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
@@ -354,12 +375,15 @@ void HairModel::integrate_external_force() {
 
 //NOTE Damping force integrate
 void HairModel::integrate_damping_force() {
-	double dt = 0.00009;// 9.25887e-06
+
+	double dt = 0.00009;// 9.25887e-06s
+	//double dt = 9.25887e-06;// 9.25887e-06
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_damping_force(i, j);
 			bending_damping_force(i, j);
 			core_damping_force(i, j);
+			wet_force(i, j);
 
 			if (j == 0)continue;
 			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
@@ -370,6 +394,7 @@ void HairModel::integrate_damping_force() {
 }
 void HairModel::update_position() {
 	double dt = 0.01; //0.00138883;
+	//double dt = 0.00138883; //0.00138883;
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 1; j < particle->pos[i].size(); j++) {
 			particle->pos[i][j] += particle->velocity[i][j] * dt;
