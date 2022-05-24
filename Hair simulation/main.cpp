@@ -183,6 +183,14 @@ void KeyboardEvent(unsigned char key, int x, int y) {
 	case ' ':
 		status[2] = !status[2];
 		break;
+	case ']':
+		hm->wet_c += 1;
+		cout << "wet_c :" << hm->wet_c << endl;
+		break;
+	case '[':
+		hm->wet_c -= 1;
+		cout << "wet_c :" << hm->wet_c << endl;
+		break;
 	default:
 		break;
 	}

@@ -17,17 +17,17 @@ public:
 	Vector3d		force;
 public:
 	double			k_s			= 5000;
-	double			c_s			= 40;  //;
+	double			c_s			= 20;  //;
 	double			alpha_b		= 0.23;	//0.1; 
 	double			k_b			= 500;	//30000;
 	double			c_b			= 3000;	// 5000;
 	double			alpha_c		= 1;
 	double			k_c			= 500;	// 15000;
-	double			c_c			= 40;	//100;
+	double			c_c			= 20;	//100;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 	double			total_wet	= 1;
-	double			wet_c		= 39;
+	double			wet_c		= 31;
 public:
 					HairModel();
 	void			init(Particle *p);
