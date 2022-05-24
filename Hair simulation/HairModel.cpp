@@ -14,8 +14,8 @@ HairModel::HairModel() {
 	resize(particle->velocity, size);
 	resize(particle->force, size);
 	resize(particle->m, size);
-	resize(particle->wetness, size);
-	resize(particle->wet_threshold, size);
+	resize(particle->w_c, size);
+	resize(particle->w_d, size);
 
 	resize(smoothed_particle->pos, size);
 	resize(smoothed_particle->velocity, size);
@@ -88,15 +88,19 @@ void HairModel::pre_compute() {
 	
 	for (int i = 0; i < particle->m.size(); i++) {
 		for (int j = 0; j < particle->m[i].size(); j++) {
-			double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
-			particle->wet_threshold[i][j] = exp(length);//min(exp(length), 1.4);
+			//double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
+			particle->m[i][j] = 1;
+			if(j > particle->m[i].size() * 0.6)
+				particle->w_c[i][j] = w_c;
+			else particle->w_c[i][j] = 0;
+			//min(exp(length), 1.4);
 			//particle->wetness[i][j] = 1.0 - length;
-			particle->wetness[i][j] = 1.0;
-			//cout << particle->wet_threshold[i][j] << endl;
+			particle->w_d[i][j] = 0.8;
+			cout << particle->w_c[i][j] << endl;
 			//threshold = 단순할수록 1에 수렴 복잡할수록 증가
 		}
 	}
-	wetting_function(0);
+	//wetting_function(0);
 
 	//smoothed curve frame pre-compute
 	compute_frame(smoothed_rest_particle);
@@ -184,29 +188,29 @@ void HairModel::simulation(Vector3d _force) {
 	}
 }
 
-void HairModel::wetting_function(double n) {
-	for (int i = 0; i < particle->m.size(); i++) {
-		bool flag = false;
-		for (int j = 0; j < particle->m[i].size(); j++) {
-			particle->wetness[i][j] += n;
-			if (particle->wetness[i][j] > particle->wet_threshold[i][j])
-				particle->wetness[i][j] = particle->wet_threshold[i][j];
-
-			//particle->m[i][j] = exp(particle->wetness[i][j] * wet_c);
-			//cout << particle->m[i][j] << endl;
-
-			int x = exp(particle->wet_threshold[i][j]);
-			
-			//cout << particle->wet_threshold[i][j] << endl;
-			//particle->m[i][j] = particle->wet_threshold[i][j];
-			//particle->m[i][j] = 2 - particle->wet_threshold[i][j];
-			if (j % 2 != 0)particle->m[i][j] = 2 - particle->wet_threshold[i][j];
-			else particle->m[i][j] = 10;
-			particle->m[i][j] = 1;
-			//cout << particle->m[i][j] << endl;
-		}
-	}
-}
+//void HairModel::wetting_function(double n) {
+//	for (int i = 0; i < particle->m.size(); i++) {
+//		bool flag = false;
+//		for (int j = 0; j < particle->m[i].size(); j++) {
+//			particle->wetness[i][j] += n;
+//			if (particle->wetness[i][j] > particle->wet_threshold[i][j])
+//				particle->wetness[i][j] = particle->wet_threshold[i][j];
+//
+//			//particle->m[i][j] = exp(particle->wetness[i][j] * wet_c);
+//			//cout << particle->m[i][j] << endl;
+//
+//			int x = exp(particle->wet_threshold[i][j]);
+//			
+//			//cout << particle->wet_threshold[i][j] << endl;
+//			//particle->m[i][j] = particle->wet_threshold[i][j];
+//			//particle->m[i][j] = 2 - particle->wet_threshold[i][j];
+//			if (j % 2 != 0)particle->m[i][j] = 2 - particle->wet_threshold[i][j];
+//			else particle->m[i][j] = 10;
+//			particle->m[i][j] = 1;
+//			//cout << particle->m[i][j] << endl;
+//		}
+//	}
+//}
 
 //NOTE Stretch spring
 void HairModel::stretch_spring_force(int i, int j) {
@@ -216,8 +220,7 @@ void HairModel::stretch_spring_force(int i, int j) {
 	Vector3d rest_e = rest_particle->pos[i][j + 1] - rest_particle->pos[i][j];
 	Vector3d e_hat = e.normalized();
 	
-	double ks = k_s * particle->wetness[i][j];
-	Vector3d force = e_hat * (ks * (e.norm() - rest_e.norm()));
+	Vector3d force = e_hat * (k_s * (e.norm() - rest_e.norm()));
 	particle->force[i][j] += force;
 	particle->force[i][j + 1] -= force;
 }
@@ -273,8 +276,7 @@ void HairModel::core_spring_force(int i, int j) {
 	Vector3d b_hat = b;
 	b_hat.normalize();
 
-	double kc = k_c * particle->wetness[i][j];
-	Vector3d force = kc * (b.norm() - b_bar.norm()) * b_hat;
+	Vector3d force = k_c * (b.norm() - b_bar.norm()) * b_hat;
 	particle->force[i][j] -= force;
 }
 
@@ -301,9 +303,9 @@ void HairModel::wet_force(int i, int j) {
 	//double length = e2.norm() - e1.norm(); // 원본 컬보다 줄어들경우 0보다 작아짐
 	//if(j==33)cout << e1.norm() << endl;
 
-	Vector3d force = b * (wet_c);
+	Vector3d force = b * particle->w_c[i][j];
 	particle->force[i][j] -= force;
-	particle->force[i][j+1] += force * wet_d;
+	particle->force[i][j+1] += force * particle->w_d[i][j];
 	
 }
 

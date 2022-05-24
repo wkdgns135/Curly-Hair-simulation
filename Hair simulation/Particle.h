@@ -20,8 +20,8 @@ public:
 	vector<vector<Matrix3d>>	frames;
 	vector<vector<Vector3d>>	t;
 	vector<vector<double>>		m;
-	vector<vector<double>>		wetness;
-	vector<vector<double>>		wet_threshold;
+	vector<vector<double>>		w_c;
+	vector<vector<double>>		w_d;
 	vector<double>				rest_length;
 };
 

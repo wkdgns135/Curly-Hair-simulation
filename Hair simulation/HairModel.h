@@ -27,8 +27,8 @@ public:
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 	double			total_wet	= 1;
-	double			wet_c		= 150;
-	double			wet_d		= 0.8;
+	double			w_c		= 150;
+	double			w_d		= 0.8;
 public:
 					HairModel();
 	void			init(Particle *p);
@@ -43,7 +43,7 @@ public:
 	void			bouncing_test(double n);
 
 public:
-	void			wetting_function(double n);
+	//void			wetting_function(double n);
 	void			integrate_internal_hair_force(); //include springs
 	void			integrate_external_force();
 	void			integrate_damping_force();
