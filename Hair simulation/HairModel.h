@@ -27,7 +27,8 @@ public:
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 	double			total_wet	= 1;
-	double			wet_c		= 31;
+	double			wet_c		= 150;
+	double			wet_d		= 0.8;
 public:
 					HairModel();
 	void			init(Particle *p);

@@ -90,7 +90,8 @@ void HairModel::pre_compute() {
 		for (int j = 0; j < particle->m[i].size(); j++) {
 			double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
 			particle->wet_threshold[i][j] = exp(length);//min(exp(length), 1.4);
-			particle->wetness[i][j] = 1.0 - length;
+			//particle->wetness[i][j] = 1.0 - length;
+			particle->wetness[i][j] = 1.0;
 			//cout << particle->wet_threshold[i][j] << endl;
 			//threshold = 단순할수록 1에 수렴 복잡할수록 증가
 		}
@@ -202,7 +203,7 @@ void HairModel::wetting_function(double n) {
 			if (j % 2 != 0)particle->m[i][j] = 2 - particle->wet_threshold[i][j];
 			else particle->m[i][j] = 10;
 			particle->m[i][j] = 1;
-			cout << particle->m[i][j] << endl;
+			//cout << particle->m[i][j] << endl;
 		}
 	}
 }
@@ -273,7 +274,6 @@ void HairModel::core_spring_force(int i, int j) {
 	b_hat.normalize();
 
 	double kc = k_c * particle->wetness[i][j];
-
 	Vector3d force = kc * (b.norm() - b_bar.norm()) * b_hat;
 	particle->force[i][j] -= force;
 }
@@ -293,11 +293,18 @@ void HairModel::core_damping_force(int i, int j) {
 void HairModel::wet_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 	Vector3d b = smoothed_particle->pos[i][j + 1] - smoothed_particle->pos[i][j];
+	//Vector3d e1 = rest_particle->pos[i][j + 1] - rest_particle->pos[i][j];
+	//Vector3d e2 = particle->pos[i][j + 1] - particle->pos[i][j];
 	Vector3d b_hat = b;
 	b_hat.normalize();
 
-	Vector3d force = wet_c * b;
+	//double length = e2.norm() - e1.norm(); // 원본 컬보다 줄어들경우 0보다 작아짐
+	//if(j==33)cout << e1.norm() << endl;
+
+	Vector3d force = b * (wet_c);
 	particle->force[i][j] -= force;
+	particle->force[i][j+1] += force * wet_d;
+	
 }
 
 vector<vector<Vector3d>>  HairModel::smoothing_function(vector<vector<Vector3d>> lambda, vector<double> l,double alpha, bool is_position) {
