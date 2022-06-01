@@ -191,6 +191,10 @@ void KeyboardEvent(unsigned char key, int x, int y) {
 		hm->w_c -= 1;
 		cout << "wet_c :" << hm->w_c << endl;
 		break;
+	case 'q':
+	case 'Q':
+		rot_y += 90;
+		break;
 	default:
 		break;
 	}

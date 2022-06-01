@@ -47,6 +47,7 @@ void HairModel::helix_function(Particle *p) {
 			int size = particle->pos[i].size();
 			//radius 조절
 			double r = j / size * 2 < 1 ? j / size * 2 : 1;
+			//double r = j / size * 2 < 1 ? j / size : 1 - j / size;
 
 			double t = j * 0.3;
 			double x = cos(t) * r;
@@ -55,6 +56,9 @@ void HairModel::helix_function(Particle *p) {
 
 			//helix hair
 			p->pos[i][j] = Vector3d(x, -y, z + (i / particle->pos.size()) * 10);
+			
+			//bridge hair
+			//p->pos[i][j] = Vector3d(z + (i / particle->pos.size()) * 10, x, -y);
 
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()) * 10);
 			//p->pos[i][j] = Vector3d(x,-y,z + (i / p->pos.size()));
@@ -87,17 +91,19 @@ void HairModel::pre_compute() {
 	
 	
 	for (int i = 0; i < particle->m.size(); i++) {
+		int n = 50;
 		for (int j = 0; j < particle->m[i].size(); j++) {
-			//double length = (smoothed_rest_particle->pos[i][j] - rest_particle->pos[i][j]).norm();
 			particle->m[i][j] = 1;
-			if(j > particle->m[i].size() * 0.6)
-				particle->w_c[i][j] = w_c;
+
+			//half wet
+			if(j > particle->m[i].size() * 0.5)
+				//particle->w_c[i][j] = n++;
+				particle->w_c[i][j] = 0;
 			else particle->w_c[i][j] = 0;
-			//min(exp(length), 1.4);
-			//particle->wetness[i][j] = 1.0 - length;
+
+			//particle->w_c[i][j] = w_c;
 			particle->w_d[i][j] = 0.8;
-			cout << particle->w_c[i][j] << endl;
-			//threshold = 단순할수록 1에 수렴 복잡할수록 증가
+			cout << n << endl;
 		}
 	}
 	//wetting_function(0);
@@ -116,10 +122,20 @@ void HairModel::pre_compute() {
 void HairModel::draw_point(vector<vector<Vector3d>> v) {
 	glDisable(GL_LIGHTING);
 	glPointSize(2.0f);
-	glBegin(GL_POINTS);
-	for (auto i : v)
-		for(auto j : i)
-		glVertex3f(j.x(), j.y(), j.z());
+	for (auto i : v) {
+		for (int j = 0; j < i.size() - 1; j++) {
+			glBegin(GL_POINTS);
+			int wc = particle->w_c[0][j];
+			if (wc > 0) {
+				double r = 1 - (particle->w_c[0][j] / 100);
+				double g = 1 - (particle->w_c[0][j] / 100);
+				double b = (particle->w_c[0][j] / 100);
+				glColor3f(r, g, b);
+			}
+			else glColor3f(0, 0, 0);
+			glVertex3f(i[j].x(), i[j].y(), i[j].z());
+		}
+	}
 	glEnd();
 	glPointSize(1.0f);
 	glEnable(GL_LIGHTING);
@@ -132,6 +148,14 @@ void HairModel::draw_wire(vector<vector<Vector3d>> v) {
 	for (auto i : v) {
 		for (int j = 0; j < i.size()-1; j++) {
 			glBegin(GL_LINES);
+			int wc = particle->w_c[0][j];
+			if (wc > 0) {
+				double r = 1 - (particle->w_c[0][j] / 100);
+				double g = 1- (particle->w_c[0][j] / 100);
+				double b = (particle->w_c[0][j] / 100);
+				glColor3f(r, g, b);
+			}
+			else glColor3f(0, 0, 0);
 			glVertex3f(i[j].x(), i[j].y(), i[j].z());
 			glVertex3f(i[j+1].x(), i[j+1].y(), i[j+1].z());
 			glEnd();
@@ -358,6 +382,7 @@ void HairModel::integrate_internal_hair_force() {
 			core_spring_force(i, j);
 
 			if (j == 0)continue;
+			//if (j == particle->pos[i].size()-1)continue;
 			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
@@ -375,6 +400,7 @@ void HairModel::integrate_external_force() {
 			particle->force[i][j] += gravity + force;
 
 			if (j == 0)continue;
+			//if (j == particle->pos[i].size() - 1)continue;
 			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
@@ -395,6 +421,7 @@ void HairModel::integrate_damping_force() {
 			wet_force(i, j);
 
 			if (j == 0)continue;
+			//if (j == particle->pos[i].size() - 1)continue;
 			Vector3d acceleration = particle->force[i][j] / particle->m[i][j];
 			particle->velocity[i][j] += acceleration * dt;
 			particle->force[i][j].setZero();
