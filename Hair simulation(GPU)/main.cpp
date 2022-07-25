@@ -24,45 +24,17 @@ double n = 0;
 
 HairModel *hm;
 
-#pragma region Draw section
 void posed_curves() {
 	glColor3f(0, 0, 0);
-	hm->draw_point(hm->particle->pos);
-	hm->draw_wire(hm->particle->pos);
+	hm->draw_point();
+	hm->draw_wire();
 }
-
-void smoothed_posed_curves() {
-	glColor3f(0, 0, 1);
-	hm->draw_point(hm->smoothed_particle->pos);
-	hm->draw_wire(hm->smoothed_particle->pos);
-}
-
-void rest_curves() {
-	glColor3f(0, 0, 1);
-	hm->draw_point(hm->rest_particle->pos);
-	hm->draw_wire(hm->rest_particle->pos);
-}
-
-void smoothed_rest_curves() {
-	glColor3f(1, 0, 0);
-	hm->draw_point(hm->smoothed_rest_particle->pos);
-	hm->draw_wire(hm->smoothed_rest_particle->pos);
-}
-
-#pragma endregion
 
 void Draw() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	
 	posed_curves();
-	//smoothed_posed_curves();
-	//hm->draw_frame(hm->smoothed_particle);
-
-	//hm->draw_frame(hm->smoothed_rest_particle);
-	//rest_curves();
-	//smoothed_rest_curves();
-
 	glDisable(GL_LIGHTING);
 }
 
@@ -149,16 +121,16 @@ void SpecialKeys(int key, int x, int y) {
 	switch (key)
 	{
 	case GLUT_KEY_RIGHT:
-		hm->move_root_particle(Vector3d(0, 0.0, -0.1));
+		//hm->move_root_particle(Vector3d(0, 0.0, -0.1));
 		break;
 	case GLUT_KEY_LEFT:
-		hm->move_root_particle(Vector3d(0, 0.0, 0.1));
+		//hm->move_root_particle(Vector3d(0, 0.0, 0.1));
 		break;
 	case GLUT_KEY_UP:
-		hm->move_root_particle(Vector3d(0.0, .1, .0));
+		//hm->move_root_particle(Vector3d(0.0, .1, .0));
 		break;
 	case GLUT_KEY_DOWN:
-		hm->move_root_particle(Vector3d(0.0, -.1, .0));
+		//hm->move_root_particle(Vector3d(0.0, -.1, .0));
 		break;
 	}
 	::glutPostRedisplay();
@@ -169,7 +141,7 @@ void KeyboardEvent(unsigned char key, int x, int y) {
 	{
 	case'r':
 	case'R':
-		hm->init(hm->particle);
+		//hm->init(hm->particle);
 		n = 0;
 		break;
 	case 'b':
@@ -184,12 +156,12 @@ void KeyboardEvent(unsigned char key, int x, int y) {
 		status[2] = !status[2];
 		break;
 	case ']':
-		hm->w_c += 1;
-		cout << "wet_c :" << hm->w_c << endl;
+		//hm->w_c += 1;
+		//cout << "wet_c :" << hm->w_c << endl;
 		break;
 	case '[':
-		hm->w_c -= 1;
-		cout << "wet_c :" << hm->w_c << endl;
+		//hm->w_c -= 1;
+		//cout << "wet_c :" << hm->w_c << endl;
 		break;
 	case 'q':
 	case 'Q':
@@ -216,15 +188,15 @@ void upLinePrompt(int count)
 void Update() {
 	if(status[2]){
 		if (status[1]) {
-			hm->simulation(Vector3d(0,0,10));
+			//hm->simulation(Vector3d(0,0,10));
 		}
 		else {
-			hm->simulation();
+			//hm->simulation();
 		}
 	}
 	if (status[0])
 	{
-		hm->bouncing_test(n);
+		//hm->bouncing_test(n);
 		n += 0.05;
 	}
 	::glutPostRedisplay();

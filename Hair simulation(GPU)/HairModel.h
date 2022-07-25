@@ -1,24 +1,14 @@
 #pragma once
-#include "vector"
 #include <random>
 #include <ctime>
 #include <iostream>
-#include "HairModel.cuh"
-#include "vector_calc.h"
-#define STRAND_SIZE 100
+#include "GL/glut.h"
+#include "vector_types.h"
+#define STRAND_SIZE 10
 #define PARTICLE_SIZE 128
 
 
 using namespace std;
-
-
-class HairModel
-{
-	Strand s[STRAND_SIZE];
-public:
-	HairModel();
-	void pre_compute();
-};
 
 struct Strand
 {
@@ -33,3 +23,17 @@ struct Strand
 struct Frame {
 	double3 x, y, z;
 };
+
+class HairModel
+{
+	Strand s[STRAND_SIZE];
+public:
+	HairModel();
+	void draw_point();
+	void draw_wire();
+
+public:
+	double3*  smoothing_function(double3 *lambda, double l, double alpha, bool is_position);
+};
+
+

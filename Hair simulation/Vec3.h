@@ -81,12 +81,7 @@ public:
 	{
 		return sqrt(m_dX*m_dX + m_dY * m_dY + m_dZ * m_dZ);
 	}
-	T				double SQRT(double input, double x)
-{
-      for(int i=0; i<10; i++) {  x = (x + (input / x)) / 2 ; }    // 이 한줄 땜에 주말내내 머리에 쥐남 ㅠㅠ
-
- return x ;
-}		Length(void)
+	T	Length(void)
 	{
 		return(T)(sqrt(LengthSquared()));
 	}
