@@ -5,11 +5,11 @@
 #include "HairModel.h"
 using namespace std;
 
-float zoom = 17.5f;
-float rot_x = 90.0f;
-float rot_y = 180.0f;
-float trans_x = 0.0f;
-float trans_y = 0.0f;
+double zoom = 17.5f;
+double rot_x = 90.0f;
+double rot_y = 180.0f;
+double trans_x = 0.0f;
+double trans_y = 0.0f;
 
 int last_x = 0;
 int last_y = 0;
@@ -95,15 +95,15 @@ void Motion(int x, int y) {
 	last_y = y;
 
 	if (buttons[2]) {
-		zoom -= (float)0.02f * diff_x;
+		zoom -= (double)0.02f * diff_x;
 	}
 	else if (buttons[1]) {
-		trans_x += (float)0.02f * diff_x;
-		trans_y -= (float)0.02f * diff_y;
+		trans_x += (double)0.02f * diff_x;
+		trans_y -= (double)0.02f * diff_y;
 	}
 	else if (buttons[0]) {
-		rot_x += (float)0.2f * diff_y;
-		rot_y += (float)0.2f *diff_x;
+		rot_x += (double)0.2f * diff_y;
+		rot_y += (double)0.2f *diff_x;
 	}
 
 	glutPostRedisplay();
@@ -139,7 +139,7 @@ void Reshape(int w, int h) {
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(45.0, float(w) / h, dt, 1000);
+	gluPerspective(45.0, double(w) / h, dt, 1000);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 

@@ -1,65 +1,35 @@
 #pragma once
-#include "Particle.h"
 #include "vector"
 #include <random>
 #include <ctime>
+#include <iostream>
+#include "HairModel.cuh"
+#include "vector_calc.h"
+#define STRAND_SIZE 100
+#define PARTICLE_SIZE 128
+
 
 using namespace std;
 
+
 class HairModel
 {
+	Strand s[STRAND_SIZE];
 public:
-	Particle		*particle;
-	Particle		*smoothed_particle;
-	Particle		*rest_particle;
-	Particle		*smoothed_rest_particle;
-	vector<int>		size;
-	Vector3d		force;
-public:
-	double			k_s			= 5000;
-	double			c_s			= 20;
-	double			alpha_b		= 0.23;
-	double			k_b			= 500;
-	double			c_b			= 3000;
-	double			alpha_c		= 1;
-	double			k_c			= 500;
-	double			c_c			= 200;
-	double			v_threshold = 1;
-	double			s_threshold = 1;
-	double			total_wet	= 1;
-	double			w_c		= 150;
-	double			w_d		= 0.8;
-public:
-					HairModel();
-	void			init(Particle *p);
-	void			pre_compute();
-	void			helix_function(Particle *p);
-	void			simulation(Vector3d _force = Vector3d(0,0,0));
-public:
-	void			draw_wire(vector<vector<Vector3d>>);
-	void			draw_point(vector<vector<Vector3d>>);
-	void			draw_frame(Particle *p);
-	void			move_root_particle(Vector3d dest);
-	void			bouncing_test(double n);
-
-public:
-	//void			wetting_function(double n);
-	void			integrate_internal_hair_force(); //include springs
-	void			integrate_external_force();
-	void			integrate_damping_force();
-	void			update_position();
-
-public:
-	void			stretch_spring_force(int i, int j);
-	void			bending_spring_force(int i, int j);
-	void			core_spring_force(int i, int j);
-
-	void			stretch_damping_force(int i, int j);
-	void			bending_damping_force(int i, int j);
-	void			core_damping_force(int i, int j);
-
-	void			wet_force(int i, int j);
-
-	vector<vector<Vector3d>> 		smoothing_function(vector<vector<Vector3d>> lambda, vector<double> l, double alpha, bool is_position);
+	HairModel();
+	void pre_compute();
 };
 
+struct Strand
+{
+	double r_p_l;
+	double3 *p_p;
+	double3 *s_p_p;
+	double3 *r_p_p;
+	double3 *r_s_p_p;
+	double3 *t;
+};
+
+struct Frame {
+	double3 x, y, z;
+};
