@@ -8,10 +8,9 @@ HairModel::HairModel() {
 		s[i].s_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
 		s[i].r_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
 		s[i].r_s_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
+		s[i].f = (Frame*)malloc(sizeof(double) * 3 * 3 * PARTICLE_SIZE);
 		s[i].t = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
-	}
 
-	for (int i = 0; i < STRAND_SIZE; i++) {
 		for (int j = 0; j < PARTICLE_SIZE; j++) {
 			double r = j / double(PARTICLE_SIZE) * 2 < 1 ? j / double(PARTICLE_SIZE) * 2 : 1;
 			double t = j * 0.3;
@@ -27,22 +26,19 @@ HairModel::HairModel() {
 			s[i].r_p_p[j].y = -y;
 			s[i].r_p_p[j].z = z + (i / double(STRAND_SIZE)) * 20;
 		}
-	}
 
-	for (int i = 0; i < STRAND_SIZE; i++) {
 		double sum = 0;
-		for (int j = 0; j < PARTICLE_SIZE; j++) {
-			double3 edge = vector_sub(s[i].r_p_p[j], s[i].r_p_p[j]);
+		for (int j = 0; j < PARTICLE_SIZE - 1; j++) {
+			double3 edge = vector_sub(s[i].r_p_p[j + 1], s[i].r_p_p[j]);
 			sum += vector_length(edge);
 		}
+
 		sum /= (PARTICLE_SIZE - 1);
 		cout << "rest_length : ";
 		cout << sum << endl;
 		s[i].r_p_l = sum;
-	}
 
-	for (int i = 0; i < STRAND_SIZE; i++) {
-		s[i].r_s_p_p = smoothing_function(s[i].r_p_p, s[i].r_p_l, 0.23, true);
+		array_copy(s[i].r_s_p_p, smoothing_function(s[i].r_p_p, s[i].r_p_l, 0.23, true));
 	}
 }
 
@@ -55,7 +51,10 @@ void HairModel::draw_point() {
 	for (int i = 0; i < STRAND_SIZE; i++) {
 		for (int j = 0; j < PARTICLE_SIZE; j++) {
 			glBegin(GL_POINTS);
+			
 			glVertex3f(s[i].p_p[j].x, s[i].p_p[j].y, s[i].p_p[j].z);
+
+			//glVertex3f(s[i].r_s_p_p[j].x, s[i].r_s_p_p[j].y, s[i].r_s_p_p[j].z);
 		}
 	}
 	glEnd();
@@ -71,6 +70,9 @@ void HairModel::draw_wire() {
 		for (int j = 0; j < PARTICLE_SIZE-1; j++) {
 			glVertex3f(s[i].p_p[j].x, s[i].p_p[j].y, s[i].p_p[j].z);
 			glVertex3f(s[i].p_p[j+1].x, s[i].p_p[j+1].y, s[i].p_p[j+1].z);
+
+			//glVertex3f(s[i].r_s_p_p[j].x, s[i].r_s_p_p[j].y, s[i].r_s_p_p[j].z);
+			//glVertex3f(s[i].r_s_p_p[j+1].x, s[i].r_s_p_p[j+1].y, s[i].r_s_p_p[j+1].z);
 		}
 		glEnd();
 	}
@@ -85,14 +87,10 @@ double3*  HairModel::smoothing_function(double3 *lambda, double l, double alpha,
 	double3 pos[PARTICLE_SIZE];
 	//lambda가 파티클 위치일 경우 return하기위한 pos vector
 
-	for (int i = 0; i < PARTICLE_SIZE; i++) {
-		d[i].x = lambda[i].x;
-		d[i].y = lambda[i].y;
-		d[i].z = lambda[i].z;
-	}
+	array_copy(d, lambda);
 
 	//beta formulation, l = 파티클간의 평균길이
-	beta = 1 > 1 - exp(-1 / alpha) ? 1 - exp(-1 / alpha) : 1;
+	beta = 1 > 1 - exp(-l / alpha) ? 1 - exp(-l / alpha) : 1;
 
 	d[0] = vector_sub(lambda[1], lambda[0]);
 	for (int j = 1; j < PARTICLE_SIZE-1; j++) {
@@ -105,14 +103,15 @@ double3*  HairModel::smoothing_function(double3 *lambda, double l, double alpha,
 		d[j] =  vector_add(term3,term4);
 	}
 	
-
 	if (is_position) {
 		pos[0] = lambda[0];
 		for (int j = 1; j < PARTICLE_SIZE; j++) {
 			pos[j] = vector_add(d[j - 1], pos[j - 1]);
 		}
-	return pos;
+
+		return pos;
 	}
 	
 	return d;
 }
+

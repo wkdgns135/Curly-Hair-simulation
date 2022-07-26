@@ -10,6 +10,10 @@
 
 using namespace std;
 
+struct Frame {
+	double3 aim, up, cross;
+};
+
 struct Strand
 {
 	double r_p_l;
@@ -17,12 +21,10 @@ struct Strand
 	double3 *s_p_p;
 	double3 *r_p_p;
 	double3 *r_s_p_p;
+	Frame *f;
 	double3 *t;
 };
 
-struct Frame {
-	double3 x, y, z;
-};
 
 class HairModel
 {

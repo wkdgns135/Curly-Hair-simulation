@@ -24,17 +24,13 @@ double n = 0;
 
 HairModel *hm;
 
-void posed_curves() {
-	glColor3f(0, 0, 0);
-	hm->draw_point();
-	hm->draw_wire();
-}
-
 void Draw() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	
-	posed_curves();
+	hm->draw_point();
+	hm->draw_wire();
+
 	glDisable(GL_LIGHTING);
 }
 
