@@ -69,7 +69,7 @@ double vector_length(double3 a) {
 	return sqrt(a.x*a.x + a.y * a.y + a.z * a.z);
 }
 
-double vector_normalize(double3 a) {
+void vector_normalize(double3 &a) {
 	double norm = vector_length(a);
 	if (norm != 0) {
 		a.x = a.x / norm;
@@ -119,4 +119,43 @@ void compute_frame(Frame *f, double3 *p) {
 		f[i].cross.z = cross.z;
 
 	}
+}
+
+double3 multiply_transpose_frame(Frame f, double3 e) {
+	double3 tmp;
+	tmp.x =
+		e.x * f.aim.x +
+		e.y * f.up.x +
+		e.z * f.cross.x;
+	
+	tmp.y =
+		e.x * f.aim.y +
+		e.y * f.up.y +
+		e.z * f.cross.y;
+
+	tmp.z =
+		e.x * f.aim.z +
+		e.y * f.up.z +
+		e.z * f.cross.z;
+	return tmp;
+}
+
+double3 multiply_frame(Frame f, double3 e) {
+	double3 tmp;
+	tmp.x =
+		e.x * f.aim.x +
+		e.y * f.aim.y +
+		e.z * f.aim.z;
+
+
+	tmp.y =
+		e.x * f.up.x +
+		e.y * f.up.y +
+		e.z * f.up.z;
+
+	tmp.z =
+		e.x * f.cross.x +
+		e.y * f.cross.y +
+		e.z * f.cross.z;
+	return tmp;
 }

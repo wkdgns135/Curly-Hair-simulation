@@ -4,7 +4,7 @@
 #include <iostream>
 #include "GL/glut.h"
 #include "vector_types.h"
-#define STRAND_SIZE 10
+#define STRAND_SIZE 1
 #define PARTICLE_SIZE 128
 
 
@@ -21,7 +21,8 @@ struct Strand
 	double3 *s_p_p;
 	double3 *r_p_p;
 	double3 *r_s_p_p;
-	Frame *f;
+	Frame *r_s_f;
+	Frame *s_f;
 	double3 *t;
 };
 
@@ -33,6 +34,7 @@ public:
 	HairModel();
 	void draw_point();
 	void draw_wire();
+	void draw_frame();
 
 public:
 	double3*  smoothing_function(double3 *lambda, double l, double alpha, bool is_position);
