@@ -9,10 +9,10 @@
 
 
 using namespace std;
-
-struct Frame {
+struct __device_builtin__ Frame {
 	double3 aim, up, cross;
 };
+typedef __device_builtin__ struct Frame;
 
 struct Strand
 {

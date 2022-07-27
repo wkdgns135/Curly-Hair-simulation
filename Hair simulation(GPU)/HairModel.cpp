@@ -1,6 +1,7 @@
 #pragma once
 #include "HairModel.h"
 #include "vector_calc.h"
+#include "HairModel.cuh"
 
 HairModel::HairModel() {
 	for (int i = 0; i < STRAND_SIZE; i++) {
@@ -46,6 +47,7 @@ HairModel::HairModel() {
 			double3 e = vector_sub(s[i].r_p_p[j + 1], s[i].r_p_p[j]);
 			s[i].t[j] = multiply_transpose_frame(s[i].r_s_f[j - 1], e);
 		}
+		
 	}
 }
 
