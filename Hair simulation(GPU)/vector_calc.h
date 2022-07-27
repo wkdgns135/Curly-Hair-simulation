@@ -147,7 +147,6 @@ double3 multiply_frame(Frame f, double3 e) {
 		e.y * f.aim.y +
 		e.z * f.aim.z;
 
-
 	tmp.y =
 		e.x * f.up.x +
 		e.y * f.up.y +

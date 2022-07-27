@@ -28,9 +28,9 @@ void Draw() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	
-	//hm->draw_point();
-	//hm->draw_wire();
-	hm->draw_frame();
+	hm->draw_point();
+	hm->draw_wire();
+	//hm->draw_frame();
 	glDisable(GL_LIGHTING);
 }
 

@@ -5,7 +5,7 @@
 
 HairModel::HairModel() {
 	for (int i = 0; i < STRAND_SIZE; i++) {
-		s[i].p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE); //double3 buffer size = 12
+		s[i].p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE); //double3 buffer size = 24
 		s[i].s_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
 		s[i].r_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
 		s[i].r_s_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
