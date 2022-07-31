@@ -4,48 +4,55 @@
 #include "HairModel.cuh"
 
 HairModel::HairModel() {
-	for (int i = 0; i < STRAND_SIZE; i++) {
-		s[i].p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE); //double3 buffer size = 24
-		s[i].s_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
-		s[i].r_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
-		s[i].r_s_p_p = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
-		s[i].r_s_f = (Frame*)malloc(sizeof(double) * 3 * 3 * PARTICLE_SIZE);
-		s[i].t = (double3*)malloc(sizeof(double) * 3 * PARTICLE_SIZE);
+	p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	s_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	r_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	r_s_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	r_s_f = (Frame*)malloc(sizeof(Frame) * STRAND_SIZE * PARTICLE_SIZE);
+	t = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	r_p_l = (double*)malloc(sizeof(double) * STRAND_SIZE);
 
+	for (int i = 0; i < STRAND_SIZE; i++) {
 		for (int j = 0; j < PARTICLE_SIZE; j++) {
+			int index = i * PARTICLE_SIZE + j;
+
 			double r = j / double(PARTICLE_SIZE) * 2 < 1 ? j / double(PARTICLE_SIZE) * 2 : 1;
 			double t = j * 0.3;
 			double x = cos(t) * r;
 			double y = t * 0.2;
 			double z = sin(t) * r;
 
-			s[i].p_p[j].x = x;
-			s[i].p_p[j].y = -y;
-			s[i].p_p[j].z = z + (i / double(STRAND_SIZE)) * 20;
+			p_p[index].x = x;
+			p_p[index].y = -y;
+			p_p[index].z = z + (i / double(STRAND_SIZE)) * 20;
 
-			s[i].r_p_p[j].x = x;
-			s[i].r_p_p[j].y = -y;
-			s[i].r_p_p[j].z = z + (i / double(STRAND_SIZE)) * 20;
+			r_p_p[index].x = x;
+			r_p_p[index].y = -y;
+			r_p_p[index].z = z + (i / double(STRAND_SIZE)) * 20;
 		}
 
 		double sum = 0;
 		for (int j = 0; j < PARTICLE_SIZE - 1; j++) {
-			double3 edge = vector_sub(s[i].r_p_p[j + 1], s[i].r_p_p[j]);
+			int index = i * PARTICLE_SIZE + j;
+			double3 edge = vector_sub(r_p_p[index + 1], r_p_p[index]);
 			sum += vector_length(edge);
 		}
 
 		sum /= (PARTICLE_SIZE - 1);
 		cout << "rest_length : ";
 		cout << sum << endl;
-		s[i].r_p_l = sum;
+		r_p_l[i] = sum;
 
-		array_copy(s[i].r_s_p_p, smoothing_function(s[i].r_p_p, s[i].r_p_l, 0.23, true));
+		array_copy(r_s_p_p, smoothing_function(r_p_p, r_p_l, 0.23, true));
 		
-		compute_frame(s[i].r_s_f, s[i].r_s_p_p);
+		compute_frame(r_s_f, r_s_p_p);
 
 		for (int j = 1; j < PARTICLE_SIZE - 1; j++) {
-			double3 e = vector_sub(s[i].r_p_p[j + 1], s[i].r_p_p[j]);
-			s[i].t[j] = multiply_transpose_frame(s[i].r_s_f[j - 1], e);
+			int index_1 = i * PARTICLE_SIZE + j-1;
+			int index0 = i * PARTICLE_SIZE + j;
+			int index1 = i * PARTICLE_SIZE + j + 1;
+			double3 e = vector_sub(r_p_p[index1], r_p_p[index0]);
+			t[index0] = multiply_transpose_frame(r_s_f[index_1], e);
 		}
 		
 	}
@@ -59,9 +66,9 @@ void HairModel::draw_point() {
 
 	for (int i = 0; i < STRAND_SIZE; i++) {
 		for (int j = 0; j < PARTICLE_SIZE; j++) {
+			int index = i * PARTICLE_SIZE + j;
 			glBegin(GL_POINTS);
-			
-			glVertex3f(s[i].p_p[j].x, s[i].p_p[j].y, s[i].p_p[j].z);
+			glVertex3f(p_p[index].x, p_p[index].y, p_p[index].z);
 
 			//glVertex3f(s[i].r_s_p_p[j].x, s[i].r_s_p_p[j].y, s[i].r_s_p_p[j].z);
 		}
@@ -77,8 +84,10 @@ void HairModel::draw_wire() {
 	for (int i = 0; i < STRAND_SIZE; i++) {
 		glBegin(GL_LINES);
 		for (int j = 0; j < PARTICLE_SIZE-1; j++) {
-			glVertex3f(s[i].p_p[j].x, s[i].p_p[j].y, s[i].p_p[j].z);
-			glVertex3f(s[i].p_p[j+1].x, s[i].p_p[j+1].y, s[i].p_p[j+1].z);
+			int index0 = i * PARTICLE_SIZE + j;
+			int index1 = i * PARTICLE_SIZE + j + 1;
+			glVertex3f(p_p[index0].x, p_p[index0].y, p_p[index0].z);
+			glVertex3f(p_p[index1].x, p_p[index1].y, p_p[index1].z);
 
 			//glVertex3f(s[i].r_s_p_p[j].x, s[i].r_s_p_p[j].y, s[i].r_s_p_p[j].z);
 			//glVertex3f(s[i].r_s_p_p[j+1].x, s[i].r_s_p_p[j+1].y, s[i].r_s_p_p[j+1].z);
@@ -97,15 +106,15 @@ void HairModel::draw_frame() {
 		for (int j = 0; j < PARTICLE_SIZE; j++) {
 			glBegin(GL_LINES);
 			glColor3f(1, 0, 0);
+			int index = i * PARTICLE_SIZE + j;
+			glVertex3f(r_s_p_p[index].x,  r_s_p_p[index].y,  r_s_p_p[index].z);
+			glVertex3f(r_s_p_p[index].x + r_s_f[index].aim.x, r_s_p_p[index].y + r_s_f[index].aim.y, r_s_p_p[index].z + r_s_f[index].aim.z);
 
-			glVertex3f(s[i].r_s_p_p[j].x, s[i].r_s_p_p[j].y, s[i].r_s_p_p[j].z);
-			glVertex3f(s[i].r_s_p_p[j].x + s[i].r_s_f[j].aim.x, s[i].r_s_p_p[j].y + s[i].r_s_f[j].aim.y, s[i].r_s_p_p[j].z + s[i].r_s_f[j].aim.z);
+			glVertex3f(r_s_p_p[index].x,  r_s_p_p[index].y,  r_s_p_p[index].z);
+			glVertex3f(r_s_p_p[index].x + r_s_f[index].up.x, r_s_p_p[index].y + r_s_f[index].up.y, r_s_p_p[index].z + r_s_f[index].up.z);
 
-			glVertex3f(s[i].r_s_p_p[j].x, s[i].r_s_p_p[j].y, s[i].r_s_p_p[j].z);
-			glVertex3f(s[i].r_s_p_p[j].x + s[i].r_s_f[j].up.x, s[i].r_s_p_p[j].y + s[i].r_s_f[j].up.y, s[i].r_s_p_p[j].z + s[i].r_s_f[j].up.z);
-
-			glVertex3f(s[i].r_s_p_p[j].x, s[i].r_s_p_p[j].y, s[i].r_s_p_p[j].z);
-			glVertex3f(s[i].r_s_p_p[j].x + s[i].r_s_f[j].cross.x, s[i].r_s_p_p[j].y + s[i].r_s_f[j].cross.y, s[i].r_s_p_p[j].z + s[i].r_s_f[j].cross.z);
+			glVertex3f(r_s_p_p[index].x,  r_s_p_p[index].y,  r_s_p_p[index].z);
+			glVertex3f(r_s_p_p[index].x + r_s_f[index].cross.x, r_s_p_p[index].y + r_s_f[index].cross.y, r_s_p_p[index].z + r_s_f[index].cross.z);
 
 			glEnd();
 		}
@@ -113,7 +122,7 @@ void HairModel::draw_frame() {
 }
 
 
-double3*  HairModel::smoothing_function(double3 *lambda, double l, double alpha, bool is_position) {
+double3*  HairModel::smoothing_function(double3 *lambda, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
 
 	double3  d[PARTICLE_SIZE];
@@ -123,28 +132,39 @@ double3*  HairModel::smoothing_function(double3 *lambda, double l, double alpha,
 	array_copy(d, lambda);
 
 	//beta formulation, l = 파티클간의 평균길이
-	beta = 1 > 1 - exp(-l / alpha) ? 1 - exp(-l / alpha) : 1;
 
-	d[0] = vector_sub(lambda[1], lambda[0]);
-	for (int j = 1; j < PARTICLE_SIZE-1; j++) {
-		int index_1 = j - 1 >= 0 ? j - 1 : 0;
-		int index_2 = j - 2 >= 0 ? j - 2 : 0;
-		double3 term1 = vector_multiply(d[index_1], 2 * (1 - beta));
-		double3 term2 = vector_multiply(d[index_2], ((1 - beta) * (1 - beta)));
-		double3 term3 = vector_sub(term1,term2);
-		double3 term4 = vector_multiply(vector_sub(lambda[j + 1], lambda[j]), (beta * beta));
-		d[j] =  vector_add(term3,term4);
-	}
-	
-	if (is_position) {
-		pos[0] = lambda[0];
-		for (int j = 1; j < PARTICLE_SIZE; j++) {
-			pos[j] = vector_add(d[j - 1], pos[j - 1]);
+	for (int i = 0; i < STRAND_SIZE; i++) {
+		int index = i * PARTICLE_SIZE;
+		d[index] = vector_sub(lambda[index + 1], lambda[index]);
+		beta = 1 > 1 - exp(-l[i] / alpha) ? 1 - exp(-l[i] / alpha) : 1;
+		for (int j = 1; j < PARTICLE_SIZE - 1; j++) {
+			int index_1 = j - 1 >= 0 ? j - 1 : 0;
+			int index_2 = j - 2 >= 0 ? j - 2 : 0;
+
+			int index1 = i * PARTICLE_SIZE + index_1;
+			int index2 = i * PARTICLE_SIZE + index_2;
+			index = i * PARTICLE_SIZE + j;
+
+			double3 term1 = vector_multiply(d[index_1], 2 * (1 - beta));
+			double3 term2 = vector_multiply(d[index_2], ((1 - beta) * (1 - beta)));
+			double3 term3 = vector_sub(term1, term2);
+			double3 term4 = vector_multiply(vector_sub(lambda[index + 1], lambda[index]), (beta * beta));
+			d[index] = vector_add(term3, term4);
 		}
+	}
 
+	if (is_position) {
+		for (int i = 0; i < STRAND_SIZE; i++) {
+			int index = i * PARTICLE_SIZE;
+			pos[index] = lambda[index];
+			for (int j = 1; j < PARTICLE_SIZE; j++) {
+				index = i * PARTICLE_SIZE + j;
+				pos[index] = vector_add(d[index - 1], pos[index - 1]);
+			}
+
+		}
 		return pos;
 	}
-	
 	return d;
 }
 
