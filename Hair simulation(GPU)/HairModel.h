@@ -3,20 +3,23 @@
 #include <ctime>
 #include <iostream>
 #include "GL/glut.h"
+
+#include "HairModel.cuh"
 #include "vector_types.h"
 
 #define STRAND_SIZE 1
 #define PARTICLE_SIZE 128
 
 
-using namespace std;
 typedef struct Frame {
 	double3 aim, up, cross;
 };
 
-
+using namespace std;
 class HairModel
 {
+public:
+	HairModel_d *h_d;
 public:
 	double *r_p_l;
 	double3 *p_p;

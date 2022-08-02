@@ -1,7 +1,6 @@
 #pragma once
 #include "HairModel.h"
 #include "vector_calc.h"
-#include "HairModel.cuh"
 
 HairModel::HairModel() {
 	p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
@@ -56,6 +55,7 @@ HairModel::HairModel() {
 		}
 		
 	}
+	h_d = new HairModel_d(*this);
 }
 
 

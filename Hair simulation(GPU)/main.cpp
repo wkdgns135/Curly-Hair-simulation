@@ -3,6 +3,7 @@
 #include <time.h>
 #include "GL/glut.h"
 #include "HairModel.h"
+
 using namespace std;
 
 double zoom = 17.5f;
@@ -182,19 +183,7 @@ void upLinePrompt(int count)
 }
 
 void Update() {
-	if(status[2]){
-		if (status[1]) {
-			//hm->simulation(Vector3d(0,0,10));
-		}
-		else {
-			//hm->simulation();
-		}
-	}
-	if (status[0])
-	{
-		//hm->bouncing_test(n);
-		n += 0.05;
-	}
+	hm->h_d->simulation();
 	::glutPostRedisplay();
 }
 
