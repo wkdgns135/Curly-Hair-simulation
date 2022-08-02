@@ -7,6 +7,7 @@ HairModel::HairModel() {
 	s_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
 	r_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
 	r_s_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	p_v_d = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
 	r_s_f = (Frame*)malloc(sizeof(Frame) * STRAND_SIZE * PARTICLE_SIZE);
 	t = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
 	r_p_l = (double*)malloc(sizeof(double) * STRAND_SIZE);
@@ -53,9 +54,9 @@ HairModel::HairModel() {
 			double3 e = vector_sub(r_p_p[index1], r_p_p[index0]);
 			t[index0] = multiply_transpose_frame(r_s_f[index_1], e);
 		}
-		
 	}
-	h_d = new HairModel_d(*this);
+
+	device_init();
 }
 
 
@@ -125,8 +126,8 @@ void HairModel::draw_frame() {
 double3*  HairModel::smoothing_function(double3 *lambda, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
 
-	double3  d[PARTICLE_SIZE];
-	double3 pos[PARTICLE_SIZE];
+	double3  d[STRAND_SIZE * PARTICLE_SIZE];
+	double3 pos[STRAND_SIZE * PARTICLE_SIZE];
 	//lambda가 파티클 위치일 경우 return하기위한 pos vector
 
 	array_copy(d, lambda);

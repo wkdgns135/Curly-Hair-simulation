@@ -88,7 +88,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HairModel.cuh" />
     <ClInclude Include="HairModel.h" />
     <ClInclude Include="vector_calc.h" />
   </ItemGroup>

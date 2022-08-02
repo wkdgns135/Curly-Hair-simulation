@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "GL/glut.h"
+
 #include "HairModel.h"
 
 using namespace std;
@@ -183,7 +184,7 @@ void upLinePrompt(int count)
 }
 
 void Update() {
-	hm->h_d->simulation();
+	hm->simulation();
 	::glutPostRedisplay();
 }
 

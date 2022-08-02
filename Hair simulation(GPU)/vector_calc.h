@@ -10,7 +10,7 @@ void array_copy(double3 *a, double3 *b) {
 	}
 }
 
-double3 vector_multiply(double3 a, double3 b) {
+__device__ __host__ double3 vector_multiply(double3 a, double3 b) {
 	double3 tmp;
 	tmp.x = a.x * b.x;
 	tmp.y = a.y * b.y;
@@ -19,7 +19,7 @@ double3 vector_multiply(double3 a, double3 b) {
 }
 
 
-double3 vector_multiply(double3 a, double b) {
+__device__ __host__ double3 vector_multiply(double3 a, double b) {
 	double3 tmp;
 	tmp.x = a.x * b;
 	tmp.y = a.y * b;
@@ -28,7 +28,7 @@ double3 vector_multiply(double3 a, double b) {
 	return tmp;
 }
 
-double3 vector_add(double3 a, double3 b) {
+__device__ __host__ double3 vector_add(double3 a, double3 b) {
 	double3 tmp;
 	tmp.x = a.x + b.x;
 	tmp.y = a.y + b.y;
@@ -38,7 +38,7 @@ double3 vector_add(double3 a, double3 b) {
 }
 
 
-double3 vector_add(double3 a, double b) {
+__device__ __host__ double3 vector_add(double3 a, double b) {
 	double3 tmp;
 	tmp.x = a.x + b;
 	tmp.y = a.y + b;
@@ -47,7 +47,7 @@ double3 vector_add(double3 a, double b) {
 	return tmp;
 }
 
-double3 vector_sub(double3 a, double3 b) {
+__device__ __host__ double3 vector_sub(double3 a, double3 b) {
 	double3 tmp;
 	tmp.x = a.x - b.x;
 	tmp.y = a.y - b.y;
@@ -56,7 +56,7 @@ double3 vector_sub(double3 a, double3 b) {
 	return tmp;
 }
 
-double3 vector_sub(double3 a, double b) {
+__device__ __host__ double3 vector_sub(double3 a, double b) {
 	double3 tmp;
 	tmp.x = a.x - b;
 	tmp.y = a.y - b;
@@ -65,11 +65,11 @@ double3 vector_sub(double3 a, double b) {
 	return tmp;
 }
 
-double vector_length(double3 a) {
+__device__ __host__ double vector_length(double3 a) {
 	return sqrt(a.x*a.x + a.y * a.y + a.z * a.z);
 }
 
-void vector_normalize(double3 &a) {
+__device__ __host__ void vector_normalize(double3 &a) {
 	double norm = vector_length(a);
 	if (norm != 0) {
 		a.x = a.x / norm;
@@ -78,7 +78,18 @@ void vector_normalize(double3 &a) {
 	}
 }
 
-double3	vector_cross(double3 a, double3 b){
+__device__ __host__ double3 vector_normalized(double3 a) {
+	double norm = vector_length(a);
+	if (norm != 0) {
+		a.x = a.x / norm;
+		a.y = a.y / norm;
+		a.z = a.z / norm;
+	}
+	return a;
+}
+
+
+__device__ __host__ double3	vector_cross(double3 a, double3 b){
 	double3 tmp;
 	tmp.x = ((a.y*b.z) - (a.z*b.y));
 	tmp.y = ((a.z*b.x) - (a.x*b.z));
@@ -86,7 +97,7 @@ double3	vector_cross(double3 a, double3 b){
 	return tmp;
 }
 
-void compute_frame(Frame *f, double3 *p) {
+__device__ __host__ void compute_frame(Frame *f, double3 *p) {
 	double3 aim = vector_sub(p[1], p[0]);
 	vector_normalize(aim);
 
@@ -121,7 +132,7 @@ void compute_frame(Frame *f, double3 *p) {
 	}
 }
 
-double3 multiply_transpose_frame(Frame f, double3 e) {
+__device__ __host__ double3 multiply_transpose_frame(Frame f, double3 e) {
 	double3 tmp;
 	tmp.x =
 		e.x * f.aim.x +
@@ -140,7 +151,7 @@ double3 multiply_transpose_frame(Frame f, double3 e) {
 	return tmp;
 }
 
-double3 multiply_frame(Frame f, double3 e) {
+__device__ __host__ double3 multiply_frame(Frame f, double3 e) {
 	double3 tmp;
 	tmp.x =
 		e.x * f.aim.x +
