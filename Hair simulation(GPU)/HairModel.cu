@@ -12,6 +12,7 @@ void HairModel::device_init() {
 	cudaMalloc((void**)&p_v_d,sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
 	cudaMalloc((void**)&p_f_d,sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
 	cudaMalloc((void**)&r_p_p_d,sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	cudaMalloc((void**)&s_p_p_d,sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
 	
 	//cudaMalloc((void**)&r_s_p_p,sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
 	cudaMalloc((void**)&s_f_d,sizeof(Frame) * STRAND_SIZE * PARTICLE_SIZE);
@@ -23,8 +24,8 @@ void HairModel::device_init() {
 	cudaMemcpy(r_p_p_d, r_p_p, sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE, cudaMemcpyHostToDevice);
 	//cudaMemcpy(r_s_f, h.r_s_f, sizeof(Frame) * STRAND_SIZE * PARTICLE_SIZE, cudaMemcpyHostToDevice);
 	//cudaMemcpy(r_s_p_p, h.r_s_p_p, sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE, cudaMemcpyHostToDevice);
-	//cudaMemcpy(t, h.t, sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE, cudaMemcpyHostToDevice);
-	//cudaMemcpy(r_p_l, h.r_p_l, sizeof(double) * STRAND_SIZE * PARTICLE_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(t_d, t, sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(r_p_l_d, r_p_l, sizeof(double) * STRAND_SIZE * PARTICLE_SIZE, cudaMemcpyHostToDevice);
 
 
 	array_init << <STRAND_SIZE, PARTICLE_SIZE >> > (p_f_d);
@@ -48,11 +49,14 @@ __global__ void integrate_internal_hair_force(int *p_i,double3 *p_p, double3 *r_
 			p_f[tid + 1] = vector_sub_k(p_f[tid + 1], force);
 
 			//Bending spring
+			/*		
 			double3 t = multiply_frame_k(s_f[tid - 1], _t[tid]);
 			force = vector_multiply_k(vector_sub_k(e, t), K_B);
-
+			
 			p_f[tid] = vector_add_k(p_f[tid], force);
 			p_f[tid + 1] = vector_sub_k(p_f[tid + 1], force);
+			*/
+
 		}
 		if (i > 0) {
 			double3 ac = p_f[tid];
@@ -164,6 +168,7 @@ __global__ void update_position(int *p_i, double3 *p_p, double3 *p_v) {
 		p_p[tid] = vector_add_k(p_p[tid], vector_multiply_k(p_v[tid], dt));
 	}
 }
+
 /*
 __global__ void update_position(double3 *p_p, double3 *p_v) {
 	double dt = 0.0000001;
@@ -174,15 +179,12 @@ __global__ void update_position(double3 *p_p, double3 *p_v) {
 	}
 }*/
 
-__global__ void pre_compute_k(double3* p_p, double *r_p_l, double3* s_p_p, Frame* s_f) {
-	array_copy_k(s_p_p, smoothing_function_k(p_p, r_p_l, 0.23, true));
-	compute_frame_k(s_f, p_p);
-}
-
 void HairModel:: simulation() {
 	for (int iter1 = 0; iter1 < 2; iter1++) {
 		for (int iter2 = 0; iter2 < 15; iter2++) {
-			pre_compute_k << <1, STRAND_SIZE >> > (p_p_d, r_p_l_d, s_p_p_d, s_f_d);
+			//smoothing_function_k << <1, STRAND_SIZE >> > (p_p_d, s_p_p_d, r_p_l_d, 0.23, true);
+			//compute_frame_k << <1, STRAND_SIZE >> > (s_f_d, s_p_p_d);
+
 			integrate_internal_hair_force << <1, STRAND_SIZE >> > (p_i_d, p_p_d, r_p_p_d, s_f_d, t_d , p_f_d, p_v_d);
 			integrate_external_hair_force << <1, STRAND_SIZE >> > (p_i_d, p_p_d, p_f_d, p_v_d);
 

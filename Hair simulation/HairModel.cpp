@@ -428,6 +428,7 @@ void HairModel::integrate_damping_force() {
 		}
 	}
 }
+
 void HairModel::update_position() {
 	double dt = 0.01; //0.00138883;
 	//double dt = 0.00138883; //0.00138883;

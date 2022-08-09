@@ -99,37 +99,39 @@ double3	vector_cross(double3 a, double3 b){
 }
 
 void compute_frame(Frame *f, double3 *p) {
-	double3 aim = vector_sub(p[1], p[0]);
-	vector_normalize(aim);
-
-	double3 up;
-	up.x = aim.z - aim.y;
-	up.y = aim.x - aim.z;
-	up.z = aim.y - aim.x;
-
-	vector_normalize(up);
-	for (int i = 1; i < PARTICLE_SIZE - 1; i++) {
-		double3 aim = vector_sub(p[i+1], p[i]);
+	for (int i = 0; i < STRAND_SIZE; i++) {
+		double3 aim = vector_sub(p[i * PARTICLE_SIZE + 1], p[i * PARTICLE_SIZE]);
 		vector_normalize(aim);
 
-		double3 cross = vector_cross(aim, up);
-		vector_normalize(cross);
-
-		up = vector_cross(cross, aim);
+		double3 up;
+		up.x = aim.z - aim.y;
+		up.y = aim.x - aim.z;
+		up.z = aim.y - aim.x;
 		vector_normalize(up);
 
-		f[i].aim.x = aim.x;
-		f[i].aim.y = up.x;
-		f[i].aim.z = cross.x;
+		for (int j = 1; j < PARTICLE_SIZE - 1; j++) {
+			int index = i * PARTICLE_SIZE + j;
+			double3 aim = vector_sub(p[index + 1], p[index]);
+			vector_normalize(aim);
 
-		f[i].up.x = aim.y;
-		f[i].up.y = up.y;
-		f[i].up.z = cross.y;
+			double3 cross = vector_cross(aim, up);
+			vector_normalize(cross);
 
-		f[i].cross.x = aim.z;
-		f[i].cross.y = up.z;
-		f[i].cross.z = cross.z;
+			up = vector_cross(cross, aim);
+			vector_normalize(up);
 
+			f[index].aim.x = aim.x;
+			f[index].aim.y = up.x;
+			f[index].aim.z = cross.x;
+
+			f[index].up.x = aim.y;
+			f[index].up.y = up.y;
+			f[index].up.z = cross.y;
+
+			f[index].cross.x = aim.z;
+			f[index].cross.y = up.z;
+			f[index].cross.z = cross.z;
+		}
 	}
 }
 
@@ -171,7 +173,7 @@ double3 multiply_frame(Frame f, double3 e) {
 	return tmp;
 }
 
-double3*  smoothing_function(double3 *lambda, double *l, double alpha, bool is_position) {
+double3* smoothing_function(double3 *lambda, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
 
 	double3  d[STRAND_SIZE * PARTICLE_SIZE];

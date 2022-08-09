@@ -10,8 +10,9 @@
 
 #define K_S 5000.0
 #define C_S 2000.0
+
 #define K_B 500.0
-#define C_B 3000.0
+#define C_B 5000.0
 
 typedef struct Frame {
 	double3 aim, up, cross;

@@ -17,13 +17,13 @@ public:
 	Vector3d		force;
 public:
 	double			k_s			= 5000;
-	double			c_s			= 2000;
+	double			c_s			= 20;
 	double			alpha_b		= 0.23;
 	double			k_b			= 500;
-	double			c_b			= 3000;
+	double			c_b			= 5000;
 	double			alpha_c		= 1;
 	double			k_c			= 500;
-	double			c_c			= 200;
+	double			c_c			= 20;
 	double			v_threshold = 1;
 	double			s_threshold = 1;
 	double			total_wet	= 1;
