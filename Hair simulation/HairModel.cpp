@@ -6,7 +6,7 @@ HairModel::HairModel() {
 	rest_particle = new Particle();
 	smoothed_rest_particle = new Particle();
 	
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 10; i++) {
 		size.push_back(128);
 	}
 
@@ -204,7 +204,7 @@ void HairModel::simulation(Vector3d _force) {
 			integrate_external_force();
 
 			//Damping loop iteration
-			for (int iter3 = 0; iter3 < iter2 * 10; iter3++) {
+			for (int iter3 = 0; iter3 < 10; iter3++) {
 				integrate_damping_force();
 			}
 		}
@@ -379,7 +379,7 @@ void HairModel::integrate_internal_hair_force() {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_spring_force(i, j);
 			bending_spring_force(i, j);
-			core_spring_force(i, j);
+			//core_spring_force(i, j);
 
 			if (j == 0)continue;
 			//if (j == particle->pos[i].size()-1)continue;
@@ -417,8 +417,8 @@ void HairModel::integrate_damping_force() {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_damping_force(i, j);
 			bending_damping_force(i, j);
-			core_damping_force(i, j);
-			wet_force(i, j);
+			//core_damping_force(i, j);
+			//wet_force(i, j);
 
 			if (j == 0)continue;
 			//if (j == particle->pos[i].size() - 1)continue;

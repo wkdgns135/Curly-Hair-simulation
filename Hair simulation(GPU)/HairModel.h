@@ -8,6 +8,10 @@
 #define STRAND_SIZE 10
 #define PARTICLE_SIZE 128
 
+#define K_S 5000.0
+#define C_S 2000.0
+#define K_B 500.0
+#define C_B 3000.0
 
 typedef struct Frame {
 	double3 aim, up, cross;
@@ -21,6 +25,8 @@ public:
 
 	
 public: //Host
+	int *p_i;
+
 	double *r_p_l;
 	double3 *p_p;
 	double3 *s_p_p;
@@ -31,6 +37,7 @@ public: //Host
 	double3 *t;
 
 public: //Device
+	int *p_i_d;
 	double *r_p_l_d;
 	double3 *p_p_d;
 	double3 *p_v_d;
@@ -48,9 +55,6 @@ public:
 	void draw_point();
 	void draw_wire();
 	void draw_frame();
-
-public:
-	double3*  smoothing_function(double3 *lambda, double *l, double alpha, bool is_position);
 
 public:
 	void device_init();

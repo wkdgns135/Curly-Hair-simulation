@@ -89,6 +89,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HairModel.h" />
+    <ClInclude Include="vector_calc.cuh" />
     <ClInclude Include="vector_calc.h" />
   </ItemGroup>
   <ItemGroup>
