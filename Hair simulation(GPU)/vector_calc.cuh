@@ -230,8 +230,6 @@ __device__ double3 multiply_frame_k(Frame f, double3 e) {
 __global__ void smoothing_function_k(double3 *lambda, double3 *dst, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
 
-	array_copy_k(dst, lambda);
-
 	//beta formulation, l = 파티클간의 평균길이
 	int index = threadIdx.x * PARTICLE_SIZE;
 	dst[index] = vector_sub_k(lambda[index + 1], lambda[index]);
