@@ -204,7 +204,7 @@ void HairModel::simulation(Vector3d _force) {
 			integrate_external_force();
 
 			//Damping loop iteration
-			for (int iter3 = 0; iter3 < 10; iter3++) {
+			for (int iter3 = 0; iter3 < 10 * iter2; iter3++) {
 				integrate_damping_force();
 			}
 		}

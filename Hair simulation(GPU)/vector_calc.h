@@ -176,8 +176,8 @@ double3 multiply_frame(Frame f, double3 e) {
 double3* smoothing_function(double3 *lambda, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
 
-	double3  d[STRAND_SIZE * PARTICLE_SIZE];
-	double3 pos[STRAND_SIZE * PARTICLE_SIZE];
+	double3  *d = new double3[STRAND_SIZE * PARTICLE_SIZE];
+	double3 *pos = new double3[STRAND_SIZE * PARTICLE_SIZE];
 	//lambda가 파티클 위치일 경우 return하기위한 pos vector
 
 	array_copy(d, lambda);

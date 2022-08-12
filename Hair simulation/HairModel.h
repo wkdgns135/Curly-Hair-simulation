@@ -17,7 +17,7 @@ public:
 	Vector3d		force;
 public:
 	double			k_s			= 5000;
-	double			c_s			= 20;
+	double			c_s			= 2000;
 	double			alpha_b		= 0.23;
 	double			k_b			= 500;
 	double			c_b			= 5000;
