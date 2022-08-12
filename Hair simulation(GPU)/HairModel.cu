@@ -80,21 +80,22 @@ __global__ void integrate_internal_hair_force(double3 *p_p, double3 *r_p_p, Fram
 
 	double dt = 0.0009;
 
-	//if(blockIdx.x == 0)printf("thread: %d\n", threadIdx.x);
-	double3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
-	double3 rest_e = vector_sub_k(r_p_p[tid + 1], r_p_p[tid]);
-	double3 e_hat = vector_normalized_k(e);
+	if (threadIdx.x < PARTICLE_SIZE - 1) {
+		//if(blockIdx.x == 0)printf("thread: %d\n", threadIdx.x);
+		double3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
+		double3 rest_e = vector_sub_k(r_p_p[tid + 1], r_p_p[tid]);
+		double3 e_hat = vector_normalized_k(e);
 
-	double3 force1 = vector_multiply_k(e_hat,(vector_length_k(e)-vector_length_k(rest_e)) * K_S);
+		double3 force1 = vector_multiply_k(e_hat,(vector_length_k(e)-vector_length_k(rest_e)) * K_S);
 
-	double3 t = multiply_frame_k(s_f[tid - 1], _t[tid]);
-	double3 force2 = vector_multiply_k(vector_sub_k(e, t), K_B);
+		double3 t = multiply_frame_k(s_f[tid - 1], _t[tid]);
+		double3 force2 = vector_multiply_k(vector_sub_k(e, t), K_B);
 		
-	double3 result = vector_add_k(force1, force2);
-	p_f[tid] = vector_add_k(p_f[tid], result);
-	__syncthreads();
-	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
-	
+		double3 result = vector_add_k(force1, force2);
+		p_f[tid] = vector_add_k(p_f[tid], result);
+		__syncthreads();
+		p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
+	}
 }
 
 
