@@ -128,7 +128,8 @@ void Init(void) {
 	trans_x = 0;
 	trans_y = zoom / 3;
 	rot_x = 15;
-	rot_y = -90;
+	rot_y = 0;
+
 	glEnable(GL_DEPTH_TEST);
 }
 

@@ -64,7 +64,7 @@ public:
 	}
 	void						Normalize(void)
 	{
-		double norm = GetNorm();
+		float norm = GetNorm();
 		if (norm != 0) {
 			m_dX = m_dX / norm;
 			m_dY = m_dY / norm;

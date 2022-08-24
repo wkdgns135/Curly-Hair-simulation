@@ -16,19 +16,19 @@ public:
 	vector<int>		size;
 	Vector3f		force;
 public:
-	double			k_s			= 5000;
-	double			c_s			= 2000;
-	double			alpha_b		= 0.23;
-	double			k_b			= 500;
-	double			c_b			= 5000;
-	double			alpha_c		= 1;
-	double			k_c			= 500;
-	double			c_c			= 20;
-	double			v_threshold = 1;
-	double			s_threshold = 1;
-	double			total_wet	= 1;
-	double			w_c		= 150;
-	double			w_d		= 0.8;
+	float			k_s			= 5000;
+	float			c_s			= 2000;
+	float			alpha_b		= 0.23;
+	float			k_b			= 500;
+	float			c_b			= 5000;
+	float			alpha_c		= 1;
+	float			k_c			= 500;
+	float			c_c			= 20;
+	float			v_threshold = 1;
+	float			s_threshold = 1;
+	float			total_wet	= 1;
+	float			w_c		= 150;
+	float			w_d		= 0.8;
 public:
 					HairModel();
 	void			init(Particle *p);
@@ -40,10 +40,10 @@ public:
 	void			draw_point(vector<vector<Vector3f>>);
 	void			draw_frame(Particle *p);
 	void			move_root_particle(Vector3f dest);
-	void			bouncing_test(double n);
+	void			bouncing_test(float n);
 
 public:
-	//void			wetting_function(double n);
+	//void			wetting_function(float n);
 	void			integrate_internal_hair_force(); //include springs
 	void			integrate_external_force();
 	void			integrate_damping_force();
@@ -60,6 +60,6 @@ public:
 
 	void			wet_force(int i, int j);
 
-	vector<vector<Vector3f>> 		smoothing_function(vector<vector<Vector3f>> lambda, vector<double> l, double alpha, bool is_position);
+	vector<vector<Vector3f>> 		smoothing_function(vector<vector<Vector3f>> lambda, vector<float> l, float alpha, bool is_position);
 };
 

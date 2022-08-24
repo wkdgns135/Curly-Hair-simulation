@@ -9,38 +9,38 @@ void resize(vector<vector<Vector3f>> &v, vector<int> size) {
 	}
 }
 
-void resize(vector<vector<Matrix3d>> &v, vector<int> size) {
+void resize(vector<vector<Matrix3f>> &v, vector<int> size) {
 	v.resize(size.size());
 	for (int i = 0; i < v.size(); i++) {
 		v[i].resize(size[i]);
 	}
 }
 
-void resize(vector<vector<double>> &v, vector<int> size) {
+void resize(vector<vector<float>> &v, vector<int> size) {
 	v.resize(size.size());
 	for (int i = 0; i < v.size(); i++) {
 		v[i].resize(size[i]);
 	}
 }
 
-const Matrix3d cross_product_matrix(const Eigen::Vector3f &v)
+const Matrix3f cross_product_matrix(const Eigen::Vector3f &v)
 {
-	Matrix3d result;
+	Matrix3f result;
 	result <<	0, -v[2], v[1],
 				v[2], 0, -v[0],
 				-v[1], v[0], 0;
 	return result;
 }
 
-Matrix3d rotation_matrix(const Vector3f &axisAngle)
+Matrix3f rotation_matrix(const Vector3f &axisAngle)
 {
-	double theta = axisAngle.norm();
+	float theta = axisAngle.norm();
 	Vector3f thetahat = axisAngle / theta;
 
 	if (theta == 0)
 		thetahat.setZero();
 
-	Matrix3d result;
+	Matrix3f result;
 	result.setIdentity();
 	result = cos(theta)*result + sin(theta)*cross_product_matrix(thetahat) + (1 - cos(theta))*thetahat*thetahat.transpose();
 	return result;
@@ -137,8 +137,8 @@ void multiply_vector(Vector3f &v1, Vector3f &v2, Vector3f &dest) {
 	dest = temp;
 }
 /*
-Vec3<double> multiply_reference_vector_init(Frame f, Vec3<double> e) {
-	Vec3<double> temp;
+Vec3<float> multiply_reference_vector_init(Frame f, Vec3<float> e) {
+	Vec3<float> temp;
 	temp.SetX(
 		e.x() * f.aim.x() +
 		e.y() * f.up.x() +
@@ -160,8 +160,8 @@ Vec3<double> multiply_reference_vector_init(Frame f, Vec3<double> e) {
 }
 
 
-Vec3<double> multiply_reference_vector(Frame f, Vec3<double> e) {
-	Vec3<double> temp;
+Vec3<float> multiply_reference_vector(Frame f, Vec3<float> e) {
+	Vec3<float> temp;
 
 	temp.SetX(
 		e.x() * f.aim.x() +
@@ -185,13 +185,13 @@ Vec3<double> multiply_reference_vector(Frame f, Vec3<double> e) {
 }
 
 
-Matrix3f rot_mat_from_two_vectors(Vec3<double> a, Vec3<double> b)
+Matrix3f rot_mat_from_two_vectors(Vec3<float> a, Vec3<float> b)
 {
 	a = a / a.GetNorm();
 	float b_norm = b.GetNorm();
 	b = b / b_norm;
 
-	Vec3<double> v = a.Cross(b);
+	Vec3<float> v = a.Cross(b);
 	float s = v.GetNorm();
 	float c = a.Dot(b);
 	Matrix3f vx; 
@@ -207,10 +207,10 @@ Matrix3f rot_mat_from_two_vectors(Vec3<double> a, Vec3<double> b)
 	return r;
 }
 
-Vec3<double> convert_vector(Matrix3d m, Vec3<double> v) {
+Vec3<float> convert_vector(Matrix3f m, Vec3<float> v) {
 	Vector3f temp(v.x(), v.y(), v.z());
 	temp = (m * temp);
-	return Vec3<double>(temp.x(), temp.y(), temp.z());
+	return Vec3<float>(temp.x(), temp.y(), temp.z());
 }
 
 */
