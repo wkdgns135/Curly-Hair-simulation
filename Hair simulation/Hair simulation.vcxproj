@@ -173,6 +173,9 @@
     <ClInclude Include="Particle.h" />
     <ClInclude Include="Vec3.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="strand.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -14,7 +14,7 @@ public:
 	Particle		*rest_particle;
 	Particle		*smoothed_rest_particle;
 	vector<int>		size;
-	Vector3d		force;
+	Vector3f		force;
 public:
 	double			k_s			= 5000;
 	double			c_s			= 2000;
@@ -34,12 +34,12 @@ public:
 	void			init(Particle *p);
 	void			pre_compute();
 	void			helix_function(Particle *p);
-	void			simulation(Vector3d _force = Vector3d(0,0,0));
+	void			simulation(Vector3f _force = Vector3f(0,0,0));
 public:
-	void			draw_wire(vector<vector<Vector3d>>);
-	void			draw_point(vector<vector<Vector3d>>);
+	void			draw_wire(vector<vector<Vector3f>>);
+	void			draw_point(vector<vector<Vector3f>>);
 	void			draw_frame(Particle *p);
-	void			move_root_particle(Vector3d dest);
+	void			move_root_particle(Vector3f dest);
 	void			bouncing_test(double n);
 
 public:
@@ -60,6 +60,6 @@ public:
 
 	void			wet_force(int i, int j);
 
-	vector<vector<Vector3d>> 		smoothing_function(vector<vector<Vector3d>> lambda, vector<double> l, double alpha, bool is_position);
+	vector<vector<Vector3f>> 		smoothing_function(vector<vector<Vector3f>> lambda, vector<double> l, double alpha, bool is_position);
 };
 

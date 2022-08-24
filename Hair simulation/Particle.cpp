@@ -1,7 +1,7 @@
 #pragma once
 #include "Particle.h"
 
-void resize(vector<vector<Vector3d>> &v, vector<int> size) {
+void resize(vector<vector<Vector3f>> &v, vector<int> size) {
 	v.resize(size.size());
 	for (int i = 0; i < v.size(); i++) {
 		v[i].resize(size[i]);
@@ -23,7 +23,7 @@ void resize(vector<vector<double>> &v, vector<int> size) {
 	}
 }
 
-const Matrix3d cross_product_matrix(const Eigen::Vector3d &v)
+const Matrix3d cross_product_matrix(const Eigen::Vector3f &v)
 {
 	Matrix3d result;
 	result <<	0, -v[2], v[1],
@@ -32,10 +32,10 @@ const Matrix3d cross_product_matrix(const Eigen::Vector3d &v)
 	return result;
 }
 
-Matrix3d rotation_matrix(const Vector3d &axisAngle)
+Matrix3d rotation_matrix(const Vector3f &axisAngle)
 {
 	double theta = axisAngle.norm();
-	Vector3d thetahat = axisAngle / theta;
+	Vector3f thetahat = axisAngle / theta;
 
 	if (theta == 0)
 		thetahat.setZero();
@@ -49,15 +49,15 @@ Matrix3d rotation_matrix(const Vector3d &axisAngle)
 void compute_frame(Particle *p) {
 
 	//for (int i = 0; i < p->frames.size(); i++) {
-	//	Vector3d t = p->pos[i][1] - p->pos[i][0];
+	//	Vector3f t = p->pos[i][1] - p->pos[i][0];
 	//	t.normalize();
-	//	Vector3d u(t[2] - t[1], t[0] - t[2], t[1] - t[0]);
+	//	Vector3f u(t[2] - t[1], t[0] - t[2], t[1] - t[0]);
 	//	u.normalize();
-	//	Vector3d v = t.cross(u);
+	//	Vector3f v = t.cross(u);
 	//	v.normalize();
 
-	//	Vector3d prev_t = t;
-	//	Vector3d prev_u = u;
+	//	Vector3f prev_t = t;
+	//	Vector3f prev_u = u;
 
 	//	/*
 	//	p->frames[i][0] << 
@@ -75,9 +75,9 @@ void compute_frame(Particle *p) {
 	//		t = p->pos[i][j + 1] - p->pos[i][j];
 	//		t.normalize();
 	//		
-	//		Vector3d n = prev_t.cross(t);
-	//		Vector3d prev_t(p->frames[i][j - 1](0, 0), p->frames[i][j - 1](1, 0), p->frames[i][j - 1](2, 0));
-	//		Vector3d prev_u(p->frames[i][j - 1](0, 1), p->frames[i][j - 1](1, 1), p->frames[i][j - 1](2, 1));
+	//		Vector3f n = prev_t.cross(t);
+	//		Vector3f prev_t(p->frames[i][j - 1](0, 0), p->frames[i][j - 1](1, 0), p->frames[i][j - 1](2, 0));
+	//		Vector3f prev_u(p->frames[i][j - 1](0, 1), p->frames[i][j - 1](1, 1), p->frames[i][j - 1](2, 1));
 
 
 	//		if (n.norm() < 1e-10) {
@@ -103,16 +103,16 @@ void compute_frame(Particle *p) {
 	//}
 
 	for (int i = 0; i < p->frames.size(); i++) {
-		Vector3d aim = p->pos[i][1] - p->pos[i][0];
+		Vector3f aim = p->pos[i][1] - p->pos[i][0];
 		aim.normalize();
-		Vector3d up(aim[2] - aim[1], aim[0] - aim[2], aim[1] - aim[0]);
+		Vector3f up(aim[2] - aim[1], aim[0] - aim[2], aim[1] - aim[0]);
 		up.normalize();
 
 		for (int j = 1; j < p->frames[i].size() - 1; j++) {
-			Vector3d aim = p->pos[i][j + 1] - p->pos[i][j];
+			Vector3f aim = p->pos[i][j + 1] - p->pos[i][j];
 			aim.normalize();
 
-			Vector3d cross = aim.cross(up);
+			Vector3f cross = aim.cross(up);
 			cross.normalize();
 
 			up = cross.cross(aim);
@@ -128,8 +128,8 @@ void compute_frame(Particle *p) {
 
 }
 
-void multiply_vector(Vector3d &v1, Vector3d &v2, Vector3d &dest) {
-	Vector3d temp(
+void multiply_vector(Vector3f &v1, Vector3f &v2, Vector3f &dest) {
+	Vector3f temp(
 		v1.x()*v2.x(),
 		v1.y()*v2.y(),
 		v1.z()*v2.z()

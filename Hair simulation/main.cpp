@@ -149,16 +149,16 @@ void SpecialKeys(int key, int x, int y) {
 	switch (key)
 	{
 	case GLUT_KEY_RIGHT:
-		hm->move_root_particle(Vector3d(0, 0.0, -0.1));
+		hm->move_root_particle(Vector3f(0, 0.0, -0.1));
 		break;
 	case GLUT_KEY_LEFT:
-		hm->move_root_particle(Vector3d(0, 0.0, 0.1));
+		hm->move_root_particle(Vector3f(0, 0.0, 0.1));
 		break;
 	case GLUT_KEY_UP:
-		hm->move_root_particle(Vector3d(0.0, .1, .0));
+		hm->move_root_particle(Vector3f(0.0, .1, .0));
 		break;
 	case GLUT_KEY_DOWN:
-		hm->move_root_particle(Vector3d(0.0, -.1, .0));
+		hm->move_root_particle(Vector3f(0.0, -.1, .0));
 		break;
 	}
 	::glutPostRedisplay();
@@ -216,7 +216,7 @@ void upLinePrompt(int count)
 void Update() {
 	if(status[2]){
 		if (status[1]) {
-			hm->simulation(Vector3d(0,0,10));
+			hm->simulation(Vector3f(0,0,10));
 		}
 		else {
 			hm->simulation();
