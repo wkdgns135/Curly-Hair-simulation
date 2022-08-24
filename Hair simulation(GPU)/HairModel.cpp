@@ -4,13 +4,13 @@
 
 HairModel::HairModel() {
 	p_i = (int*)malloc(sizeof(int) * STRAND_SIZE * PARTICLE_SIZE);
-	p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
-	s_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
-	r_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
-	r_s_p_p = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
-	p_v_d = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	p_p = (float3*)malloc(sizeof(float3) * STRAND_SIZE * PARTICLE_SIZE);
+	s_p_p = (float3*)malloc(sizeof(float3) * STRAND_SIZE * PARTICLE_SIZE);
+	r_p_p = (float3*)malloc(sizeof(float3) * STRAND_SIZE * PARTICLE_SIZE);
+	r_s_p_p = (float3*)malloc(sizeof(float3) * STRAND_SIZE * PARTICLE_SIZE);
+	p_v_d = (float3*)malloc(sizeof(float3) * STRAND_SIZE * PARTICLE_SIZE);
 	r_s_f = (Frame*)malloc(sizeof(Frame) * STRAND_SIZE * PARTICLE_SIZE);
-	t = (double3*)malloc(sizeof(double3) * STRAND_SIZE * PARTICLE_SIZE);
+	t = (float3*)malloc(sizeof(float3) * STRAND_SIZE * PARTICLE_SIZE);
 	r_p_l = (double*)malloc(sizeof(double) * STRAND_SIZE);
 
 	for (int i = 0; i < STRAND_SIZE; i++) {
@@ -36,7 +36,7 @@ HairModel::HairModel() {
 		double sum = 0;
 		for (int j = 0; j < PARTICLE_SIZE - 1; j++) {
 			int index = i * PARTICLE_SIZE + j;
-			double3 edge = vector_sub(r_p_p[index + 1], r_p_p[index]);
+			float3 edge = vector_sub(r_p_p[index + 1], r_p_p[index]);
 			sum += vector_length(edge);
 		}
 
@@ -53,7 +53,7 @@ HairModel::HairModel() {
 			int index_1 = i * PARTICLE_SIZE + j-1;
 			int index0 = i * PARTICLE_SIZE + j;
 			int index1 = i * PARTICLE_SIZE + j + 1;
-			double3 e = vector_sub(r_p_p[index1], r_p_p[index0]);
+			float3 e = vector_sub(r_p_p[index1], r_p_p[index0]);
 			t[index0] = multiply_transpose_frame(r_s_f[index_1], e);
 		}
 	}

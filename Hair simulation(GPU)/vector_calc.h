@@ -4,7 +4,7 @@
 #include "vector_types.h"
 #include <math.h>
 
-void array_copy(double3 *a, double3 *b) {
+void array_copy(float3 *a, float3 *b) {
 	for (int i = 0; i < PARTICLE_SIZE; i++) {
 		a[i].x = b[i].x;
 		a[i].y = b[i].y;
@@ -12,16 +12,16 @@ void array_copy(double3 *a, double3 *b) {
 	}
 }
 
-double3 vector_multiply(double3 a, double3 b) {
-	double3 tmp;
+float3 vector_multiply(float3 a, float3 b) {
+	float3 tmp;
 	tmp.x = a.x * b.x;
 	tmp.y = a.y * b.y;
 	tmp.z = a.z * b.z;
 	return tmp;
 }
 
-double3 vector_multiply(double3 a, double b) {
-	double3 tmp;
+float3 vector_multiply(float3 a, double b) {
+	float3 tmp;
 	tmp.x = a.x * b;
 	tmp.y = a.y * b;
 	tmp.z = a.z * b;
@@ -29,8 +29,8 @@ double3 vector_multiply(double3 a, double b) {
 	return tmp;
 }
 
-double3 vector_add(double3 a, double3 b) {
-	double3 tmp;
+float3 vector_add(float3 a, float3 b) {
+	float3 tmp;
 	tmp.x = a.x + b.x;
 	tmp.y = a.y + b.y;
 	tmp.z = a.z + b.z;
@@ -39,8 +39,8 @@ double3 vector_add(double3 a, double3 b) {
 }
 
 
-double3 vector_add(double3 a, double b) {
-	double3 tmp;
+float3 vector_add(float3 a, double b) {
+	float3 tmp;
 	tmp.x = a.x + b;
 	tmp.y = a.y + b;
 	tmp.z = a.z + b;
@@ -48,8 +48,8 @@ double3 vector_add(double3 a, double b) {
 	return tmp;
 }
 
-double3 vector_sub(double3 a, double3 b) {
-	double3 tmp;
+float3 vector_sub(float3 a, float3 b) {
+	float3 tmp;
 	tmp.x = a.x - b.x;
 	tmp.y = a.y - b.y;
 	tmp.z = a.z - b.z;
@@ -57,8 +57,8 @@ double3 vector_sub(double3 a, double3 b) {
 	return tmp;
 }
 
-double3 vector_sub(double3 a, double b) {
-	double3 tmp;
+float3 vector_sub(float3 a, double b) {
+	float3 tmp;
 	tmp.x = a.x - b;
 	tmp.y = a.y - b;
 	tmp.z = a.z - b;
@@ -66,11 +66,11 @@ double3 vector_sub(double3 a, double b) {
 	return tmp;
 }
 
-double vector_length(double3 a) {
+double vector_length(float3 a) {
 	return sqrt(a.x*a.x + a.y * a.y + a.z * a.z);
 }
 
-void vector_normalize(double3 &a) {
+void vector_normalize(float3 &a) {
 	double norm = vector_length(a);
 	if (norm != 0) {
 		a.x = a.x / norm;
@@ -79,7 +79,7 @@ void vector_normalize(double3 &a) {
 	}
 }
 
-double3 vector_normalized(double3 a) {
+float3 vector_normalized(float3 a) {
 	double norm = vector_length(a);
 	if (norm != 0) {
 		a.x = a.x / norm;
@@ -90,20 +90,20 @@ double3 vector_normalized(double3 a) {
 }
 
 
-double3	vector_cross(double3 a, double3 b){
-	double3 tmp;
+float3	vector_cross(float3 a, float3 b){
+	float3 tmp;
 	tmp.x = ((a.y*b.z) - (a.z*b.y));
 	tmp.y = ((a.z*b.x) - (a.x*b.z));
 	tmp.z = ((a.x*b.y) - (a.y*b.x));
 	return tmp;
 }
 
-void compute_frame(Frame *f, double3 *p) {
+void compute_frame(Frame *f, float3 *p) {
 	for (int i = 0; i < STRAND_SIZE; i++) {
-		double3 aim = vector_sub(p[i * PARTICLE_SIZE + 1], p[i * PARTICLE_SIZE]);
+		float3 aim = vector_sub(p[i * PARTICLE_SIZE + 1], p[i * PARTICLE_SIZE]);
 		vector_normalize(aim);
 
-		double3 up;
+		float3 up;
 		up.x = aim.z - aim.y;
 		up.y = aim.x - aim.z;
 		up.z = aim.y - aim.x;
@@ -111,10 +111,10 @@ void compute_frame(Frame *f, double3 *p) {
 
 		for (int j = 1; j < PARTICLE_SIZE - 1; j++) {
 			int index = i * PARTICLE_SIZE + j;
-			double3 aim = vector_sub(p[index + 1], p[index]);
+			float3 aim = vector_sub(p[index + 1], p[index]);
 			vector_normalize(aim);
 
-			double3 cross = vector_cross(aim, up);
+			float3 cross = vector_cross(aim, up);
 			vector_normalize(cross);
 
 			up = vector_cross(cross, aim);
@@ -135,8 +135,8 @@ void compute_frame(Frame *f, double3 *p) {
 	}
 }
 
-double3 multiply_transpose_frame(Frame f, double3 e) {
-	double3 tmp;
+float3 multiply_transpose_frame(Frame f, float3 e) {
+	float3 tmp;
 	tmp.x =
 		e.x * f.aim.x +
 		e.y * f.up.x +
@@ -154,8 +154,8 @@ double3 multiply_transpose_frame(Frame f, double3 e) {
 	return tmp;
 }
 
-double3 multiply_frame(Frame f, double3 e) {
-	double3 tmp;
+float3 multiply_frame(Frame f, float3 e) {
+	float3 tmp;
 	tmp.x =
 		e.x * f.aim.x +
 		e.y * f.aim.y +
@@ -173,11 +173,11 @@ double3 multiply_frame(Frame f, double3 e) {
 	return tmp;
 }
 
-double3* smoothing_function(double3 *lambda, double *l, double alpha, bool is_position) {
+float3* smoothing_function(float3 *lambda, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
 
-	double3  *d = new double3[STRAND_SIZE * PARTICLE_SIZE];
-	double3 *pos = new double3[STRAND_SIZE * PARTICLE_SIZE];
+	float3  *d = new float3[STRAND_SIZE * PARTICLE_SIZE];
+	float3 *pos = new float3[STRAND_SIZE * PARTICLE_SIZE];
 	//lambda가 파티클 위치일 경우 return하기위한 pos vector
 
 	array_copy(d, lambda);
@@ -196,10 +196,10 @@ double3* smoothing_function(double3 *lambda, double *l, double alpha, bool is_po
 			int index2 = i * PARTICLE_SIZE + index_2;
 			index = i * PARTICLE_SIZE + j;
 
-			double3 term1 = vector_multiply(d[index_1], 2 * (1 - beta));
-			double3 term2 = vector_multiply(d[index_2], ((1 - beta) * (1 - beta)));
-			double3 term3 = vector_sub(term1, term2);
-			double3 term4 = vector_multiply(vector_sub(lambda[index + 1], lambda[index]), (beta * beta));
+			float3 term1 = vector_multiply(d[index_1], 2 * (1 - beta));
+			float3 term2 = vector_multiply(d[index_2], ((1 - beta) * (1 - beta)));
+			float3 term3 = vector_sub(term1, term2);
+			float3 term4 = vector_multiply(vector_sub(lambda[index + 1], lambda[index]), (beta * beta));
 			d[index] = vector_add(term3, term4);
 		}
 	}

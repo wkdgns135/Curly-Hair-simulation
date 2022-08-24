@@ -4,12 +4,12 @@
 #include "vector_types.h"
 #include "math_functions.h"
 
-__global__ void array_init(double3 *arr) {
+__global__ void array_init(float3 *arr) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	arr[tid] = make_double3(0.0, 0.0, 0.0);
+	arr[tid] = make_float3(0.0, 0.0, 0.0);
 }
 
-__device__ void array_copy_k(double3 *a, double3 *b) {
+__device__ void array_copy_k(float3 *a, float3 *b) {
 	for (int i = 0; i < PARTICLE_SIZE; i++) {
 		a[i].x = b[i].x;
 		a[i].y = b[i].y;
@@ -17,8 +17,8 @@ __device__ void array_copy_k(double3 *a, double3 *b) {
 	}
 }
 
-__device__  double3 vector_multiply_k(double3 a, double3 b) {
-	double3 tmp;
+__device__  float3 vector_multiply_k(float3 a, float3 b) {
+	float3 tmp;
 	tmp.x = a.x * b.x;
 	tmp.y = a.y * b.y;
 	tmp.z = a.z * b.z;
@@ -26,8 +26,8 @@ __device__  double3 vector_multiply_k(double3 a, double3 b) {
 }
 
 
-__device__  double3 vector_multiply_k(double3 a, double b) {
-	double3 tmp;
+__device__  float3 vector_multiply_k(float3 a, double b) {
+	float3 tmp;
 	tmp.x = a.x * b;
 	tmp.y = a.y * b;
 	tmp.z = a.z * b;
@@ -35,8 +35,8 @@ __device__  double3 vector_multiply_k(double3 a, double b) {
 	return tmp;
 }
 
-__device__  double3 vector_add_k(double3 a, double3 b) {
-	double3 tmp;
+__device__  float3 vector_add_k(float3 a, float3 b) {
+	float3 tmp;
 	tmp.x = a.x + b.x;
 	tmp.y = a.y + b.y;
 	tmp.z = a.z + b.z;
@@ -45,8 +45,8 @@ __device__  double3 vector_add_k(double3 a, double3 b) {
 }
 
 
-__device__ double3 vector_add_k(double3 a, double b) {
-	double3 tmp;
+__device__ float3 vector_add_k(float3 a, double b) {
+	float3 tmp;
 	tmp.x = a.x + b;
 	tmp.y = a.y + b;
 	tmp.z = a.z + b;
@@ -54,8 +54,8 @@ __device__ double3 vector_add_k(double3 a, double b) {
 	return tmp;
 }
 
-__device__ double3 vector_sub_k(double3 a, double3 b) {
-	double3 tmp;
+__device__ float3 vector_sub_k(float3 a, float3 b) {
+	float3 tmp;
 	tmp.x = a.x - b.x;
 	tmp.y = a.y - b.y;
 	tmp.z = a.z - b.z;
@@ -63,8 +63,8 @@ __device__ double3 vector_sub_k(double3 a, double3 b) {
 	return tmp;
 }
 
-__device__ double3 vector_sub_k(double3 a, double b) {
-	double3 tmp;
+__device__ float3 vector_sub_k(float3 a, double b) {
+	float3 tmp;
 	tmp.x = a.x - b;
 	tmp.y = a.y - b;
 	tmp.z = a.z - b;
@@ -72,11 +72,11 @@ __device__ double3 vector_sub_k(double3 a, double b) {
 	return tmp;
 }
 
-__device__ double vector_length_k(double3 a) {
+__device__ double vector_length_k(float3 a) {
 	return sqrt(float(a.x*a.x + a.y * a.y + a.z * a.z));
 }
 
-__device__ void vector_normalize_k(double3 &a) {
+__device__ void vector_normalize_k(float3 &a) {
 	double norm = vector_length_k(a);
 	if (norm != 0) {
 		a.x = a.x / norm;
@@ -85,8 +85,8 @@ __device__ void vector_normalize_k(double3 &a) {
 	}
 }
 
-__device__ double3 vector_normalized_k(double3 a) {
-	double3 tmp;
+__device__ float3 vector_normalized_k(float3 a) {
+	float3 tmp;
 	double norm = vector_length_k(a);
 	if (norm != 0) {
 		tmp.x = a.x / norm;
@@ -97,23 +97,23 @@ __device__ double3 vector_normalized_k(double3 a) {
 }
 
 
-__device__  double3	vector_cross_k(double3 a, double3 b) {
-	double3 tmp;
+__device__  float3	vector_cross_k(float3 a, float3 b) {
+	float3 tmp;
 	tmp.x = ((a.y*b.z) - (a.z*b.y));
 	tmp.y = ((a.z*b.x) - (a.x*b.z));
 	tmp.z = ((a.x*b.y) - (a.y*b.x));
 	return tmp;
 }
 
-__device__ double vector_dot_k(double3 a, double3 b) {
+__device__ double vector_dot_k(float3 a, float3 b) {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
-__global__ void compute_frame_k(Frame *f, double3 *p) {
-	double3 aim = vector_sub_k(p[threadIdx.x * PARTICLE_SIZE +  1], p[threadIdx.x * PARTICLE_SIZE + 0]);
+__global__ void compute_frame_k(Frame *f, float3 *p) {
+	float3 aim = vector_sub_k(p[threadIdx.x * PARTICLE_SIZE +  1], p[threadIdx.x * PARTICLE_SIZE + 0]);
 	vector_normalize_k(aim);
 
-	double3 up;
+	float3 up;
 	up.x = aim.z - aim.y;
 	up.y = aim.x - aim.z;
 	up.z = aim.y - aim.x;
@@ -121,10 +121,10 @@ __global__ void compute_frame_k(Frame *f, double3 *p) {
 	vector_normalize_k(up);
 	for (int i = 1; i < PARTICLE_SIZE - 1; i++) {
 		int index = threadIdx.x * PARTICLE_SIZE + i;
-		double3 aim = vector_sub_k(p[index + 1], p[index]);
+		float3 aim = vector_sub_k(p[index + 1], p[index]);
 		vector_normalize_k(aim);
 
-		double3 cross = vector_cross_k(aim, up);
+		float3 cross = vector_cross_k(aim, up);
 		vector_normalize_k(cross);
 
 		up = vector_cross_k(cross, aim);
@@ -145,8 +145,8 @@ __global__ void compute_frame_k(Frame *f, double3 *p) {
 	}
 }
 
-__device__ double3 multiply_transpose_frame_k(Frame f, double3 e) {
-	double3 tmp;
+__device__ float3 multiply_transpose_frame_k(Frame f, float3 e) {
+	float3 tmp;
 	tmp.x =
 		e.x * f.aim.x +
 		e.y * f.up.x +
@@ -164,8 +164,8 @@ __device__ double3 multiply_transpose_frame_k(Frame f, double3 e) {
 	return tmp;
 }
 
-__device__ double3 multiply_frame_k(Frame f, double3 e) {
-	double3 tmp;
+__device__ float3 multiply_frame_k(Frame f, float3 e) {
+	float3 tmp;
 	tmp.x =
 		e.x * f.aim.x +
 		e.y * f.aim.y +
@@ -183,11 +183,11 @@ __device__ double3 multiply_frame_k(Frame f, double3 e) {
 	return tmp;
 }
 
-//__device__ double3* smoothing_function_k(double3 *lambda, int *p_i, double *l, double alpha, bool is_position) {
+//__device__ float3* smoothing_function_k(float3 *lambda, int *p_i, double *l, double alpha, bool is_position) {
 //	double beta = 0.0;
 //
-//	double3  d[STRAND_SIZE * PARTICLE_SIZE];
-//	double3 pos[STRAND_SIZE * PARTICLE_SIZE];
+//	float3  d[STRAND_SIZE * PARTICLE_SIZE];
+//	float3 pos[STRAND_SIZE * PARTICLE_SIZE];
 //	//lambda가 파티클 위치일 경우 return하기위한 pos vector
 //
 //	array_copy_k(d, lambda);
@@ -206,10 +206,10 @@ __device__ double3 multiply_frame_k(Frame f, double3 e) {
 //		int index2 = threadIdx.x * PARTICLE_SIZE + index_2;
 //		index = threadIdx.x * PARTICLE_SIZE + j;
 //
-//		double3 term1 = vector_multiply_k(d[index_1], 2 * (1 - beta));
-//		double3 term2 = vector_multiply_k(d[index_2], ((1 - beta) * (1 - beta)));
-//		double3 term3 = vector_sub_k(term1, term2);
-//		double3 term4 = vector_multiply_k(vector_sub_k(lambda[index + 1], lambda[index]), (beta * beta));
+//		float3 term1 = vector_multiply_k(d[index_1], 2 * (1 - beta));
+//		float3 term2 = vector_multiply_k(d[index_2], ((1 - beta) * (1 - beta)));
+//		float3 term3 = vector_sub_k(term1, term2);
+//		float3 term4 = vector_multiply_k(vector_sub_k(lambda[index + 1], lambda[index]), (beta * beta));
 //		d[index] = vector_add_k(term3, term4);
 //	}
 //	
@@ -227,7 +227,7 @@ __device__ double3 multiply_frame_k(Frame f, double3 e) {
 //	return d;
 //}
 
-__global__ void smoothing_function_k(double3 *lambda, double3 *dst, double *l, double alpha, bool is_position) {
+__global__ void smoothing_function_k(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
 
 	//beta formulation, l = 파티클간의 평균길이
@@ -242,15 +242,15 @@ __global__ void smoothing_function_k(double3 *lambda, double3 *dst, double *l, d
 		int index2 = threadIdx.x * PARTICLE_SIZE + index_2;
 		index = threadIdx.x * PARTICLE_SIZE + j;
 
-		double3 term1 = vector_multiply_k(dst[index_1], 2 * (1 - beta));
-		double3 term2 = vector_multiply_k(dst[index_2], ((1 - beta) * (1 - beta)));
-		double3 term3 = vector_sub_k(term1, term2);
-		double3 term4 = vector_multiply_k(vector_sub_k(lambda[index + 1], lambda[index]), (beta * beta));
+		float3 term1 = vector_multiply_k(dst[index_1], 2 * (1 - beta));
+		float3 term2 = vector_multiply_k(dst[index_2], ((1 - beta) * (1 - beta)));
+		float3 term3 = vector_sub_k(term1, term2);
+		float3 term4 = vector_multiply_k(vector_sub_k(lambda[index + 1], lambda[index]), (beta * beta));
 		dst[index] = vector_add_k(term3, term4);
 	}
 
 	if (is_position) {
-		double3 pos[PARTICLE_SIZE];
+		float3 pos[PARTICLE_SIZE];
 		array_copy_k(pos, dst);
 		int index = threadIdx.x * PARTICLE_SIZE;
 		dst[index] = lambda[index];

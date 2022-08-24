@@ -5,7 +5,7 @@
 #include "GL/glut.h"
 #include "vector_types.h"
 
-#define STRAND_SIZE 50
+#define STRAND_SIZE 128
 #define PARTICLE_SIZE 128
 
 #define K_S 5000.0
@@ -15,7 +15,7 @@
 #define C_B 3000.0
 
 typedef struct Frame {
-	double3 aim, up, cross;
+	float3 aim, up, cross;
 }Frame;
 
 using namespace std;
@@ -29,27 +29,27 @@ public: //Host
 	int *p_i;
 
 	double *r_p_l;
-	double3 *p_p;
-	double3 *s_p_p;
-	double3 *r_p_p;
-	double3 *r_s_p_p;
+	float3 *p_p;
+	float3 *s_p_p;
+	float3 *r_p_p;
+	float3 *r_s_p_p;
 	Frame *r_s_f;
 	Frame *s_f;
-	double3 *t;
+	float3 *t;
 
 public: //Device
 	int *p_i_d;
 	double *r_p_l_d;
-	double3 *p_p_d;
-	double3 *p_v_d;
-	double3 *p_f_d;
+	float3 *p_p_d;
+	float3 *p_v_d;
+	float3 *p_f_d;
 
-	double3 *s_p_p_d;
-	double3 *r_p_p_d;
-	double3 *r_s_p_p_d;
+	float3 *s_p_p_d;
+	float3 *r_p_p_d;
+	float3 *r_s_p_p_d;
 	Frame *r_s_f_d;
 	Frame *s_f_d;
-	double3 *t_d;
+	float3 *t_d;
 
 public:
 	HairModel();
@@ -58,7 +58,8 @@ public:
 	void draw_frame();
 
 public:
+	void device_info();
+public:
 	void device_init();
-
 	void simulation();
 };
