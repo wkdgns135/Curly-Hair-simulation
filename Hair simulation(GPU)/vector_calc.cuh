@@ -9,8 +9,8 @@ __global__ void array_init(float3 *arr) {
 	arr[tid] = make_float3(0.0, 0.0, 0.0);
 }
 
-__device__ void array_copy_k(float3 *a, float3 *b) {
-	for (int i = 0; i < PARTICLE_SIZE; i++) {
+__device__ void array_copy_k(float3 *a, float3 *b, int size) {
+	for (int i = 0; i < size; i++) {
 		a[i].x = b[i].x;
 		a[i].y = b[i].y;
 		a[i].z = b[i].z;
@@ -109,8 +109,8 @@ __device__ double vector_dot_k(float3 a, float3 b) {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
-__global__ void compute_frame_k(Frame *f, float3 *p) {
-	float3 aim = vector_sub_k(p[threadIdx.x * PARTICLE_SIZE +  1], p[threadIdx.x * PARTICLE_SIZE + 0]);
+__global__ void compute_frame_k(Frame *f, float3 *p, int size) {
+	float3 aim = vector_sub_k(p[threadIdx.x * size +  1], p[threadIdx.x * size + 0]);
 	vector_normalize_k(aim);
 
 	float3 up;
@@ -119,8 +119,8 @@ __global__ void compute_frame_k(Frame *f, float3 *p) {
 	up.z = aim.y - aim.x;
 
 	vector_normalize_k(up);
-	for (int i = 1; i < PARTICLE_SIZE - 1; i++) {
-		int index = threadIdx.x * PARTICLE_SIZE + i;
+	for (int i = 1; i < size - 1; i++) {
+		int index = threadIdx.x * size + i;
 		float3 aim = vector_sub_k(p[index + 1], p[index]);
 		vector_normalize_k(aim);
 
@@ -186,8 +186,8 @@ __device__ float3 multiply_frame_k(Frame f, float3 e) {
 //__device__ float3* smoothing_function_k(float3 *lambda, int *p_i, double *l, double alpha, bool is_position) {
 //	double beta = 0.0;
 //
-//	float3  d[STRAND_SIZE * PARTICLE_SIZE];
-//	float3 pos[STRAND_SIZE * PARTICLE_SIZE];
+//	float3  d[TOTAL_SIZE];
+//	float3 pos[TOTAL_SIZE];
 //	//lambda가 파티클 위치일 경우 return하기위한 pos vector
 //
 //	array_copy_k(d, lambda);
@@ -231,16 +231,16 @@ __global__ void smoothing_function_k(float3 *lambda, float3 *dst, double *l, dou
 	double beta = 0.0;
 
 	//beta formulation, l = 파티클간의 평균길이
-	int index = threadIdx.x * PARTICLE_SIZE;
+	int index = threadIdx.x * blockDim.x;
 	dst[index] = vector_sub_k(lambda[index + 1], lambda[index]);
 	beta = 1 > 1 - exp(-l[threadIdx.x] / alpha) ? 1 - exp(-l[threadIdx.x] / alpha) : 1;
-	for (int j = 1; j < PARTICLE_SIZE - 1; j++) {
+	for (int j = 1; j < blockDim.x - 1; j++) {
 		int index_1 = j - 1 >= 0 ? j - 1 : 0;
 		int index_2 = j - 2 >= 0 ? j - 2 : 0;
 
-		int index1 = threadIdx.x * PARTICLE_SIZE + index_1;
-		int index2 = threadIdx.x * PARTICLE_SIZE + index_2;
-		index = threadIdx.x * PARTICLE_SIZE + j;
+		int index1 = threadIdx.x * blockDim.x + index_1;
+		int index2 = threadIdx.x * blockDim.x + index_2;
+		index = threadIdx.x * blockDim.x + j;
 
 		float3 term1 = vector_multiply_k(dst[index_1], 2 * (1 - beta));
 		float3 term2 = vector_multiply_k(dst[index_2], ((1 - beta) * (1 - beta)));
@@ -250,12 +250,14 @@ __global__ void smoothing_function_k(float3 *lambda, float3 *dst, double *l, dou
 	}
 
 	if (is_position) {
-		float3 pos[PARTICLE_SIZE];
-		array_copy_k(pos, dst);
-		int index = threadIdx.x * PARTICLE_SIZE;
+		float3 *pos;
+		pos = new float3[blockDim.x];
+
+		array_copy_k(pos, dst, blockDim.x);
+		int index = threadIdx.x * blockDim.x;
 		dst[index] = lambda[index];
-		for (int j = 1; j < PARTICLE_SIZE; j++) {
-			index = threadIdx.x * PARTICLE_SIZE + j;
+		for (int j = 1; j < blockDim.x; j++) {
+			index = threadIdx.x * blockDim.x + j;
 			dst[index] = vector_add_k(pos[index - 1], dst[index - 1]);
 		}
 	}

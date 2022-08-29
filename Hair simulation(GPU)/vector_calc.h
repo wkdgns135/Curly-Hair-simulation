@@ -4,11 +4,15 @@
 #include "vector_types.h"
 #include <math.h>
 
-void array_copy(float3 *a, float3 *b) {
-	for (int i = 0; i < PARTICLE_SIZE; i++) {
-		a[i].x = b[i].x;
-		a[i].y = b[i].y;
-		a[i].z = b[i].z;
+void HairModel::array_copy(float3 *a, float3 *b) {
+	int index = 0;
+	for (int i = 0; i < v.size(); i++) {
+		for (int j = 0; j < v[i].size(); j++) {
+			a[index].x = b[index].x;
+			a[index].y = b[index].y;
+			a[index].z = b[index].z;
+			index++;
+		}
 	}
 }
 
@@ -98,9 +102,10 @@ float3	vector_cross(float3 a, float3 b){
 	return tmp;
 }
 
-void compute_frame(Frame *f, float3 *p) {
-	for (int i = 0; i < STRAND_SIZE; i++) {
-		float3 aim = vector_sub(p[i * PARTICLE_SIZE + 1], p[i * PARTICLE_SIZE]);
+void HairModel::compute_frame(Frame *f, float3 *p) {
+	int index = 0;
+	for (int i = 0; i < v.size(); i++) {
+		float3 aim = vector_sub(p[index+1], p[index]);
 		vector_normalize(aim);
 
 		float3 up;
@@ -109,8 +114,8 @@ void compute_frame(Frame *f, float3 *p) {
 		up.z = aim.y - aim.x;
 		vector_normalize(up);
 
-		for (int j = 1; j < PARTICLE_SIZE - 1; j++) {
-			int index = i * PARTICLE_SIZE + j;
+		index++;
+		for (int j = 1; j < v[i].size() - 1; j++) {
 			float3 aim = vector_sub(p[index + 1], p[index]);
 			vector_normalize(aim);
 
@@ -131,7 +136,9 @@ void compute_frame(Frame *f, float3 *p) {
 			f[index].cross.x = aim.z;
 			f[index].cross.y = up.z;
 			f[index].cross.z = cross.z;
+			index++;
 		}
+		index++;
 	}
 }
 
@@ -173,44 +180,43 @@ float3 multiply_frame(Frame f, float3 e) {
 	return tmp;
 }
 
-float3* smoothing_function(float3 *lambda, double *l, double alpha, bool is_position) {
+float3* HairModel::smoothing_function(float3 *lambda, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
 
-	float3  *d = new float3[STRAND_SIZE * PARTICLE_SIZE];
-	float3 *pos = new float3[STRAND_SIZE * PARTICLE_SIZE];
+	float3  *d = new float3[TOTAL_SIZE];
+	float3 *pos = new float3[TOTAL_SIZE];
 	//lambda가 파티클 위치일 경우 return하기위한 pos vector
 
 	array_copy(d, lambda);
 
 	//beta formulation, l = 파티클간의 평균길이
 
-	for (int i = 0; i < STRAND_SIZE; i++) {
-		int index = i * PARTICLE_SIZE;
+	int index = 0;
+	for (int i = 0; i < v.size(); i++) {
 		d[index] = vector_sub(lambda[index + 1], lambda[index]);
 		beta = 1 > 1 - exp(-l[i] / alpha) ? 1 - exp(-l[i] / alpha) : 1;
-		for (int j = 1; j < PARTICLE_SIZE - 1; j++) {
-			int index_1 = j - 1 >= 0 ? j - 1 : 0;
-			int index_2 = j - 2 >= 0 ? j - 2 : 0;
-
-			int index1 = i * PARTICLE_SIZE + index_1;
-			int index2 = i * PARTICLE_SIZE + index_2;
-			index = i * PARTICLE_SIZE + j;
+		index++;
+		for (int j = 1; j < v[i].size() - 1; j++) {
+			int index_1 = j - 1 >= 0 ? index - 1 : 0;
+			int index_2 = j - 2 >= 0 ? index - 2 : 0;
 
 			float3 term1 = vector_multiply(d[index_1], 2 * (1 - beta));
 			float3 term2 = vector_multiply(d[index_2], ((1 - beta) * (1 - beta)));
 			float3 term3 = vector_sub(term1, term2);
 			float3 term4 = vector_multiply(vector_sub(lambda[index + 1], lambda[index]), (beta * beta));
-			d[index] = vector_add(term3, term4);
+			d[index++] = vector_add(term3, term4);
 		}
+		index++;
 	}
 
 	if (is_position) {
-		for (int i = 0; i < STRAND_SIZE; i++) {
-			int index = i * PARTICLE_SIZE;
+		index = 0;
+		for (int i = 0; i < v.size(); i++) {
 			pos[index] = lambda[index];
-			for (int j = 1; j < PARTICLE_SIZE; j++) {
-				index = i * PARTICLE_SIZE + j;
+			index++;
+			for (int j = 1; j < v[i].size(); j++) {
 				pos[index] = vector_add(d[index - 1], pos[index - 1]);
+				index++;
 			}
 
 		}

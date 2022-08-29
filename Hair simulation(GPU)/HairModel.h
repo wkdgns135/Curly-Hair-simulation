@@ -5,9 +5,6 @@
 #include "GL/glut.h"
 #include "vector_types.h"
 
-#define STRAND_SIZE 128
-#define PARTICLE_SIZE 128
-
 #define K_S 5000.0
 #define C_S 200.0
 
@@ -23,8 +20,11 @@ using namespace std;
 class HairModel
 {
 public:
+	unsigned int TOTAL_SIZE = 0;
+	unsigned int MAX_SIZE = 0;
+	unsigned int STRAND_SIZE = 0;
+	vector<vector<float3>> v;
 
-	
 public: //Host
 	int *p_i;
 
@@ -51,6 +51,9 @@ public: //Device
 	Frame *s_f_d;
 	float3 *t_d;
 
+	float3* smoothing_function(float3 *lambda, double *l, double alpha, bool is_position);
+	void compute_frame(Frame *f, float3 *p);
+	void array_copy(float3 *a, float3 *b);
 public:
 	HairModel();
 	void draw_point();
