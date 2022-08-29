@@ -89,11 +89,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HairModel.h" />
+    <ClInclude Include="HairStyle.h" />
     <ClInclude Include="vector_calc.cuh" />
     <ClInclude Include="vector_calc.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="HairModel.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="strand.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

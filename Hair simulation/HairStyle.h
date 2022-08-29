@@ -18,7 +18,7 @@ bool read_hair_asc(vector<vector<Vector3f>> &p, vector<int> &size, const char *f
 		return false;
 	}
 
-	nstrands = 500;
+	nstrands = 100;
 
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
