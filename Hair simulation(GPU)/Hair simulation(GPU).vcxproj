@@ -48,7 +48,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
@@ -68,7 +68,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
@@ -84,12 +84,20 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="controls.cpp" />
     <ClCompile Include="HairModel.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="objloader.cpp" />
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="controls.hpp" />
     <ClInclude Include="HairModel.h" />
     <ClInclude Include="HairStyle.h" />
+    <ClInclude Include="objloader.hpp" />
+    <ClInclude Include="shader.hpp" />
+    <ClInclude Include="texture.hpp" />
     <ClInclude Include="vector_calc.cuh" />
     <ClInclude Include="vector_calc.h" />
   </ItemGroup>
@@ -98,6 +106,12 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="strand.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="normalShader.fragmentshader" />
+    <None Include="normalShader.vertexshader" />
+    <None Include="SimpleFragmentShader.fragmentshader" />
+    <None Include="SimpleVertexShader.vertexshader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
