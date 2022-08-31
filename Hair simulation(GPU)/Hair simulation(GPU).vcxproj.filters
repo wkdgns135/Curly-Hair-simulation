@@ -47,14 +47,14 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="소스 파일">
-      <UniqueIdentifier>{94e43e58-0677-42f1-a507-06a6851a062d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="리소스 파일">
       <UniqueIdentifier>{b84755f7-2738-4f58-82de-7626d31a0c93}</UniqueIdentifier>
     </Filter>
     <Filter Include="헤더 파일">
       <UniqueIdentifier>{bfbaa92d-4601-485f-a31b-ad20c00fb5c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{94e43e58-0677-42f1-a507-06a6851a062d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

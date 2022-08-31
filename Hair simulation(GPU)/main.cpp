@@ -1,18 +1,8 @@
 ﻿#pragma once
 #include <stdio.h>
 #include <time.h>
-//#include "GL/glut.h"
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#define GLEW_STATIC
-#include <GL/glew.h>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
-#include <sys/stat.h>
+#include <vector>
+#include <string>
 
 #include "HairModel.h"
 #include "controls.hpp"
@@ -319,8 +309,58 @@ void render(std::vector<GLfloat> &vertex_data, std::vector<GLfloat> &vertex_colo
 	glfwTerminate();
 }
 
+void load_vertex()
+{
+	int cnt = 0;
+	glm::vec3 point; // previous point
+
+	srand(2210U); // just random seed
+
+	for (int i = 0; i < hm->v.size(); i++) {
+		cnt++;
+		hm->vertex.push_back(hm->p_p[0].x);
+		hm->vertex.push_back(hm->p_p[0].y);
+		hm->vertex.push_back(hm->p_p[0].z);
+
+		hm->vertex_color.push_back((float)cnt);
+
+		point = glm::vec3(hm->p_p[0].x, hm->p_p[0].y, hm->p_p[0].z); // initial point
+		hm->vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
+		hm->vertex_noise.push_back(rand());
+		for (size_t j = 1; j < hm->v[j].size(); ++i) {
+			hm->vertex.push_back(hm->p_p[j].x);
+			hm->vertex.push_back(hm->p_p[j].y);
+			hm->vertex.push_back(hm->p_p[j].z);
+
+			hm->vertex_color.push_back((float)cnt);
+
+			hm->vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z))); // tangent vector
+
+			hm->vertex_noise.push_back(rand());
+			if (i < hm->v[j].size() - 1)
+			{
+				hm->vertex.push_back(hm->p_p[j].x);
+				hm->vertex.push_back(hm->p_p[j].y);
+				hm->vertex.push_back(hm->p_p[j].z);
+
+				hm->vertex_color.push_back((float)cnt);
+				hm->vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z))); // tangent vector
+				point = glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z); // update previous point  
+				hm->vertex_noise.push_back(rand());
+
+				//glm::vec3 t = vertex_tangent.at(vertex_tangent.size()-1);
+				//std::cout << t.x << t.y << t.z << std::endl;
+			}
+		}
+
+	}
+
+	for (int i = 0; i < hm->vertex_color.size(); i++) hm->vertex_color[i] /= (float)cnt; // [0,1), same along a strand
+}
+
 int main(int argc, char** argv) {
 	hm = new HairModel();
-	
-	render();
+
+	load_vertex();
+	render(hm->vertex, hm->vertex_color, hm->vertex_noise, hm->vertex_tangent, "head_model");
 }
