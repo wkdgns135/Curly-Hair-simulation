@@ -5,21 +5,6 @@
 #include <vector>
 #include "vector_types.h"
 
-#pragma region Shader header
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#define GLEW_STATIC
-#include <GL/glew.h>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
-#include <sys/stat.h>
-
-#pragma endregion
-
 #define K_S 5000.0
 #define C_S 200.0
 
@@ -71,12 +56,6 @@ public: //Device
 
 	void compute_frame(Frame *f, float3 *p);
 	void array_copy(float3 *a, float3 *b);
-
-public: // for shader
-	vector<GLfloat> vertex;
-	vector<GLfloat> vertex_color;
-	vector<GLfloat> vertex_noise;
-	vector<glm::vec3> vertex_tangent;
 
 public:
 	HairModel();

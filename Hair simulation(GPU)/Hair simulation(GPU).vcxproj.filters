@@ -81,4 +81,9 @@
       <Filter>리소스 파일</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <Object Include="head_model.obj">
+      <Filter>리소스 파일</Filter>
+    </Object>
+  </ItemGroup>
 </Project>

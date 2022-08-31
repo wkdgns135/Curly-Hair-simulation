@@ -4,6 +4,15 @@
 #include <vector>
 #include <string>
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
+#include <sys/stat.h>
+
 #include "HairModel.h"
 #include "controls.hpp"
 #include "shader.hpp"
@@ -13,6 +22,10 @@
 using namespace std;
 
 HairModel *hm;
+vector<GLfloat> vertex;
+vector<GLfloat> vertex_color;
+vector<GLfloat> vertex_noise;
+vector<glm::vec3> vertex_tangent;
 
 std::string vertexshader_fn = "SimpleVertexShader.vertexshader";
 std::string fragmentshader_fn = "SimpleFragmentShader.fragmentshader";
@@ -318,35 +331,35 @@ void load_vertex()
 
 	for (int i = 0; i < hm->v.size(); i++) {
 		cnt++;
-		hm->vertex.push_back(hm->p_p[0].x);
-		hm->vertex.push_back(hm->p_p[0].y);
-		hm->vertex.push_back(hm->p_p[0].z);
+		vertex.push_back(hm->p_p[0].x);
+		vertex.push_back(hm->p_p[0].y);
+		vertex.push_back(hm->p_p[0].z);
 
-		hm->vertex_color.push_back((float)cnt);
+		vertex_color.push_back((float)cnt);
 
 		point = glm::vec3(hm->p_p[0].x, hm->p_p[0].y, hm->p_p[0].z); // initial point
-		hm->vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
-		hm->vertex_noise.push_back(rand());
+		vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
+		vertex_noise.push_back(rand());
 		for (size_t j = 1; j < hm->v[j].size(); ++i) {
-			hm->vertex.push_back(hm->p_p[j].x);
-			hm->vertex.push_back(hm->p_p[j].y);
-			hm->vertex.push_back(hm->p_p[j].z);
+			vertex.push_back(hm->p_p[j].x);
+			vertex.push_back(hm->p_p[j].y);
+			vertex.push_back(hm->p_p[j].z);
 
-			hm->vertex_color.push_back((float)cnt);
+			vertex_color.push_back((float)cnt);
 
-			hm->vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z))); // tangent vector
+			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z))); // tangent vector
 
-			hm->vertex_noise.push_back(rand());
+			vertex_noise.push_back(rand());
 			if (i < hm->v[j].size() - 1)
 			{
-				hm->vertex.push_back(hm->p_p[j].x);
-				hm->vertex.push_back(hm->p_p[j].y);
-				hm->vertex.push_back(hm->p_p[j].z);
+				vertex.push_back(hm->p_p[j].x);
+				vertex.push_back(hm->p_p[j].y);
+				vertex.push_back(hm->p_p[j].z);
 
-				hm->vertex_color.push_back((float)cnt);
-				hm->vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z))); // tangent vector
+				vertex_color.push_back((float)cnt);
+				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z))); // tangent vector
 				point = glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z); // update previous point  
-				hm->vertex_noise.push_back(rand());
+				vertex_noise.push_back(rand());
 
 				//glm::vec3 t = vertex_tangent.at(vertex_tangent.size()-1);
 				//std::cout << t.x << t.y << t.z << std::endl;
@@ -355,12 +368,12 @@ void load_vertex()
 
 	}
 
-	for (int i = 0; i < hm->vertex_color.size(); i++) hm->vertex_color[i] /= (float)cnt; // [0,1), same along a strand
+	for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
 }
 
 int main(int argc, char** argv) {
 	hm = new HairModel();
 
 	load_vertex();
-	render(hm->vertex, hm->vertex_color, hm->vertex_noise, hm->vertex_tangent, "head_model");
+	render(vertex, vertex_color, vertex_noise, vertex_tangent, "head_model");
 }
