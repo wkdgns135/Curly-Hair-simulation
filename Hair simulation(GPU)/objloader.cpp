@@ -127,7 +127,7 @@ bool loadOBJ(
 		// Get the attributes thanks to the index
 		glm::vec3 vertex = temp_vertices[ vertexIndex-1 ];
 		//glm::vec2 uv = temp_uvs[ uvIndex-1 ];
-		glm::vec2 uv = glm::vec2(1,1);
+		glm::vec2 uv = glm::vec2(0,0);
 		//glm::vec3 normal = temp_normals[ normalIndex-1 ];
 		
 		// Put the attributes in buffers

@@ -13,6 +13,10 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <sys/stat.h>
 
+// added by jhkim
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include "HairModel.h"
 #include "controls.hpp"
 #include "shader.hpp"
@@ -32,6 +36,48 @@ std::string fragmentshader_fn = "SimpleFragmentShader.fragmentshader";
 GLFWwindow* window;
 void update_vertex();
 
+// added by jhkim
+bool isCapture = true;
+
+// added by jhkim
+void FlipVertically(int width, int height, char *data)
+{
+	char rgb[3];
+	for (int y = 0; y < height / 2; ++y) {
+		for (int x = 0; x < width; ++x) {
+			int top = (x + y * width) * 3;
+			int bottom = (x + (height - y - 1) * width) * 3;
+			memcpy(rgb, data + top, sizeof(rgb));
+			memcpy(data + top, data + bottom, sizeof(rgb));
+			memcpy(data + bottom, rgb, sizeof(rgb));
+		}
+	}
+}
+
+void Capture(void)
+{
+	static int frame = 0;
+	if (frame == 0 || frame % 5 == 0) {
+		static int index = 0;
+		char filename[100];
+		sprintf_s(filename, "capture\\capture-%d.bmp", index);
+		GLint viewport[4];
+		glGetIntegerv(GL_VIEWPORT, viewport);
+
+		int x = viewport[0];
+		int y = viewport[1];
+		int width = viewport[2];
+		int height = viewport[3];
+		char *data = (char*)malloc((size_t)(width * height * 3)); // 3 components (R, G, B)
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+		FlipVertically(width, height, data);
+		stbi_write_bmp(filename, width, height, 3, data);
+		free(data);
+		index++;
+	}
+	frame++;
+}
 
 void render(char* objpath)
 {
@@ -50,8 +96,9 @@ void render(char* objpath)
 
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
+	int winsize[2] = { 1440 * 0.7, 1080 * 0.7 }; // added by jhkim
 
-	window = glfwCreateWindow(1440, 1080, "Geometric Image Viewer", NULL, NULL); // Windowed
+	window = glfwCreateWindow(winsize[0], winsize[1], "Geometric Image Viewer", NULL, NULL); // Windowed
 	if (window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		glfwTerminate();
@@ -75,7 +122,7 @@ void render(char* objpath)
 
 	// Set the mouse at the center of the screen
 	glfwPollEvents();
-	glfwSetCursorPos(window, 1440 / 2, 1080 / 2);
+	glfwSetCursorPos(window, winsize[0] / 2, winsize[1] / 2);
 
 	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	// Enable depth test
@@ -100,7 +147,7 @@ void render(char* objpath)
 	// Draw using a shader
 
 	glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(26.5f), (float)(6.0 / 6.0), 0.5f, 100.0f);
-	glm::vec3 eye_pos = glm::vec3(0, 0, 1.3);
+	glm::vec3 eye_pos = glm::vec3(3, 0, 1.3);
 	glm::vec3 look_pos = glm::vec3(0, 0, -1);
 	glm::vec3 head_up = glm::vec3(0, -1, 0);
 
@@ -168,8 +215,8 @@ void render(char* objpath)
 
 		//simulation
 		hm->simulation();
-		update_vertex();
 
+		update_vertex();
 		glUseProgram(programID);
 
 		computeMatricesFromInputs();
@@ -179,7 +226,6 @@ void render(char* objpath)
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		glm::vec3 lightPos = glm::vec3(0, 1, 3);
 		glUniform3f(LightID_hair, lightPos.x, lightPos.y, lightPos.z);
-
 
 		//update buffer
 		GLfloat* g_vertex_buffer_data = vertex.data();
@@ -204,9 +250,6 @@ void render(char* objpath)
 		glGenBuffers(1, &tangentbuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
 		glBufferData(GL_ARRAY_BUFFER, vertex_tangent.size() * sizeof(glm::vec3), &vertex_tangent[0], GL_STATIC_DRAW);
-
-
-
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -240,7 +283,6 @@ void render(char* objpath)
 			0,                  // stride
 			(void *)0            // array buffer offset
 		);
-
 
 		glEnableVertexAttribArray(3);
 		glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
@@ -317,7 +359,9 @@ void render(char* objpath)
 		}
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-
+		if (isCapture) {
+			Capture();
+		}
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
 	//saveimage(1280, 960);
@@ -338,11 +382,11 @@ void load_vertex()
 	glm::vec3 point; // previous point
 
 	srand(2210U); // just random seed
-	
+
 	int index = 0;
 	for (int i = 0; i < hm->v.size(); i++) {
 		cnt++;
-		
+
 		vertex.push_back(hm->p_p[index].x);
 		vertex.push_back(hm->p_p[index].y);
 		vertex.push_back(hm->p_p[index].z);
