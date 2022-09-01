@@ -19,15 +19,18 @@ glm::mat4 getProjectionMatrix(){
 	return ProjectionMatrix;
 }
 
-float initialRadius = 1.3;
-float currentRadius = 1.3;
+//float initialRadius = 1.3;
+//float currentRadius = 1.3;
+float initialRadius = -238.0; // modified by jhkim
+float currentRadius = -238.0; // modified by jhkim
 
 int normalMode = 0; // 0 : normal, 1: fine normal;
 bool textureMode = false;
 
 // Initial position : on +Z
-glm::vec3 position = glm::vec3( 0, 0, 1.3); 
-glm::vec3 target = glm::vec3( 0.0, 0.0, -1);
+glm::vec3 position = glm::vec3(0, 0, 1.3);
+glm::vec3 target = glm::vec3(0.0, -20.0, -1);
+
 // Initial horizontal angle : toward -Z
 float horizontalAngle = 0.0f;//3.14f;
 // Initial vertical angle : upside down
@@ -63,7 +66,7 @@ void setTarget(glm::highp_f64vec3 obj_target)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	currentRadius += yoffset * 1;
+	currentRadius += yoffset * 5;
 }
 
 
