@@ -47,7 +47,6 @@ bool loadOBJ(
 		int res = fscanf(file, "%s", lineHeader);
 		if (res == EOF)
 			break; // EOF = End Of File. Quit the loop.
-
 		// else : parse lineHeader
 		
 		if ( strcmp( lineHeader, "v" ) == 0 ){
@@ -78,7 +77,7 @@ bool loadOBJ(
 		}else if ( strcmp( lineHeader, "f" ) == 0 ){
 			std::string vertex1, vertex2, vertex3;
 			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
-			int matches = fscanf(file, "%d/%d %d/%d %d/%d\n", &vertexIndex[0], &uvIndex[0], &vertexIndex[1], &uvIndex[1], &vertexIndex[2], &uvIndex[2] );
+			int matches = fscanf(file, "%d//%d %d//%d %d//%d\n", &vertexIndex[0], &uvIndex[0], &vertexIndex[1], &uvIndex[1], &vertexIndex[2], &uvIndex[2] );
 			if (matches != 6){
 				printf("File can't be read by our simple parser :-( Try exporting with other options\n");
 				fclose(file);
@@ -127,7 +126,8 @@ bool loadOBJ(
 		
 		// Get the attributes thanks to the index
 		glm::vec3 vertex = temp_vertices[ vertexIndex-1 ];
-		glm::vec2 uv = temp_uvs[ uvIndex-1 ];
+		//glm::vec2 uv = temp_uvs[ uvIndex-1 ];
+		glm::vec2 uv = glm::vec2(1,1);
 		//glm::vec3 normal = temp_normals[ normalIndex-1 ];
 		
 		// Put the attributes in buffers

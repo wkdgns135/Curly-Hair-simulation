@@ -30,9 +30,10 @@ vector<glm::vec3> vertex_tangent;
 std::string vertexshader_fn = "SimpleVertexShader.vertexshader";
 std::string fragmentshader_fn = "SimpleFragmentShader.fragmentshader";
 GLFWwindow* window;
+void update_vertex();
 
-void render(std::vector<GLfloat> &vertex_data, std::vector<GLfloat> &vertex_color,
-	std::vector<GLfloat> &vertex_noise, std::vector<glm::vec3> &vertex_tangent, char* objpath)
+
+void render(char* objpath)
 {
 	glewExperimental = true; // Needed for core profile
 	if (!glfwInit())
@@ -120,40 +121,17 @@ void render(std::vector<GLfloat> &vertex_data, std::vector<GLfloat> &vertex_colo
 	glm::vec3 cam_pos = getCameraPosition();
 
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-	GLfloat* g_vertex_buffer_data = vertex_data.data();
-	GLuint vertexbuffer;
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertex_data.size() * sizeof(float), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-	GLfloat* g_vertex_color_data = vertex_color.data();
-	GLuint colorbuffer;
-	glGenBuffers(1, &colorbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertex_color.size() * sizeof(float), g_vertex_color_data, GL_STATIC_DRAW);
-
-	GLfloat* g_vertex_noise_data = vertex_color.data();
-	GLuint noisebuffer;
-	glGenBuffers(1, &noisebuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, noisebuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertex_noise.size() * sizeof(float), g_vertex_noise_data, GL_STATIC_DRAW);
-
-	GLuint tangentbuffer;
-	glGenBuffers(1, &tangentbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertex_tangent.size() * sizeof(glm::vec3), &vertex_tangent[0], GL_STATIC_DRAW);
 
 	// Read our .obj file
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals; // Won't be used at the moment.
 
-	int hair_data_length = vertex_data.size();
+	int hair_data_length = vertex.size();
 	// store data length of hair
 
 	std::string name(objpath);
 	bool res = loadOBJ((name + ".obj").c_str(), vertices, uvs, normals);
-
 	GLuint face_programID = LoadShaders("normalShader.vertexshader", "normalShader.fragmentshader");
 
 	// Face Shader :: Get a handle for our "MVP" uniform
@@ -188,6 +166,10 @@ void render(std::vector<GLfloat> &vertex_data, std::vector<GLfloat> &vertex_colo
 		// Clear the screen. 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		//simulation
+		hm->simulation();
+		update_vertex();
+
 		glUseProgram(programID);
 
 		computeMatricesFromInputs();
@@ -197,6 +179,34 @@ void render(std::vector<GLfloat> &vertex_data, std::vector<GLfloat> &vertex_colo
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		glm::vec3 lightPos = glm::vec3(0, 1, 3);
 		glUniform3f(LightID_hair, lightPos.x, lightPos.y, lightPos.z);
+
+
+		//update buffer
+		GLfloat* g_vertex_buffer_data = vertex.data();
+		GLuint vertexbuffer;
+		glGenBuffers(1, &vertexbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(float), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+		GLfloat* g_vertex_color_data = vertex_color.data();
+		GLuint colorbuffer;
+		glGenBuffers(1, &colorbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+		glBufferData(GL_ARRAY_BUFFER, vertex_color.size() * sizeof(float), g_vertex_color_data, GL_STATIC_DRAW);
+
+		GLfloat* g_vertex_noise_data = vertex_color.data();
+		GLuint noisebuffer;
+		glGenBuffers(1, &noisebuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, noisebuffer);
+		glBufferData(GL_ARRAY_BUFFER, vertex_noise.size() * sizeof(float), g_vertex_noise_data, GL_STATIC_DRAW);
+
+		GLuint tangentbuffer;
+		glGenBuffers(1, &tangentbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+		glBufferData(GL_ARRAY_BUFFER, vertex_tangent.size() * sizeof(glm::vec3), &vertex_tangent[0], GL_STATIC_DRAW);
+
+
+
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -328,42 +338,46 @@ void load_vertex()
 	glm::vec3 point; // previous point
 
 	srand(2210U); // just random seed
-
+	
+	int index = 0;
 	for (int i = 0; i < hm->v.size(); i++) {
 		cnt++;
-		vertex.push_back(hm->p_p[0].x);
-		vertex.push_back(hm->p_p[0].y);
-		vertex.push_back(hm->p_p[0].z);
+		
+		vertex.push_back(hm->p_p[index].x);
+		vertex.push_back(hm->p_p[index].y);
+		vertex.push_back(hm->p_p[index].z);
 
 		vertex_color.push_back((float)cnt);
 
-		point = glm::vec3(hm->p_p[0].x, hm->p_p[0].y, hm->p_p[0].z); // initial point
+		point = glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z); // initial point
 		vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
 		vertex_noise.push_back(rand());
-		for (size_t j = 1; j < hm->v[j].size(); ++i) {
-			vertex.push_back(hm->p_p[j].x);
-			vertex.push_back(hm->p_p[j].y);
-			vertex.push_back(hm->p_p[j].z);
+		index++;
+		for (size_t j = 1; j < hm->v[i].size(); ++j) {
+			vertex.push_back(hm->p_p[index].x);
+			vertex.push_back(hm->p_p[index].y);
+			vertex.push_back(hm->p_p[index].z);
 
 			vertex_color.push_back((float)cnt);
 
-			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z))); // tangent vector
+			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z))); // tangent vector
 
 			vertex_noise.push_back(rand());
-			if (i < hm->v[j].size() - 1)
+			if (j < hm->v[i].size() - 1)
 			{
-				vertex.push_back(hm->p_p[j].x);
-				vertex.push_back(hm->p_p[j].y);
-				vertex.push_back(hm->p_p[j].z);
+				vertex.push_back(hm->p_p[index].x);
+				vertex.push_back(hm->p_p[index].y);
+				vertex.push_back(hm->p_p[index].z);
 
 				vertex_color.push_back((float)cnt);
-				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z))); // tangent vector
-				point = glm::vec3(hm->p_p[j].x, hm->p_p[j].y, hm->p_p[j].z); // update previous point  
+				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z))); // tangent vector
+				point = glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z); // update previous point  
 				vertex_noise.push_back(rand());
 
 				//glm::vec3 t = vertex_tangent.at(vertex_tangent.size()-1);
 				//std::cout << t.x << t.y << t.z << std::endl;
 			}
+			index++;
 		}
 
 	}
@@ -371,9 +385,67 @@ void load_vertex()
 	for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
 }
 
+
+void update_vertex()
+{
+	int cnt = 0;
+	glm::vec3 point; // previous point
+
+	srand(2210U); // just random seed
+	vertex.clear();
+	vertex_color.clear();
+	vertex_noise.clear();
+	vertex_tangent.clear();
+
+	int index = 0;
+	for (int i = 0; i < hm->v.size(); i++) {
+		cnt++;
+
+		vertex.push_back(hm->p_p[index].x);
+		vertex.push_back(hm->p_p[index].y);
+		vertex.push_back(hm->p_p[index].z);
+
+		vertex_color.push_back((float)cnt);
+
+		point = glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z); // initial point
+		vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
+		vertex_noise.push_back(rand());
+		index++;
+		for (size_t j = 1; j < hm->v[i].size(); ++j) {
+			vertex.push_back(hm->p_p[index].x);
+			vertex.push_back(hm->p_p[index].y);
+			vertex.push_back(hm->p_p[index].z);
+
+			vertex_color.push_back((float)cnt);
+
+			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z))); // tangent vector
+
+			vertex_noise.push_back(rand());
+			if (j < hm->v[i].size() - 1)
+			{
+				vertex.push_back(hm->p_p[index].x);
+				vertex.push_back(hm->p_p[index].y);
+				vertex.push_back(hm->p_p[index].z);
+
+				vertex_color.push_back((float)cnt);
+				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z))); // tangent vector
+				point = glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z); // update previous point  
+				vertex_noise.push_back(rand());
+
+				//glm::vec3 t = vertex_tangent.at(vertex_tangent.size()-1);
+				//std::cout << t.x << t.y << t.z << std::endl;
+			}
+			index++;
+		}
+	}
+	for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
+}
+
 int main(int argc, char** argv) {
 	hm = new HairModel();
 
 	load_vertex();
-	render(vertex, vertex_color, vertex_noise, vertex_tangent, "head_model");
+
+	cout << vertex.size() << endl;
+	render("head_model");
 }
