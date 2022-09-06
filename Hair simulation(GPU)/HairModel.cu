@@ -76,109 +76,48 @@ void HairModel::device_init() {
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_v_d);
 }
 
-//__global__ void integrate_internal_hair_force(int *p_i,float3 *p_p, float3 *r_p_p, Frame *s_f, float3* _t,float3 *p_f, float3 *p_v) {
-//	double dt = 0.0009;
-//	
-//	for (int i = 0; i < PARTICLE_SIZE; i++) {
-//		int tid = p_i[threadIdx.x * PARTICLE_SIZE + i];
-//		if (i < PARTICLE_SIZE - 1) {
-//			//Stretch spring
-//			float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
-//			float3 rest_e = vector_sub_k(r_p_p[tid + 1], r_p_p[tid]);
-//			float3 e_hat = vector_normalized_k(e);
-//
-//			float3 force = vector_multiply_k(e_hat, (vector_length_k(e) - vector_length_k(rest_e)) * K_S);
-//
-//			p_f[tid] = vector_add_k(p_f[tid], force);
-//			p_f[tid + 1] = vector_sub_k(p_f[tid + 1], force);
-//
-//			//Bending spring
-//			float3 t = multiply_frame_k(s_f[tid - 1], _t[tid]);
-//			force = vector_multiply_k(vector_sub_k(e, t), K_B);
-//			
-//			p_f[tid] = vector_add_k(p_f[tid], force);
-//			p_f[tid + 1] = vector_sub_k(p_f[tid + 1], force);
-//			
-//
-//		}
-//		if (i > 0) {
-//			float3 ac = p_f[tid];
-//			p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(ac, dt));
-//			p_f[tid] = make_float3(0.0, 0.0, 0.0);
-//		}
-//	}
-//}
+__global__ void integrate(float3 *p_p, float3 *p_f, float3 *p_v, double dt, int x, int y) {
+	if (threadIdx.x > y)return; 
+	if (blockIdx.x > x)return;
+	if (threadIdx.x == 0)return;
 
-__global__ void integrate(float3 *p_p, float3 *p_f, float3 *p_v, double dt) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-
-	if (threadIdx.x > 0) {
-		float3 ac = p_f[tid];
-		p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(ac, dt));
-		p_f[tid] = make_float3(0.0, 0.0, 0.0);
-	}
+	float3 ac = p_f[tid];
+	p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(ac, dt));
+	p_f[tid] = make_float3(0.0, 0.0, 0.0);
+	
 }
 
-__global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, Frame *s_f, float3* _t, float3 *p_f, float3 *p_v) {
+__global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, Frame *s_f, float3* _t, float3 *p_f, float3 *p_v, int x, int y) {
+	if (threadIdx.x > y-1)return;
+	if (blockIdx.x > x)return;
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-	//if (threadIdx.x > 31) {
-	//	__syncthreads();
-	//	if (threadIdx.x > 63) {
-	//		__syncthreads();
-	//		if (threadIdx.x > 95) {
-	//			__syncthreads();
-	//		}
-	//	}
-	//}
-	double dt = 0.0009;
+	//if(blockIdx.x == 0)printf("thread: %d\n", threadIdx.x);
+	float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
+	float3 rest_e = vector_sub_k(r_p_p[tid + 1], r_p_p[tid]);
+	float3 e_hat = vector_normalized_k(e);
 
-	if (threadIdx.x < blockDim.x - 1) {
-		//if(blockIdx.x == 0)printf("thread: %d\n", threadIdx.x);
-		float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
-		float3 rest_e = vector_sub_k(r_p_p[tid + 1], r_p_p[tid]);
-		float3 e_hat = vector_normalized_k(e);
+	float3 force1 = vector_multiply_k(e_hat,(vector_length_k(e)-vector_length_k(rest_e)) * K_S);
 
-		float3 force1 = vector_multiply_k(e_hat,(vector_length_k(e)-vector_length_k(rest_e)) * K_S);
+	//float3 t = multiply_frame_k(s_f[tid - 1], _t[tid]);
+	//float3 force2 = vector_multiply_k(vector_sub_k(e, t), K_B);
+	//float3 result = vector_add_k(force1, force2);
 
-		float3 t = multiply_frame_k(s_f[tid - 1], _t[tid]);
-		float3 force2 = vector_multiply_k(vector_sub_k(e, t), K_B);
-		
-		float3 result = vector_add_k(force1, force2);
-		p_f[tid] = vector_add_k(p_f[tid], result);
-		__syncthreads();
-		p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
-	}
+	p_f[tid] = vector_add_k(p_f[tid], force1);
+	__syncthreads();
+	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], force1);
+	
 }
 
-
-
-//__global__ void integrate_external_hair_force(int *p_i, float3 *p_p, float3 *p_f, float3 *p_v) {
-//	//int tid = blockIdx.x * blockDim.x + threadIdx.x;
-//	double dt = 0.0009;
-//	float3 gravity = make_float3(0.0, -10, 0.0);
-//	for (int i = 0; i < PARTICLE_SIZE; i++) {
-//		int tid = p_i[threadIdx.x * PARTICLE_SIZE + i];
-//		if (i < PARTICLE_SIZE - 1) {
-//			p_f[tid] = vector_add_k(p_f[tid], gravity);
-//		}
-//		if (i > 0) {
-//			float3 ac = p_f[tid];
-//			p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(ac, dt));
-//			p_f[tid] = make_float3(0.0, 0.0, 0.0);
-//		}
-//	}
-//}
-
-__global__ void integrate_external_hair_force(float3 *p_p, float3 *p_f, float3 *p_v) {
+__global__ void integrate_external_hair_force(float3 *p_p, float3 *p_f, float3 *p_v, int x, int y) {
+	if (threadIdx.x > y)return;
+	if (blockIdx.x > x)return;
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	double dt = 0.0009;
+
 	float3 gravity = make_float3(0.0, -10, 0.0);
-
-
-	if (threadIdx.x < blockDim.x - 1) {
-		p_f[tid] = vector_add_k(p_f[tid], gravity);
-	}
+	p_f[tid] = vector_add_k(p_f[tid], gravity);
 
 	if (threadIdx.x > 0) {
 		float3 ac = p_f[tid];
@@ -187,118 +126,72 @@ __global__ void integrate_external_hair_force(float3 *p_p, float3 *p_f, float3 *
 	}
 }
 
-//__global__ void integrate_damping_force(int *p_i, float3 *p_p, float3 *p_f, float3 *p_v) {
-//	//int tid = blockIdx.x * blockDim.x + threadIdx.x;
-//	double dt = 0.00009;
-//
-//	for (int i = 0; i < PARTICLE_SIZE; i++) {
-//		int tid = p_i[threadIdx.x * PARTICLE_SIZE + i];
-//		if (i < PARTICLE_SIZE - 1) {
-//			//Stretch damping
-//			float3 d_v = vector_sub_k(p_v[tid + 1], p_v[tid]);
-//			float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
-//			float3 e_hat = vector_normalized_k(e);
-//
-//			float3 force = vector_multiply_k(vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat)), C_S);
-//			p_f[tid] = vector_add_k(p_f[tid], force);
-//			p_f[tid + 1] = vector_sub_k(p_f[tid + 1], force);
-//
-//			//Bending damping
-//			force = vector_multiply_k(vector_sub_k(d_v, vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat))), C_B);
-//			p_f[tid] = vector_add_k(p_f[tid], force);
-//			p_f[tid + 1] = vector_sub_k(p_f[tid + 1], force);
-//		}
-//
-//		if (i > 0) {
-//			float3 ac = p_f[tid];
-//			p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(ac, dt));
-//			p_f[tid] = make_float3(0.0, 0.0, 0.0);
-//		}
-//	}
-//}
-
-__global__ void integrate_damping_force(float3 *p_p, float3 *p_f, float3 *p_v) {
+__global__ void integrate_damping_force(float3 *p_p, float3 *p_f, float3 *p_v, int x, int y) {
+	if (threadIdx.x > y-1)return;
+	if (blockIdx.x > x)return;
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	double dt = 0.00009;
-	//if (threadIdx.x > 31) {
-	//	__syncthreads();
-	//	if (threadIdx.x > 63) {
-	//		__syncthreads();
-	//		if (threadIdx.x > 95) {
-	//			__syncthreads();
-	//		}
-	//	}
-	//}
 
-	if (threadIdx.x < blockDim.x - 1) {
-		
-		float3 d_v = vector_sub_k(p_v[tid + 1], p_v[tid]);
-		float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
-		float3 e_hat = vector_normalized_k(e);
+	float3 d_v = vector_sub_k(p_v[tid + 1], p_v[tid]);
+	float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
+	float3 e_hat = vector_normalized_k(e);
 
-		float3 force1 = vector_multiply_k(vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat)), C_S);
-		float3 force2 = vector_multiply_k(vector_sub_k(d_v, vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat))), C_B);
+	float3 force1 = vector_multiply_k(vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat)), C_S);
+	float3 force2 = vector_multiply_k(vector_sub_k(d_v, vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat))), C_B);
 
-		float3 result = vector_add_k(force1, force2);
-		p_f[tid] = vector_add_k(p_f[tid], result);
-		__syncthreads();
-		p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
-	}
+	float3 result = vector_add_k(force1, force2);
+	p_f[tid] = vector_add_k(p_f[tid], result);
+	__syncthreads();
+	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
+	
 }
 
-//__global__ void update_position(int *p_i, float3 *p_p, float3 *p_v) {
-//	double dt = 0.01;
-//	for (int i = 1; i < PARTICLE_SIZE; i++) {
-//		int tid = p_i[threadIdx.x * PARTICLE_SIZE + i];
-//		p_p[tid] = vector_add_k(p_p[tid], vector_multiply_k(p_v[tid], dt));
-//	}
-//}
+__global__ void update_position(float3 *p_p, float3 *p_v, int x, int y) {
+	if (threadIdx.x > y)return;
+	if (blockIdx.x > x)return;
 
-
-__global__ void update_position(float3 *p_p, float3 *p_v) {
 	double dt = 0.01;
-
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	if (threadIdx.x > 0) {
-		p_p[tid] = vector_add_k(p_p[tid], vector_multiply_k(p_v[tid], dt));
-	}
+	p_p[tid] = vector_add_k(p_p[tid], vector_multiply_k(p_v[tid], dt));
+	
 }
 
 void HairModel:: simulation() {
-	//cudaEvent_t start, stop;
-	//cudaEventCreate(&start);
-	//cudaEventCreate(&stop);
-	//cudaEventRecord(start);
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord(start);
 
 	for (int iter1 = 0; iter1 < 2; iter1++) {
 		for (int iter2 = 0; iter2 < 15; iter2++) {
 			//cudaMemcpy(p_p_d, s_p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToDevice);
-			//smoothing_function_k<< <1, STRAND_SIZE >> > (p_p_d, s_p_p_d, r_p_l_d, 0.23, true);
-			//compute_frame_k << <1, STRAND_SIZE >> > (s_f_d, s_p_p_d);
+			array_copy(s_p_p, smoothing_function(p_p, r_p_l, 0.23, true));
 
-			integrate_internal_hair_force <<<STRAND_SIZE, MAX_SIZE>> > (p_p_d, r_p_p_d, s_f_d, t_d , p_f_d, p_v_d);
-			integrate_external_hair_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d);
+			//compute_frame(s_f, s_p_p);
+			//cudaMemcpy(s_f_d, s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+
+			integrate_internal_hair_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, r_p_p_d, s_f_d, t_d , p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
+			integrate_external_hair_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
 			//integrate << <STRAND_SIZE, PARTICLE_SIZE >> > (p_p_d, p_f_d, p_v_d, 0.0009);
 
 			for (int iter3 = 0; iter3 < 10 * iter2; iter3++) {
-				integrate_damping_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d);
-				integrate << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, 0.00009);
+				integrate_damping_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
+				integrate << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, 0.00009, STRAND_SIZE, MAX_SIZE);
 			}
 		}
-		update_position <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_v_d);
+		update_position <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_v_d, STRAND_SIZE, MAX_SIZE);
 	}
 
 
 	//performace check
 
-	//cudaEventRecord(stop);
-	//cudaEventSynchronize(stop);
-	//float milliseconds = 0.0;
-	//cudaEventElapsedTime(&milliseconds, start, stop);
-	//std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
+	cudaEventRecord(stop);
+	cudaEventSynchronize(stop);
+	float milliseconds = 0.0;
+	cudaEventElapsedTime(&milliseconds, start, stop);
+	std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
 
-	//cudaEventDestroy(start);
-	//cudaEventDestroy(stop);
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
 
 	cudaMemcpy(p_p, p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 	

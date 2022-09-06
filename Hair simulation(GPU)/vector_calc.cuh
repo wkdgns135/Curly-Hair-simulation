@@ -109,42 +109,6 @@ __device__ double vector_dot_k(float3 a, float3 b) {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
-__global__ void compute_frame_k(Frame *f, float3 *p, int size) {
-	float3 aim = vector_sub_k(p[threadIdx.x * size +  1], p[threadIdx.x * size + 0]);
-	vector_normalize_k(aim);
-
-	float3 up;
-	up.x = aim.z - aim.y;
-	up.y = aim.x - aim.z;
-	up.z = aim.y - aim.x;
-
-	vector_normalize_k(up);
-	for (int i = 1; i < size - 1; i++) {
-		int index = threadIdx.x * size + i;
-		float3 aim = vector_sub_k(p[index + 1], p[index]);
-		vector_normalize_k(aim);
-
-		float3 cross = vector_cross_k(aim, up);
-		vector_normalize_k(cross);
-
-		up = vector_cross_k(cross, aim);
-		vector_normalize_k(up);
-
-		f[index].aim.x = aim.x;
-		f[index].aim.y = up.x;
-		f[index].aim.z = cross.x;
-
-		f[index].up.x = aim.y;
-		f[index].up.y = up.y;
-		f[index].up.z = cross.y;
-
-		f[index].cross.x = aim.z;
-		f[index].cross.y = up.z;
-		f[index].cross.z = cross.z;
-
-	}
-}
-
 __device__ float3 multiply_transpose_frame_k(Frame f, float3 e) {
 	float3 tmp;
 	tmp.x =
@@ -227,39 +191,4 @@ __device__ float3 multiply_frame_k(Frame f, float3 e) {
 //	return d;
 //}
 
-__global__ void smoothing_function_k(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position) {
-	double beta = 0.0;
-
-	//beta formulation, l = 파티클간의 평균길이
-	int index = threadIdx.x * blockDim.x;
-	dst[index] = vector_sub_k(lambda[index + 1], lambda[index]);
-	beta = 1 > 1 - exp(-l[threadIdx.x] / alpha) ? 1 - exp(-l[threadIdx.x] / alpha) : 1;
-	for (int j = 1; j < blockDim.x - 1; j++) {
-		int index_1 = j - 1 >= 0 ? j - 1 : 0;
-		int index_2 = j - 2 >= 0 ? j - 2 : 0;
-
-		int index1 = threadIdx.x * blockDim.x + index_1;
-		int index2 = threadIdx.x * blockDim.x + index_2;
-		index = threadIdx.x * blockDim.x + j;
-
-		float3 term1 = vector_multiply_k(dst[index_1], 2 * (1 - beta));
-		float3 term2 = vector_multiply_k(dst[index_2], ((1 - beta) * (1 - beta)));
-		float3 term3 = vector_sub_k(term1, term2);
-		float3 term4 = vector_multiply_k(vector_sub_k(lambda[index + 1], lambda[index]), (beta * beta));
-		dst[index] = vector_add_k(term3, term4);
-	}
-
-	if (is_position) {
-		float3 *pos;
-		pos = new float3[blockDim.x];
-
-		array_copy_k(pos, dst, blockDim.x);
-		int index = threadIdx.x * blockDim.x;
-		dst[index] = lambda[index];
-		for (int j = 1; j < blockDim.x; j++) {
-			index = threadIdx.x * blockDim.x + j;
-			dst[index] = vector_add_k(pos[index - 1], dst[index - 1]);
-		}
-	}
-}
 #endif

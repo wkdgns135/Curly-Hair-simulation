@@ -194,17 +194,17 @@ void render(char* objpath)
 	GLuint face_vertexbuffer;
 	glGenBuffers(1, &face_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, face_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices, GL_STATIC_DRAW);
 
 	GLuint face_uvbuffer;
 	glGenBuffers(1, &face_uvbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, face_uvbuffer);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs, GL_STATIC_DRAW);
 
 	GLuint face_normalbuffer;
 	glGenBuffers(1, &face_normalbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, face_normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals, GL_STATIC_DRAW);
 
 	//std::vector<float> head_color(vertices.size(), 0.0);
 	//vertex_color.insert(vertex_color.end(), head_color.begin(), head_color.end());
