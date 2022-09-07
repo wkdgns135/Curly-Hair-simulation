@@ -6,8 +6,9 @@ extern GLFWwindow* window;
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
-
+#include <stdio.h>
 #include "controls.hpp"
+#include "vector_functions.h"
 
 glm::mat4 ViewMatrix;
 glm::mat4 ProjectionMatrix;
@@ -86,7 +87,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
-void computeMatricesFromInputs()
+void computeMatricesFromInputs(HairModel *hm)
 {
 
     if(isMousePressed) {
@@ -105,19 +106,22 @@ void computeMatricesFromInputs()
 
 	// Move forward
 	if (glfwGetKey( window, GLFW_KEY_UP ) == GLFW_PRESS){
-
+		hm->move_sphere(make_float3(0, 1.0f, 0));
 	}
 	// Move backward
 	if (glfwGetKey( window, GLFW_KEY_DOWN ) == GLFW_PRESS){
+		hm->move_sphere(make_float3(0, -1.0f, 0));
 
 	}
 	// Strafe right
 	if (glfwGetKey( window, GLFW_KEY_RIGHT ) == GLFW_PRESS){
-		normalMode = 1;
+		hm->move_sphere(make_float3(0, 0, 1.0f));
+		//normalMode = 1;
 	}
 	// Strafe left
 	if (glfwGetKey( window, GLFW_KEY_LEFT ) == GLFW_PRESS){
-		normalMode = 0;
+		hm->move_sphere(make_float3(0, 0, -1.0f));
+		//normalMode = 0;
 	}
 	// T key
 	if(glfwGetKey( window, GLFW_KEY_T) == GLFW_PRESS){

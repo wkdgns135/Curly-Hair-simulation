@@ -76,6 +76,22 @@ void HairModel::device_init() {
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_v_d);
 }
 
+__global__ void collision_detect(float3 *p_p, float3 sphere, float radius, int x, int y) {
+	if (threadIdx.x > y)return;
+	if (blockIdx.x > x)return;
+	//if (threadIdx.x == 10)printf("%f %f %f\n", sphere.x, sphere.y, sphere.z);
+	
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	float3 &p = p_p[tid];
+	float3 dir = vector_sub_k(p, sphere);
+	float dist = vector_length_k(dir);
+	if (dist < (radius + 0.01f)) {
+		vector_normalize_k(dir);
+		float3 new_pos = vector_add_k(sphere,vector_multiply_k(dir, (radius + 0.01f)));
+		p_p[tid] = new_pos;
+	}
+}
+
 __global__ void integrate(float3 *p_p, float3 *p_f, float3 *p_v, double dt, int x, int y) {
 	if (threadIdx.x > y)return; 
 	if (blockIdx.x > x)return;
@@ -162,6 +178,7 @@ void HairModel:: simulation() {
 	cudaEventRecord(start);
 
 	for (int iter1 = 0; iter1 < 2; iter1++) {
+		collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
 		for (int iter2 = 0; iter2 < 15; iter2++) {
 			//cudaMemcpy(p_p_d, s_p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToDevice);
 			array_copy(s_p_p, smoothing_function(p_p, r_p_l, 0.23, true));
@@ -188,7 +205,7 @@ void HairModel:: simulation() {
 	cudaEventSynchronize(stop);
 	float milliseconds = 0.0;
 	cudaEventElapsedTime(&milliseconds, start, stop);
-	std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
+	//std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
 
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);

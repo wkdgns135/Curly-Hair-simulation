@@ -37,7 +37,7 @@ GLFWwindow* window;
 void update_vertex();
 
 // added by jhkim
-bool isCapture = true;
+bool isCapture = false;
 
 // added by jhkim
 void FlipVertically(int width, int height, char *data)
@@ -78,6 +78,7 @@ void Capture(void)
 	}
 	frame++;
 }
+
 
 void render(char* objpath)
 {
@@ -212,14 +213,14 @@ void render(char* objpath)
 	do {
 		// Clear the screen. 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		//simulation
 		hm->simulation();
 
 		update_vertex();
 		glUseProgram(programID);
 
-		computeMatricesFromInputs();
+		computeMatricesFromInputs(hm);
+
 		ProjectionMatrix = getProjectionMatrix();
 		ViewMatrix = getViewMatrix();
 		MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
@@ -489,7 +490,6 @@ int main(int argc, char** argv) {
 	hm = new HairModel();
 
 	load_vertex();
-
 	cout << vertex.size() << endl;
 	render("head_model");
 }

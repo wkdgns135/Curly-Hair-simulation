@@ -48,6 +48,9 @@
     <ClInclude Include="stb_image_write.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="collision.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="리소스 파일">

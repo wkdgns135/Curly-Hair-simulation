@@ -6,6 +6,9 @@
 HairModel::HairModel() {
 	v = read_hair_asc("strand.txt");
 
+	sphere_pos = make_float3(0, -10, 0);
+	sphere_radius = 20;
+
 	STRAND_SIZE = v.size();
 	for (int i = 0; i < v.size(); i++) {
 		MAX_SIZE = MAX_SIZE < v[i].size() ? v[i].size() : MAX_SIZE;
@@ -34,8 +37,8 @@ HairModel::HairModel() {
 		}
 
 		sum /= (v[i].size() - 1);
-		cout << "rest_length : ";
-		cout << sum << endl;
+		//cout << "rest_length : ";
+		//cout << sum << endl;
 		r_p_l[i] = sum;
 	}
 
@@ -60,6 +63,11 @@ HairModel::HairModel() {
 	}
 	device_init();
 }
+
+void HairModel::move_sphere(float3 dst) {
+	sphere_pos = vector_add(sphere_pos, dst);
+}
+
 
 //
 //void HairModel::draw_point() {

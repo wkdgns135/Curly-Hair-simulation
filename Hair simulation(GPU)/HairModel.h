@@ -18,6 +18,15 @@ typedef struct Frame {
 }Frame;
 
 
+class Sphere {
+public:
+	float3 pos;
+	float radius;
+
+public:
+	void move_sphere(float3 dst);
+};
+
 class HairModel
 {
 public:
@@ -38,6 +47,10 @@ public: //Host
 	Frame *s_f;
 	float3 *t;
 
+	//collision
+	float3 sphere_pos;
+	float sphere_radius;
+
 public: //Device
 	int *p_i_d;
 	double *r_p_l_d;
@@ -52,11 +65,13 @@ public: //Device
 	Frame *s_f_d;
 	float3 *t_d;
 
+public:
 	float3* smoothing_function(float3 *lambda, double *l, double alpha, bool is_position);
-
 	void compute_frame(Frame *f, float3 *p);
 	void array_copy(float3 *a, float3 *b);
 
+public:
+	void move_sphere(float3 dst);
 public:
 	HairModel();
 	void draw_point();
