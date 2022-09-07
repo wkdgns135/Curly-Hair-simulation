@@ -21,6 +21,7 @@ HairModel::HairModel() {
 	r_p_p = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	r_s_p_p = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	p_v_d = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
+	s_p_v = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	r_s_f = (Frame*)malloc(sizeof(Frame) * TOTAL_SIZE);
 	s_f = (Frame*)malloc(sizeof(Frame) * TOTAL_SIZE);
 	t = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);

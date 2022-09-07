@@ -11,6 +11,9 @@
 #define K_B 500.0
 #define C_B 3000.0
 
+#define K_C 500.0
+#define C_C 200.0
+
 using namespace std;
 
 typedef struct Frame {
@@ -43,6 +46,7 @@ public: //Host
 	float3 *s_p_p;
 	float3 *r_p_p;
 	float3 *r_s_p_p;
+	float3 *s_p_v;
 	Frame *r_s_f;
 	Frame *s_f;
 	float3 *t;
@@ -59,6 +63,7 @@ public: //Device
 	float3 *p_f_d;
 
 	float3 *s_p_p_d;
+	float3 *s_p_v_d;
 	float3 *r_p_p_d;
 	float3 *r_s_p_p_d;
 	Frame *r_s_f_d;
