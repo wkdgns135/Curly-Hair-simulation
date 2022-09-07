@@ -79,6 +79,7 @@ void HairModel::device_init() {
 __global__ void collision_detect(float3 *p_p, float3 sphere, float radius, int x, int y) {
 	if (threadIdx.x > y)return;
 	if (blockIdx.x > x)return;
+	if (blockIdx.x == 0)return;
 	//if (threadIdx.x == 10)printf("%f %f %f\n", sphere.x, sphere.y, sphere.z);
 	
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
