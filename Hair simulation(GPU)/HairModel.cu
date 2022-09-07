@@ -131,16 +131,9 @@ __global__ void integrate_external_hair_force(float3 *p_p, float3 *p_f, float3 *
 	if (threadIdx.x > y)return;
 	if (blockIdx.x > x)return;
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	double dt = 0.0009;
-
+	
 	float3 gravity = make_float3(0.0, -10, 0.0);
 	p_f[tid] = vector_add_k(p_f[tid], gravity);
-
-	if (threadIdx.x > 0) {
-		float3 ac = p_f[tid];
-		p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(ac, dt));
-		p_f[tid] = make_float3(0.0, 0.0, 0.0);
-	}
 }
 
 __global__ void integrate_damping_force(float3 *p_p, float3 *p_f, float3 *p_v, int x, int y) {
@@ -173,13 +166,13 @@ __global__ void update_position(float3 *p_p, float3 *p_v, int x, int y) {
 }
 
 void HairModel:: simulation() {
-	cudaEvent_t start, stop;
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
-	cudaEventRecord(start);
+	//cudaEvent_t start, stop;
+	//cudaEventCreate(&start);
+	//cudaEventCreate(&stop);
+	//cudaEventRecord(start);
 
+	collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
 	for (int iter1 = 0; iter1 < 2; iter1++) {
-		collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
 		for (int iter2 = 0; iter2 < 15; iter2++) {
 			//cudaMemcpy(p_p_d, s_p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToDevice);
 			array_copy(s_p_p, smoothing_function(p_p, r_p_l, 0.23, true));
@@ -189,7 +182,7 @@ void HairModel:: simulation() {
 
 			integrate_internal_hair_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, r_p_p_d, s_f_d, t_d , p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
 			integrate_external_hair_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
-			//integrate << <STRAND_SIZE, PARTICLE_SIZE >> > (p_p_d, p_f_d, p_v_d, 0.0009);
+			integrate << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, 0.0009, STRAND_SIZE, MAX_SIZE);
 
 			for (int iter3 = 0; iter3 < 10 * iter2; iter3++) {
 				integrate_damping_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
@@ -202,14 +195,14 @@ void HairModel:: simulation() {
 
 	//performace check
 
-	cudaEventRecord(stop);
-	cudaEventSynchronize(stop);
-	float milliseconds = 0.0;
-	cudaEventElapsedTime(&milliseconds, start, stop);
+	//cudaEventRecord(stop);
+	//cudaEventSynchronize(stop);
+	//float milliseconds = 0.0;
+	//cudaEventElapsedTime(&milliseconds, start, stop);
 	//std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
 
-	cudaEventDestroy(start);
-	cudaEventDestroy(stop);
+	//cudaEventDestroy(start);
+	//cudaEventDestroy(stop);
 
 	cudaMemcpy(p_p, p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 	

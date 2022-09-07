@@ -214,9 +214,13 @@ void render(char* objpath)
 		// Clear the screen. 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//simulation
-		hm->simulation();
+		static int frame = 0;
+		if (frame == 0 || frame % 5 == 0) {
+			hm->simulation();
+			update_vertex();
+		}
+		frame++;
 
-		update_vertex();
 		glUseProgram(programID);
 
 		computeMatricesFromInputs(hm);
