@@ -17,7 +17,7 @@ public:
 	Vector3f		force;
 public:
 	float			k_s			= 5000;
-	float			c_s			= 2000;
+	float			c_s			= 20;
 	float			alpha_b		= 0.23;
 	float			k_b			= 500;
 	float			c_b			= 5000;

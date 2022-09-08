@@ -6,13 +6,13 @@
 #include "vector_types.h"
 
 #define K_S 5000.0
-#define C_S 200.0
+#define C_S 20.0
 
 #define K_B 500.0
 #define C_B 3000.0
 
 #define K_C 500.0
-#define C_C 200.0
+#define C_C 20.0
 
 using namespace std;
 
@@ -43,6 +43,7 @@ public: //Host
 
 	double *r_p_l;
 	float3 *p_p;
+	float3 *p_v;
 	float3 *s_p_p;
 	float3 *r_p_p;
 	float3 *r_s_p_p;

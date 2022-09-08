@@ -6,17 +6,17 @@
 HairModel::HairModel() {
 	v = read_hair_asc("strand.txt");
 
-	sphere_pos = make_float3(0, -10, 0);
-	sphere_radius = 20;
+	sphere_pos = make_float3(0, -15, 0);
+	sphere_radius = 10;
 
 	STRAND_SIZE = v.size();
 	for (int i = 0; i < v.size(); i++) {
 		MAX_SIZE = MAX_SIZE < v[i].size() ? v[i].size() : MAX_SIZE;
 		TOTAL_SIZE += v[i].size();
 	}
-
 	p_i = (int*)malloc(sizeof(int) * TOTAL_SIZE);
 	p_p = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
+	p_v = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	s_p_p = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	r_p_p = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	r_s_p_p = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
