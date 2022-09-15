@@ -17,18 +17,22 @@ public:
 	Vector3f		force;
 public:
 	float			k_s			= 5000;
-	float			c_s			= 20;
+	float			c_s			= 200;
 	float			alpha_b		= 0.23;
-	float			k_b			= 500;
-	float			c_b			= 5000;
+	float			k_b			= 3000;
+	float			c_b			= 200;
 	float			alpha_c		= 1;
-	float			k_c			= 500;
-	float			c_c			= 20;
+	float			k_c			= 3000;
+	float			c_c			= 2000;
 	float			v_threshold = 1;
 	float			s_threshold = 1;
 	float			total_wet	= 1;
 	float			w_c		= 150;
 	float			w_d		= 0.8;
+
+public:
+	Vector3f	sphere = Vector3f(0, -20, 0);
+	float		radius = 3;
 public:
 					HairModel();
 	void			init(Particle *p);
@@ -44,6 +48,7 @@ public:
 
 public:
 	//void			wetting_function(float n);
+	void			collision_detect();
 	void			integrate_internal_hair_force(); //include springs
 	void			integrate_external_force();
 	void			integrate_damping_force();

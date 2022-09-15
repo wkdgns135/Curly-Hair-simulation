@@ -6,7 +6,7 @@
 HairModel::HairModel() {
 	v = read_hair_asc("strand.txt");
 
-	sphere_pos = make_float3(0, -15, 0);
+	sphere_pos = make_float3(0, -30, 0);
 	sphere_radius = 10;
 
 	STRAND_SIZE = v.size();
@@ -63,6 +63,7 @@ HairModel::HairModel() {
 		}
 	}
 	device_init();
+	cout << MAX_SIZE << endl;
 }
 
 void HairModel::move_sphere(float3 dst) {

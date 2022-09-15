@@ -51,20 +51,29 @@ void smoothed_rest_curves() {
 
 #pragma endregion
 
+
 void Draw() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	
-	posed_curves();
-	//smoothed_posed_curves();
-	//hm->draw_frame(hm->smoothed_particle);
+	
+	glPushMatrix();
+	glTranslatef(hm->sphere[0], hm->sphere[1], hm->sphere[2]);
+	glutSolidSphere(hm->radius - 0.01, 20, 20);
+	glPopMatrix();
 
-	//hm->draw_frame(hm->smoothed_rest_particle);
+	posed_curves();
+	
+	smoothed_posed_curves();
+	hm->draw_frame(hm->smoothed_particle);
+
+	hm->draw_frame(hm->smoothed_rest_particle);
 	//rest_curves();
 	//smoothed_rest_curves();
 
 	glDisable(GL_LIGHTING);
 }
+
 
 void Mouse(int button, int state, int x, int y) {
 	last_x = x;

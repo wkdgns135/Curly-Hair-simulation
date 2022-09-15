@@ -7,9 +7,17 @@ HairModel::HairModel() {
 	rest_particle = new Particle();
 	smoothed_rest_particle = new Particle();
 	
-	vector<int> v;
-	read_hair_asc(particle->pos, size,"strand.txt");
-	read_hair_asc(rest_particle->pos, v,"strand.txt");
+	//Helix hair
+	for (int i = 0; i < 1; i++) {
+		size.push_back(128);
+	}
+	resize(particle->pos, size);
+	resize(rest_particle->pos, size);
+
+	//Real hair
+	//vector<int> v;
+	//read_hair_asc(particle->pos, size,"strand.txt");
+	//read_hair_asc(rest_particle->pos, v,"strand.txt");
 
 	resize(particle->velocity, size);
 	resize(particle->force, size);
@@ -28,7 +36,12 @@ HairModel::HairModel() {
 	resize(smoothed_rest_particle->frames, size);
 	resize(smoothed_rest_particle->t, size);
 
+	//Helix
+	init(rest_particle);
+	init(particle);
 
+	cout << "Strand : " << particle->pos.size() << endl;
+	cout << "Particle : " << particle->pos[0].size() << endl;
 	pre_compute();
 }
 
@@ -94,13 +107,13 @@ void HairModel::pre_compute() {
 
 			//NOTE Set wet coeff
 			//half wet
-			if(j > particle->m[i].size() * 0.5)
-				particle->w_c[i][j] = n++;
-				//particle->w_c[i][j] = 100;
-			else particle->w_c[i][j] = 0;
+			//if(j > particle->m[i].size() * 0.5)
+			//	particle->w_c[i][j] = n++;
+			//	//particle->w_c[i][j] = 100;
+			//else particle->w_c[i][j] = 0;
 
-			particle->w_c[i][j] = 0;
-			particle->w_d[i][j] = 0;
+			//particle->w_c[i][j] = 0;
+			//particle->w_d[i][j] = 0;
 		}
 	}
 	//wetting_function(0);
@@ -121,14 +134,14 @@ void HairModel::draw_point(vector<vector<Vector3f>> v) {
 	for (auto i : v) {
 		for (int j = 0; j < i.size() - 1; j++) {
 			glBegin(GL_POINTS);
-			int wc = particle->w_c[0][j];
-			if (wc > 0) {
-				float r = 1 - (particle->w_c[0][j] / 100);
-				float g = 1 - (particle->w_c[0][j] / 100);
-				float b = (particle->w_c[0][j] / 100);
-				glColor3f(r, g, b);
-			}
-			else glColor3f(0, 0, 0);
+			//int wc = particle->w_c[0][j];
+			//if (wc > 0) {
+			//	float r = 1 - (particle->w_c[0][j] / 100);
+			//	float g = 1 - (particle->w_c[0][j] / 100);
+			//	float b = (particle->w_c[0][j] / 100);
+			//	glColor3f(r, g, b);
+			//}
+			//else glColor3f(0, 0, 0);
 			glVertex3f(i[j].x(), i[j].y(), i[j].z());
 		}
 	}
@@ -144,14 +157,14 @@ void HairModel::draw_wire(vector<vector<Vector3f>> v) {
 	for (auto i : v) {
 		for (int j = 0; j < i.size()-1; j++) {
 			glBegin(GL_LINES);
-			int wc = particle->w_c[0][j];
-			if (wc > 0) {
-				float r = 1 - (particle->w_c[0][j] / 100);
-				float g = 1- (particle->w_c[0][j] / 100);
-				float b = (particle->w_c[0][j] / 100);
-				glColor3f(r, g, b);
-			}
-			else glColor3f(0, 0, 0);
+			//int wc = particle->w_c[0][j];
+			//if (wc > 0) {
+			//	float r = 1 - (particle->w_c[0][j] / 100);
+			//	float g = 1- (particle->w_c[0][j] / 100);
+			//	float b = (particle->w_c[0][j] / 100);
+			//	glColor3f(r, g, b);
+			//}
+			//else glColor3f(0, 0, 0);
 			glVertex3f(i[j].x(), i[j].y(), i[j].z());
 			glVertex3f(i[j+1].x(), i[j+1].y(), i[j+1].z());
 			glEnd();
@@ -189,7 +202,8 @@ void HairModel::draw_frame(Particle *p) {
 void HairModel::simulation(Vector3f _force) {
 	force = _force;
 	//Outer loop iteration
-	for (int iter1 = 0; iter1 < 2; iter1++) { 
+	for (int iter1 = 0; iter1 < 2; iter1++) {
+		collision_detect();
 		//Force loop iteration
 		for (int iter2 = 0; iter2 < 15; iter2++) { 
 			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
@@ -200,7 +214,7 @@ void HairModel::simulation(Vector3f _force) {
 			integrate_external_force();
 
 			//Damping loop iteration
-			for (int iter3 = 0; iter3 < 10 * iter2; iter3++) {
+			for (int iter3 = 0; iter3 < 10; iter3++) {
 				integrate_damping_force();
 			}
 		}
@@ -262,16 +276,17 @@ void HairModel::stretch_damping_force(int i, int j) {
 //NOTE Bending spring
 void HairModel::bending_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
+	if (j == 0) return;
 	Vector3f t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
 	
 	//only use testing
-	//smoothed_particle->t[i][j] = t;
+	smoothed_particle->t[i][j] = t;
 
 	Vector3f e = particle->pos[i][j + 1] - particle->pos[i][j];
 	Vector3f force = (e - t) * k_b;
 
 	particle->force[i][j] += force;
-	particle->force[i][j+1] -= force;
+	//particle->force[i][j+1] -= force;
 }
 
 
@@ -285,7 +300,7 @@ void HairModel::bending_damping_force(int i, int j) {
 	Vector3f force = (delta_v - (e_hat * (delta_v.dot(e_hat)))) * c_b;
 	
 	particle->force[i][j] += force;
-	particle->force[i][j+1] -= force;
+	//particle->force[i][j+1] -= force;
 }
 
 //NOTE Core spring
@@ -366,10 +381,27 @@ vector<vector<Vector3f>>  HairModel::smoothing_function(vector<vector<Vector3f>>
 	return d;
 }
 
+
+void HairModel::collision_detect() {
+	for (int i = 0; i < particle->pos.size(); i++) {
+		for (int j = 0; j < particle->pos[i].size(); j++) {
+			Vector3f &p = particle->pos[i][j];
+			Vector3f dir = p - sphere;
+			float dist = dir.norm();
+
+			if (dist < (radius + 0.01f)) {
+				dir.normalize();
+				Vector3f new_p = (dir * (radius + 0.01f)) + sphere;
+				particle->pos[i][j] = new_p;
+			}
+		}
+	}
+}
+
 //NOTE Internal hair force integate
 void HairModel::integrate_internal_hair_force() {
-	float dt = 0.0009; //9.25887e-05
-	//float dt = 9.25887e-05; //9.25887e-05
+	//float dt = 0.0009; //9.25887e-05
+	float dt = 9.25887e-05; //9.25887e-05
 
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
@@ -388,8 +420,8 @@ void HairModel::integrate_internal_hair_force() {
 
 //NOTE External force integate
 void HairModel::integrate_external_force() {
-	float dt = 0.0009; //9.25887e-05
-	//float dt = 9.25887e-05; //9.25887e-05
+	//float dt = 0.0009; //9.25887e-05
+	float dt = 9.25887e-05; //9.25887e-05
 	Vector3f gravity(0.0, -10.0, 0.0);
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
@@ -407,8 +439,8 @@ void HairModel::integrate_external_force() {
 //NOTE Damping force integrate
 void HairModel::integrate_damping_force() {
 
-	float dt = 0.00009;// 9.25887e-06s
-	//float dt = 9.25887e-06;// 9.25887e-06
+	//float dt = 0.00009;// 9.25887e-06s
+	float dt = 9.25887e-06;// 9.25887e-06
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_damping_force(i, j);
@@ -426,12 +458,11 @@ void HairModel::integrate_damping_force() {
 }
 
 void HairModel::update_position() {
-	float dt = 0.01; //0.00138883;
+	float dt = 0.001; //0.00138883;
 	//float dt = 0.00138883; //0.00138883;
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 1; j < particle->pos[i].size(); j++) {
 			particle->pos[i][j] += particle->velocity[i][j] * dt;
-
 			//limit velocity
 			//if (particle->velocity[i][j].norm() *  particle->velocity[i][j].norm() > v_threshold) {
 			//	particle->velocity[i][j] /= particle->velocity[i][j].norm();

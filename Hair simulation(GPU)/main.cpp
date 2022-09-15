@@ -221,6 +221,7 @@ void render(char* objpath)
 		}
 		frame++;
 
+
 		glUseProgram(programID);
 
 		computeMatricesFromInputs(hm);
@@ -492,7 +493,6 @@ void update_vertex()
 
 int main(int argc, char** argv) {
 	hm = new HairModel();
-
 	load_vertex();
 	cout << vertex.size() << endl;
 	render("head_model");
