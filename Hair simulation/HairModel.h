@@ -16,14 +16,14 @@ public:
 	vector<int>		size;
 	Vector3f		force;
 public:
-	float			k_s			= 5000000;
-	float			c_s			= 4472;
-	float			alpha_b		= 5;
-	float			k_b			= 10000;
-	float			c_b			= 1000;
-	float			alpha_c		= 1;
-	float			k_c			= 15000;
-	float			c_c			= 100;
+	float			k_s			= 300000;
+	float			c_s			= 6025;
+	float			alpha_b		= 1;
+	float			k_b			= 47000;
+	float			c_b			= 1083;
+	float			alpha_c		= 0;
+	float			k_c			= 0;
+	float			c_c			= 0;
 	float			v_threshold = 1;
 	float			s_threshold = 1;
 	float			total_wet	= 1;
@@ -32,7 +32,7 @@ public:
 
 public:
 	Vector3f	sphere = Vector3f(0, -20, 0);
-	float		radius = 3;
+	float		radius = 0;
 public:
 					HairModel();
 	void			init(Particle *p);

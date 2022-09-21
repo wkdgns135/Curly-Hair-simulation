@@ -147,47 +147,4 @@ __device__ float3 multiply_frame_k(Frame f, float3 e) {
 	return tmp;
 }
 
-//__global__ void smoothing_function_k(float3 *lambda, float3 *d, double *l, double alpha, bool is_position, int x, int y, int z) {
-//	double beta = 0.0;
-//	__global__ float3 *pos = new float3[z];
-//
-//	//lambda가 파티클 위치일 경우 return하기위한 pos vector
-//	array_copy_k(d, lambda);
-//
-//	//beta formulation, l = 파티클간의 평균길이
-//
-//	int index = threadIdx.x * y;
-//
-//	d[index] = vector_sub_k(lambda[index + 1], lambda[index]);
-//	beta = 1 > 1 - exp(-l[threadIdx.x] / alpha) ? 1 - exp(-l[threadIdx.x] / alpha) : 1;
-//
-//	for (int j = 1; j < y - 1; j++) {
-//		int index_1 = j - 1 >= 0 ? j - 1 : 0;
-//		int index_2 = j - 2 >= 0 ? j - 2 : 0;
-//
-//		int index1 = threadIdx.x * y + index_1;
-//		int index2 = threadIdx.x * y + index_2;
-//		index = threadIdx.x * y + j;
-//
-//		float3 term1 = vector_multiply_k(d[index_1], 2 * (1 - beta));
-//		float3 term2 = vector_multiply_k(d[index_2], ((1 - beta) * (1 - beta)));
-//		float3 term3 = vector_sub_k(term1, term2);
-//		float3 term4 = vector_multiply_k(vector_sub_k(lambda[index + 1], lambda[index]), (beta * beta));
-//		d[index] = vector_add_k(term3, term4);
-//	}
-//	
-//
-//	if (is_position) {
-//		int index = threadIdx.x * y;
-//		pos[index] = lambda[index];
-//		for (int j = 1; j < y; j++) {
-//			index = threadIdx.x * y + j;
-//			pos[index] = vector_add_k(d[index - 1], pos[index - 1]);
-//		}
-//
-//		return;
-//	}
-//	return;
-//}
-
 #endif

@@ -43,7 +43,7 @@ HairModel::HairModel() {
 		r_p_l[i] = sum;
 	}
 
-	array_copy(r_s_p_p, smoothing_function(r_p_p, r_p_l, 0.23, true));
+	array_copy(r_s_p_p, smoothing_function(r_p_p, r_p_l, A_B, true));
 	compute_frame(r_s_f, r_s_p_p);
 	
 	int index = 0;

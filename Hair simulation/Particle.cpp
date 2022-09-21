@@ -47,76 +47,34 @@ Matrix3f rotation_matrix(const Vector3f &axisAngle)
 }
 
 void compute_frame(Particle *p) {
-
-	//for (int i = 0; i < p->frames.size(); i++) {
-	//	Vector3f t = p->pos[i][1] - p->pos[i][0];
-	//	t.normalize();
-	//	Vector3f u(t[2] - t[1], t[0] - t[2], t[1] - t[0]);
-	//	u.normalize();
-	//	Vector3f v = t.cross(u);
-	//	v.normalize();
-
-	//	Vector3f prev_t = t;
-	//	Vector3f prev_u = u;
-
-	//	/*
-	//	p->frames[i][0] << 
-	//		t.x(), t.y(), t.z(),
-	//		u.x(), u.y(), u.z(),
-	//		v.x(), v.y(), v.z();
-	//	*/
-	//	
-	//	p->frames[i][0] <<	
-	//		t.x(), u.x(), v.x(),
-	//		t.y(), u.y(), v.y(),
-	//		t.z(), u.z(), v.z();
-	//	
-	//	for (int j = 1; j < p->frames[i].size()-1; j++) {
-	//		t = p->pos[i][j + 1] - p->pos[i][j];
-	//		t.normalize();
-	//		
-	//		Vector3f n = prev_t.cross(t);
-	//		Vector3f prev_t(p->frames[i][j - 1](0, 0), p->frames[i][j - 1](1, 0), p->frames[i][j - 1](2, 0));
-	//		Vector3f prev_u(p->frames[i][j - 1](0, 1), p->frames[i][j - 1](1, 1), p->frames[i][j - 1](2, 1));
-
-
-	//		if (n.norm() < 1e-10) {
-	//			u = prev_u;
-	//		}
-	//		else {
-	//			if (t.dot(prev_t) > 0) {
-	//				u = rotation_matrix(n*asin(n.norm()) / n.norm()) * prev_u;
-	//			}
-	//			else {
-	//				u = rotation_matrix(n*(M_PI - asin(n.norm())) / n.norm()) * prev_u;
-	//			}
-	//		}
-	//		u.normalize();
-
-	//		v = t.cross(u);
-	//		//v.normalize();
-	//		p->frames[i][j] <<
-	//			t.x(), u.x(), v.x(),
-	//			t.y(), u.y(), v.y(),
-	//			t.z(), u.z(), v.z();
-	//	}
-	//}
-
 	for (int i = 0; i < p->frames.size(); i++) {
-		Vector3f aim = p->pos[i][1] - p->pos[i][0];
-		aim.normalize();
-		Vector3f up(aim[2] - aim[1], aim[0] - aim[2], aim[1] - aim[0]);
-		up.normalize();
+		Vector3f firstnormal = Vector3f(0, 1, 0);
+		vector<Vector3f> tangents;
+		vector<Vector3f> normals;
+		for (int j = 0; j < p->frames[i].size() - 1; j++) {
+			tangents.push_back((p->pos[i][j + 1] - p->pos[i][j]).normalize);
+			normals.push_back(firstnormal);
+		}
+		tangents.push_back(tangents[p->frames.size() - 2]);
+		normals.push_back(normals[p->frames.size() - 2]);
 
-		for (int j = 1; j < p->frames[i].size() - 1; j++) {
-			Vector3f aim = p->pos[i][j + 1] - p->pos[i][j];
-			aim.normalize();
+		for (int j = 0; j < p->frames[i].size() - 1; j++) {
+			Vector3f bitangent = tangents[j].cross(tangents[j + 1]);
 
-			Vector3f cross = aim.cross(up);
+			if (bitangent.norm == 0) {
+				normals[j + 1] = normals[j];
+			}
+			else {
+				bitangent.normalized();
+				float theta = acos(tangents[j].dot(tangents[j + 1]));
+				Matrix3f rotmat;
+				
+				rotate(rotmat, theta, bitangent);
+				normals[j + 1] = rotmat * normals[j];
+
+			}
+			Vector3f cross = normals[j].cross(tangents[j]);
 			cross.normalize();
-
-			up = cross.cross(aim);
-			up.normalize();
 
 			p->frames[i][j] <<	
 				aim.x(), up.x(), cross.x(),
@@ -125,6 +83,38 @@ void compute_frame(Particle *p) {
 
 		}
 	}
+	//for (int i = 0; i < p->frames.size(); i++) {
+	//	Vector3f aim = p->pos[i][1] - p->pos[i][0];
+	//	aim.normalize();
+	//	Vector3f up(aim[2] - aim[1], aim[0] - aim[2], aim[1] - aim[0]);
+	//	//Vector3f up(0, 1, 0);
+	//	up.normalize();
+
+	//	Vector3f cross = aim.cross(up);
+	//	cross.normalize();
+
+	//	p->frames[i][0] <<
+	//		aim.x(), up.x(), cross.x(),
+	//		aim.y(), up.y(), cross.y(),
+	//		aim.z(), up.z(), cross.z();
+
+	//	for (int j = 1; j < p->frames[i].size() - 1; j++) {
+	//		Vector3f aim = p->pos[i][j + 1] - p->pos[i][j];
+	//		aim.normalize();
+
+	//		Vector3f cross = aim.cross(up);
+	//		cross.normalize();
+
+	//		up = cross.cross(aim);
+	//		up.normalize();
+
+	//		p->frames[i][j] <<	
+	//			aim.x(), up.x(), cross.x(),
+	//			aim.y(), up.y(), cross.y(),
+	//			aim.z(), up.z(), cross.z();	
+
+	//	}
+	//}
 
 }
 

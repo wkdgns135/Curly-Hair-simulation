@@ -5,14 +5,17 @@
 #include <vector>
 #include "vector_types.h"
 
-#define K_S 5000.0
-#define C_S 2000.0
+#define K_S 5000000.0
+#define C_S 4472.0
 
-#define K_B 500.0
-#define C_B 3000.0
+#define K_B 10000.0
+#define C_B 1000.0
 
-#define K_C 3000.0
-#define C_C 200.0
+#define K_C 15000.0
+#define C_C 100.0
+
+#define A_B 5.0
+#define A_C 1.0
 
 using namespace std;
 
@@ -37,6 +40,8 @@ public:
 	unsigned int MAX_SIZE = 0;
 	unsigned int STRAND_SIZE = 0;
 	vector<vector<float3>> v;
+	
+public://Coefficient
 
 public: //Host
 	int *p_i;

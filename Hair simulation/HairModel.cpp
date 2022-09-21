@@ -8,16 +8,16 @@ HairModel::HairModel() {
 	smoothed_rest_particle = new Particle();
 	
 	//Helix hair
-	for (int i = 0; i < 1; i++) {
-		size.push_back(128);
-	}
-	resize(particle->pos, size);
-	resize(rest_particle->pos, size);
+	//for (int i = 0; i < 10; i++) {
+	//	size.push_back(128);
+	//}
+	//resize(particle->pos, size);
+	//resize(rest_particle->pos, size);
 
 	//Real hair
-	//vector<int> v;
-	//read_hair_asc(particle->pos, size,"strand.txt");
-	//read_hair_asc(rest_particle->pos, v,"strand.txt");
+	vector<int> v;
+	read_hair_asc(particle->pos, size,"strand.txt");
+	read_hair_asc(rest_particle->pos, v,"strand.txt");
 
 	resize(particle->velocity, size);
 	resize(particle->force, size);
@@ -37,8 +37,8 @@ HairModel::HairModel() {
 	resize(smoothed_rest_particle->t, size);
 
 	//Helix
-	init(rest_particle);
-	init(particle);
+	//init(rest_particle);
+	//init(particle);
 
 	cout << "Strand : " << particle->pos.size() << endl;
 	cout << "Particle : " << particle->pos[0].size() << endl;
@@ -121,6 +121,8 @@ void HairModel::pre_compute() {
 	//smoothed curve frame pre-compute
 	compute_frame(smoothed_rest_particle);
 	for (int i = 0; i < smoothed_rest_particle->pos.size(); i++) {
+		Vector3f e = rest_particle->pos[i][1] - rest_particle->pos[i][0];
+		smoothed_rest_particle->t[i][0] = smoothed_rest_particle->frames[i][0].transpose() * e;
 		for (int j = 1; j < smoothed_rest_particle->pos[i].size() - 1; j++) {
 			Vector3f e = rest_particle->pos[i][j + 1] - rest_particle->pos[i][j];
 			smoothed_rest_particle->t[i][j] = smoothed_rest_particle->frames[i][j - 1].transpose() * e;
@@ -205,10 +207,11 @@ void HairModel::simulation(Vector3f _force) {
 	for (int iter1 = 0; iter1 < 2; iter1++) {
 		collision_detect();
 		//Force loop iteration
+		
+		smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
+		compute_frame(smoothed_particle);
 		for (int iter2 = 0; iter2 < 15; iter2++) { 
-			smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
 			smoothed_particle->velocity = smoothing_function(particle->velocity, rest_particle->rest_length, alpha_c, false);
-			compute_frame(smoothed_particle);
 
 			integrate_internal_hair_force();
 			integrate_external_force();
@@ -282,7 +285,7 @@ void HairModel::bending_spring_force(int i, int j) {
 	else t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
 	
 	//only use testing
-	//smoothed_particle->t[i][j] = t;
+	smoothed_particle->t[i][j] = t;
 
 	Vector3f e = particle->pos[i][j + 1] - particle->pos[i][j];
 	Vector3f force = (e - t) * k_b;
