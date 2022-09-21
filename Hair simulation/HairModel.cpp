@@ -276,17 +276,19 @@ void HairModel::stretch_damping_force(int i, int j) {
 //NOTE Bending spring
 void HairModel::bending_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
-	if (j == 0) return;
-	Vector3f t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
+
+	Vector3f t;
+	if(j==0)t = smoothed_particle->frames[i][j] * smoothed_rest_particle->t[i][j];
+	else t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
 	
 	//only use testing
-	smoothed_particle->t[i][j] = t;
+	//smoothed_particle->t[i][j] = t;
 
 	Vector3f e = particle->pos[i][j + 1] - particle->pos[i][j];
 	Vector3f force = (e - t) * k_b;
 
 	particle->force[i][j] += force;
-	//particle->force[i][j+1] -= force;
+	particle->force[i][j+1] -= force;
 }
 
 
@@ -300,7 +302,7 @@ void HairModel::bending_damping_force(int i, int j) {
 	Vector3f force = (delta_v - (e_hat * (delta_v.dot(e_hat)))) * c_b;
 	
 	particle->force[i][j] += force;
-	//particle->force[i][j+1] -= force;
+	particle->force[i][j+1] -= force;
 }
 
 //NOTE Core spring
@@ -458,8 +460,8 @@ void HairModel::integrate_damping_force() {
 }
 
 void HairModel::update_position() {
-	float dt = 0.001; //0.00138883;
-	//float dt = 0.00138883; //0.00138883;
+	//float dt = 0.01; //0.00138883;
+	float dt = 0.00138883; //0.00138883;
 	for (int i = 0; i < particle->pos.size(); i++) {
 		for (int j = 1; j < particle->pos[i].size(); j++) {
 			particle->pos[i][j] += particle->velocity[i][j] * dt;

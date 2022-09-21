@@ -16,14 +16,14 @@ public:
 	vector<int>		size;
 	Vector3f		force;
 public:
-	float			k_s			= 5000;
-	float			c_s			= 200;
-	float			alpha_b		= 0.23;
-	float			k_b			= 3000;
-	float			c_b			= 200;
+	float			k_s			= 5000000;
+	float			c_s			= 4472;
+	float			alpha_b		= 5;
+	float			k_b			= 10000;
+	float			c_b			= 1000;
 	float			alpha_c		= 1;
-	float			k_c			= 3000;
-	float			c_c			= 2000;
+	float			k_c			= 15000;
+	float			c_c			= 100;
 	float			v_threshold = 1;
 	float			s_threshold = 1;
 	float			total_wet	= 1;
