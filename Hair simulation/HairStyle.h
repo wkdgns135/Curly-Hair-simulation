@@ -18,7 +18,7 @@ bool read_hair_asc(vector<vector<Vector3f>> &p, vector<int> &size, const char *f
 		return false;
 	}
 
-	nstrands = 2;
+	nstrands = 20;
 
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
@@ -37,8 +37,8 @@ bool read_hair_asc(vector<vector<Vector3f>> &p, vector<int> &size, const char *f
 				return false;
 			}
 			if (nverts == 1 || nverts == 0)continue;
-			v *= 100;
-			v += Vector3f(0, -185, -25);
+			v *= 50;
+			v += Vector3f(0, -100, -25);
 			tmp.push_back(v);
 		}
 		if (nverts == 1 || nverts == 0)continue;

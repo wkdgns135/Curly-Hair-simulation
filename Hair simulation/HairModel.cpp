@@ -8,16 +8,16 @@ HairModel::HairModel() {
 	smoothed_rest_particle = new Particle();
 	
 	//Helix hair
-	//for (int i = 0; i < 10; i++) {
-	//	size.push_back(128);
-	//}
-	//resize(particle->pos, size);
-	//resize(rest_particle->pos, size);
+	for (int i = 0; i < 1; i++) {
+		size.push_back(128);
+	}
+	resize(particle->pos, size);
+	resize(rest_particle->pos, size);
 
 	//Real hair
-	vector<int> v;
-	read_hair_asc(particle->pos, size,"strand.txt");
-	read_hair_asc(rest_particle->pos, v,"strand.txt");
+	//vector<int> v;
+	//read_hair_asc(particle->pos, size,"strand.txt");
+	//read_hair_asc(rest_particle->pos, v,"strand.txt");
 
 	resize(particle->velocity, size);
 	resize(particle->force, size);
@@ -37,8 +37,8 @@ HairModel::HairModel() {
 	resize(smoothed_rest_particle->t, size);
 
 	//Helix
-	//init(rest_particle);
-	//init(particle);
+	init(rest_particle);
+	init(particle);
 
 	cout << "Strand : " << particle->pos.size() << endl;
 	cout << "Particle : " << particle->pos[0].size() << endl;
@@ -284,6 +284,7 @@ void HairModel::bending_spring_force(int i, int j) {
 	if(j==0)t = smoothed_particle->frames[i][j] * smoothed_rest_particle->t[i][j];
 	else t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
 	
+	//if (j == 50)cout << smoothed_particle->frames[i][j] << endl;
 	//only use testing
 	smoothed_particle->t[i][j] = t;
 
@@ -318,6 +319,7 @@ void HairModel::core_spring_force(int i, int j) {
 
 	Vector3f force = k_c * (b.norm() - b_bar.norm()) * b_hat;
 	particle->force[i][j] -= force;
+	//particle->force[i][j+1] -= force;
 }
 
 void HairModel::core_damping_force(int i, int j) {
@@ -329,6 +331,7 @@ void HairModel::core_damping_force(int i, int j) {
 
 	Vector3f force = c_c * ((v.dot(b_hat)) * b_hat);
 	particle->force[i][j] -= force;
+	//particle->force[i][j+1] -= force;
 }
 
 //NOTE Wetting function
@@ -412,7 +415,7 @@ void HairModel::integrate_internal_hair_force() {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_spring_force(i, j);
 			bending_spring_force(i, j);
-			//core_spring_force(i, j);
+			core_spring_force(i, j);
 
 			if (j == 0)continue;
 			//if (j == particle->pos[i].size()-1)continue;
@@ -450,7 +453,7 @@ void HairModel::integrate_damping_force() {
 		for (int j = 0; j < particle->pos[i].size(); j++) {
 			stretch_damping_force(i, j);
 			bending_damping_force(i, j);
-			//core_damping_force(i, j);
+			core_damping_force(i, j);
 			//wet_force(i, j);
 
 			if (j == 0)continue;

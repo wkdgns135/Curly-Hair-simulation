@@ -18,10 +18,10 @@ public:
 public:
 	float			k_s			= 300000;
 	float			c_s			= 6025;
-	float			alpha_b		= 1;
+	float			alpha_b		= 5;
 	float			k_b			= 47000;
-	float			c_b			= 1083;
-	float			alpha_c		= 0;
+	float			c_b			= 1000;
+	float			alpha_c		= 1;
 	float			k_c			= 0;
 	float			c_c			= 0;
 	float			v_threshold = 1;
