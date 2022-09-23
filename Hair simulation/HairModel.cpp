@@ -8,17 +8,17 @@ HairModel::HairModel() {
 	smoothed_rest_particle = new Particle();
 	
 	//Helix hair
-	for (int i = 0; i < 1; i++) {
-		size.push_back(128);
-	}
-	resize(particle->pos, size);
-	resize(rest_particle->pos, size);
+	//for (int i = 0; i < 1; i++) {
+	//	size.push_back(128);
+	//}
+	//resize(particle->pos, size);
+	//resize(rest_particle->pos, size);
 
 	//Real hair
-	//vector<int> v;
-	//read_hair_asc(particle->pos, size,"strand.txt");
-	//read_hair_asc(rest_particle->pos, v,"strand.txt");
-
+	vector<int> v;
+	read_hair_asc(particle->pos, size,"strand.txt");
+	read_hair_asc(rest_particle->pos, v,"strand.txt");
+	
 	resize(particle->velocity, size);
 	resize(particle->force, size);
 	resize(particle->m, size);
@@ -37,9 +37,12 @@ HairModel::HairModel() {
 	resize(smoothed_rest_particle->t, size);
 
 	//Helix
-	init(rest_particle);
-	init(particle);
+	//init(rest_particle);
+	//init(particle);
 
+
+
+	force.setZero();
 	cout << "Strand : " << particle->pos.size() << endl;
 	cout << "Particle : " << particle->pos[0].size() << endl;
 	pre_compute();
@@ -47,7 +50,6 @@ HairModel::HairModel() {
 
 void HairModel::init(Particle *p) {
 	//exturn force clear
-	force.setZero();
 	helix_function(p);
 }
 
@@ -66,7 +68,8 @@ void HairModel::helix_function(Particle *p) {
 
 			//helix hair
 			p->pos[i][j] = Vector3f(x, -y, z + (i / particle->pos.size()) * 10);
-			
+
+			cout << "v" << ' ' << p->pos[i][j].x() << ' ' << p->pos[i][j].y() << ' ' << p->pos[i][j].z() << endl;
 			//bridge hair
 			//p->pos[i][j] = Vector3f(z + (i / particle->pos.size()) * 10, x, -y);
 
@@ -215,7 +218,6 @@ void HairModel::simulation(Vector3f _force) {
 
 			integrate_internal_hair_force();
 			integrate_external_force();
-
 			//Damping loop iteration
 			for (int iter3 = 0; iter3 < 10; iter3++) {
 				integrate_damping_force();

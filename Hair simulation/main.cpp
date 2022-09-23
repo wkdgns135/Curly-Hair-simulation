@@ -63,10 +63,12 @@ void Draw() {
 	glPopMatrix();
 
 	posed_curves();
-	////
-	smoothed_posed_curves();
-	hm->draw_frame(hm->smoothed_particle);
 	
+
+	//smoothed_posed_curves();
+	//hm->draw_frame(hm->smoothed_particle);
+	
+
 	//hm->draw_frame(hm->smoothed_rest_particle);
 	//rest_curves();
 	//smoothed_rest_curves();

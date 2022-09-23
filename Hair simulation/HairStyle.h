@@ -3,6 +3,7 @@
 #include <string>
 #include <cstdio>
 #include <iostream>
+#include <sstream>
 
 bool read_hair_asc(vector<vector<Vector3f>> &p, vector<int> &size, const char *filename) {
 	FILE *f = fopen(filename, "r");

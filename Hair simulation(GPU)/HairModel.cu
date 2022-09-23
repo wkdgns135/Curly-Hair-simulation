@@ -141,7 +141,7 @@ __global__ void integrate_external_hair_force(float3 *p_p, float3 *p_f, float3 *
 	//if (blockIdx.x > x)return;
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	
-	float3 gravity = make_float3(0.0, -20, 0.0);
+	float3 gravity = make_float3(0.0, -10, 0.0);
 	p_f[tid] = vector_add_k(p_f[tid], gravity);
 }
 
