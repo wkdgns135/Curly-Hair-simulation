@@ -49,16 +49,24 @@ HairModel::HairModel() {
 	int index = 0;
 	for(int i = 0; i < v.size(); i++){
 		for (int j = 0; j < v[i].size(); j++) {
-			if (j == 0 || v[i].size() - 1 == j) {
-				index++; 
-				continue;
+			if (v[i].size() - 1 == j) {
+				index++; continue;
 			}
+
 			int index_1 = index - 1;
 			int index0 = index;
 			int index1 = index + 1;
+			if (j == 0) {
+				float3 e = vector_sub(r_p_p[index1], r_p_p[index0]);
+				t[index0] = multiply_transpose_frame(r_s_f[index0], e);
+				t[index0] = multiply_frame(r_s_f[index0], t[index0]);
+				index++; 
+				continue;
+			}
 
 			float3 e = vector_sub(r_p_p[index1], r_p_p[index0]);
 			t[index0] = multiply_transpose_frame(r_s_f[index_1], e);
+			t[index0] = multiply_frame(r_s_f[index_1], t[index0]);
 			index++;
 		}
 	}

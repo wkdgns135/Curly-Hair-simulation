@@ -113,8 +113,23 @@ void HairModel::compute_frame(Frame *f, float3 *p) {
 		up.y = aim.x - aim.z;
 		up.z = aim.y - aim.x;
 		vector_normalize(up);
+		float3 cross = vector_cross(aim, up);
+		vector_normalize(cross);
 
+
+		f[index].aim.x = aim.x;
+		f[index].aim.y = up.x;
+		f[index].aim.z = cross.x;
+
+		f[index].up.x = aim.y;
+		f[index].up.y = up.y;
+		f[index].up.z = cross.y;
+
+		f[index].cross.x = aim.z;
+		f[index].cross.y = up.z;
+		f[index].cross.z = cross.z;
 		index++;
+
 		for (int j = 1; j < v[i].size() - 1; j++) {
 			float3 aim = vector_sub(p[index + 1], p[index]);
 			vector_normalize(aim);

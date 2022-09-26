@@ -65,7 +65,7 @@ void HairModel::device_init() {
 	cudaMemcpy(p_p_d, p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(r_p_p_d, r_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(r_s_p_p_d, r_s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	//cudaMemcpy(r_s_f, h.r_s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(r_s_f_d, r_s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	//cudaMemcpy(r_s_p_p, h.r_s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(t_d, t, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(r_p_l_d, r_p_l, sizeof(double) * STRAND_SIZE, cudaMemcpyHostToDevice);
@@ -120,17 +120,20 @@ __global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, float3
 	float3 b_bar = vector_sub_k(r_s_p_p[tid + 1], r_s_p_p[tid]);
 	float3 b_hat = vector_normalized_k(b);
 	
-	float3 t;
-	if(threadIdx.x == 0) t = multiply_frame_k(s_f[tid], _t[tid]);
-	else t = multiply_frame_k(s_f[tid - 1], _t[tid]);
+	//float3 t;
+	//if(threadIdx.x == 0) t = multiply_frame_k(s_f[tid], _t[tid]);
+	//else t = multiply_frame_k(s_f[tid - 1], _t[tid]);
 
-	float3 force2 = vector_multiply_k(vector_sub_k(e, t), K_B);
+	
+	//if (threadIdx.x == 50)printf("hi");
+	float3 force2 = vector_multiply_k(vector_sub_k(e, rest_e), K_B);
 	float3 result = vector_add_k(force1, force2);
 
 	float3 force3 = vector_multiply_k(b_hat, K_C * (vector_length_k(b) - vector_length_k(b_bar)));
 
 	p_f[tid] = vector_add_k(p_f[tid], result);
-	p_f[tid] = vector_sub_k(p_f[tid], force3);
+	//p_f[tid] = vector_add_k(p_f[tid], force2);
+	//p_f[tid] = vector_sub_k(p_f[tid], force3);
 	__syncthreads();
 	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
 	
@@ -164,7 +167,7 @@ __global__ void integrate_damping_force(float3 *p_p, float3 *s_p_p, float3 *s_p_
 
 	float3 result = vector_add_k(force1, force2);
 	p_f[tid] = vector_add_k(p_f[tid], result);
-	p_f[tid] = vector_sub_k(p_f[tid], force3);
+	//p_f[tid] = vector_sub_k(p_f[tid], force3);
 	__syncthreads();
 	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
 	
@@ -189,15 +192,15 @@ void HairModel:: simulation() {
 		collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
 		array_copy(s_p_p, smoothing_function(p_p, r_p_l, A_B, true));
 		cudaMemcpy(s_p_p_d, s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-		compute_frame(s_f, s_p_p);
-		cudaMemcpy(s_f_d, s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+		//compute_frame(s_f, s_p_p);
+		//cudaMemcpy(s_f_d, s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 		
 		for (int iter2 = 0; iter2 < 15; iter2++) {
 			cudaMemcpy(p_v, p_v_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 			array_copy(s_p_v, smoothing_function(p_v, r_p_l, A_C, false));
 			cudaMemcpy(s_p_v_d, s_p_v, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 			
-			integrate_internal_hair_force <<<STRAND_SIZE, MAX_SIZE>>> (p_p_d, r_p_p_d, s_p_p_d, r_s_p_p_d,s_f_d, t_d , p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
+			integrate_internal_hair_force <<<STRAND_SIZE, MAX_SIZE>>> (p_p_d, r_p_p_d, s_p_p_d, r_s_p_p_d, r_s_f_d, t_d , p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
 			integrate_external_hair_force <<<STRAND_SIZE, MAX_SIZE>>> (p_p_d, p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
 			integrate << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, 9.25887e-05, STRAND_SIZE, MAX_SIZE);
 

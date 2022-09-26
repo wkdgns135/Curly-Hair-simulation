@@ -5,11 +5,11 @@
 #include <vector>
 #include "vector_types.h"
 
-#define K_S 5000000.0
-#define C_S 4472.0
+#define K_S 500000.0
+#define C_S 4000.0
 
-#define K_B 10000.0
-#define C_B 1000.0
+#define K_B 30000.0
+#define C_B 2000.0
 
 #define K_C 15000.0
 #define C_C 100.0
