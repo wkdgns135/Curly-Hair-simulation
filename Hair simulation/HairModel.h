@@ -16,11 +16,11 @@ public:
 	vector<int>		size;
 	Vector3f		force;
 public:
-	float			k_s			= 300000;
-	float			c_s			= 1000;
+	float			k_s			= 500000;
+	float			c_s			= 4000;
 	float			alpha_b		= 5;
-	float			k_b			= 30000;
-	float			c_b			= 1000;
+	float			k_b			= 400000;
+	float			c_b			= 2000;
 	float			alpha_c		= 1;
 	float			k_c			= 0;
 	float			c_c			= 0;

@@ -29,7 +29,7 @@ void resize(vector<vector<Vector3f>> &v, vector<int> size);
 void resize(vector<vector<Matrix3f>> &v, vector<int> size);
 void resize(vector<vector<float>> &v, vector<int> size);
 
-void compute_frame(Particle *p);
+void compute_frame(Particle *p, vector<vector<Vector3f>> rest_p);
 void multiply_vector(Vector3f &v1, Vector3f &v2, Vector3f &dest);
 //Matrix3f rot_mat_from_two_vectors(Vec3<float> a, Vec3<float> b);
 //Vec3<float> convert_vector(Matrix3f m, Vec3<float> v);

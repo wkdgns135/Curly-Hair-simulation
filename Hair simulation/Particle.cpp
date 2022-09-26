@@ -72,13 +72,13 @@ template <typename T> inline T CLAMP(T a, T lower, T upper)
 }
 
 int cnt = 0;
-void compute_frame(Particle *p) {
+void compute_frame(Particle *p, vector<vector<Vector3f>> rest_p) {
 	//cnt++;
 	//for (int i = 0; i < p->frames.size(); i++) {
-	//	Vector3f aim(p->pos[i][1] - p->pos[i][0]);
+	//	Vector3f aim(rest_p[i][1] - rest_p[i][0]);
 	//	Vector3f firsttangent(aim);
 	//	firsttangent.normalize();
-	//	Vector3f firstnormal(0,1,0);
+	//	Vector3f firstnormal(0, 1, 0);
 	//	Vector3f temp = firstnormal.cross(firsttangent);
 	//	temp.normalize();
 	//	firstnormal = firsttangent.cross(temp);
@@ -133,10 +133,10 @@ void compute_frame(Particle *p) {
 
 
 	for (int i = 0; i < p->frames.size(); i++) {
-		Vector3f aim = p->pos[i][1] - p->pos[i][0];
+		Vector3f aim = rest_p[i][1] - rest_p[i][0];
 		aim.normalize();
-		//Vector3f up(aim[2] - aim[1], aim[0] - aim[2], aim[1] - aim[0]);
-		Vector3f up(1, 0, 0);
+		Vector3f up(aim[2] - aim[1], aim[0] - aim[2], aim[1] - aim[0]);
+		//Vector3f up(1, 0, 0);
 		up.normalize();
 
 		Vector3f cross = aim.cross(up);

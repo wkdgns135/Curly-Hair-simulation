@@ -69,7 +69,7 @@ void HairModel::helix_function(Particle *p) {
 			//helix hair
 			p->pos[i][j] = Vector3f(x, -y, z + (i / particle->pos.size()) * 10);
 
-			cout << "v" << ' ' << p->pos[i][j].x() << ' ' << p->pos[i][j].y() << ' ' << p->pos[i][j].z() << endl;
+			//cout << "v" << ' ' << p->pos[i][j].x() << ' ' << p->pos[i][j].y() << ' ' << p->pos[i][j].z() << endl;
 			//bridge hair
 			//p->pos[i][j] = Vector3f(z + (i / particle->pos.size()) * 10, x, -y);
 
@@ -122,7 +122,7 @@ void HairModel::pre_compute() {
 	//wetting_function(0);
 
 	//smoothed curve frame pre-compute
-	compute_frame(smoothed_rest_particle);
+	compute_frame(smoothed_rest_particle, smoothed_rest_particle->pos);
 	for (int i = 0; i < smoothed_rest_particle->pos.size(); i++) {
 		Vector3f e = rest_particle->pos[i][1] - rest_particle->pos[i][0];
 		smoothed_rest_particle->t[i][0] = smoothed_rest_particle->frames[i][0].transpose() * e;
@@ -212,7 +212,7 @@ void HairModel::simulation(Vector3f _force) {
 		//Force loop iteration
 		
 		smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
-		compute_frame(smoothed_particle);
+		compute_frame(smoothed_particle, smoothed_rest_particle->pos);
 		for (int iter2 = 0; iter2 < 15; iter2++) { 
 			smoothed_particle->velocity = smoothing_function(particle->velocity, rest_particle->rest_length, alpha_c, false);
 
@@ -283,8 +283,8 @@ void HairModel::bending_spring_force(int i, int j) {
 	if (j == particle->pos[i].size() - 1)return;
 
 	Vector3f t;
-	if(j==0)t = smoothed_particle->frames[i][j] * smoothed_rest_particle->t[i][j];
-	else t = smoothed_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
+	if(j==0)t = smoothed_rest_particle->frames[i][j] * smoothed_rest_particle->t[i][j];
+	else t = smoothed_rest_particle->frames[i][j - 1] * smoothed_rest_particle->t[i][j];
 	
 	//if (j == 50)cout << smoothed_particle->frames[i][j] << endl;
 	//only use testing
