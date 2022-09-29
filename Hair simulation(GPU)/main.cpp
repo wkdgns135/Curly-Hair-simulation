@@ -223,7 +223,6 @@ void render(char* objpath)
 
 
 		glUseProgram(programID);
-
 		computeMatricesFromInputs(hm);
 
 		ProjectionMatrix = getProjectionMatrix();

@@ -12,7 +12,7 @@
 #define C_B 2000.0
 
 #define K_C 15000.0
-#define C_C 100.0
+#define C_C 1000.0
 
 #define A_B 5.0
 #define A_C 1.0
@@ -83,6 +83,7 @@ public:
 
 public:
 	void move_sphere(float3 dst);
+	void move_root(int dst);
 public:
 	HairModel();
 	void draw_point();

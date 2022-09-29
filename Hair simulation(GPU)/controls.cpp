@@ -131,6 +131,12 @@ void computeMatricesFromInputs(HairModel *hm)
 	if(glfwGetKey( window, GLFW_KEY_R) == GLFW_PRESS){
 		textureMode = false;
 	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		hm->move_root(0);
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		hm->move_root(1);
+	}
 
 	glm::mat3x3 rotmat_y(cos(horizontalAngle), 0.0, sin(horizontalAngle), 0.0, 1.0, 0.0, -sin(horizontalAngle), 0.0, cos(horizontalAngle));
 	glm::mat3x3 rotmat_x(1.0, 0.0, 0.0, 0.0, cos(verticalAngle), -sin(verticalAngle), 0.0, sin(verticalAngle), cos(verticalAngle));

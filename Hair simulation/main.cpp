@@ -19,7 +19,7 @@ double dt = 0.01;
 // 0 : bounsing test	Key(B)
 // 1 : wind test		Key(W)
 // 2 : simulation		key(SPACE)
-bool status[3] = { false, false, true}; 
+bool status[4] = { false, false, true, false}; 
 double n = 0;
 
 HairModel *hm;
@@ -195,6 +195,10 @@ void KeyboardEvent(unsigned char key, int x, int y) {
 	case ' ':
 		status[2] = !status[2];
 		break;
+	case 'S':
+	case 's':
+		status[3] = !status[3];
+		break;
 	case ']':
 		hm->w_c += 1;
 		cout << "wet_c :" << hm->w_c << endl;
@@ -228,17 +232,24 @@ void upLinePrompt(int count)
 void Update() {
 	if(status[2]){
 		if (status[1]) {
-			hm->simulation(Vector3f(0,0,10));
+			hm->simulation(Vector3f(0,0,100));
 		}
 		else {
 			hm->simulation();
 		}
 	}
+
 	if (status[0])
 	{
 		hm->bouncing_test(n);
 		n += 0.05;
 	}
+
+	//if (status[3]) {
+	//	//hm->sphere_test(n);
+	//	n += 0.5;
+	//}
+
 	::glutPostRedisplay();
 }
 

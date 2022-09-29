@@ -127,13 +127,12 @@ __global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, float3
 	
 	//if (threadIdx.x == 50)printf("hi");
 	float3 force2 = vector_multiply_k(vector_sub_k(e, rest_e), K_B);
-	float3 result = vector_add_k(force1, force2);
-
 	float3 force3 = vector_multiply_k(b_hat, K_C * (vector_length_k(b) - vector_length_k(b_bar)));
+	
+	float3 result = vector_add_k(force1, force2);
+	result = vector_add_k(result, force3);
 
 	p_f[tid] = vector_add_k(p_f[tid], result);
-	//p_f[tid] = vector_add_k(p_f[tid], force2);
-	//p_f[tid] = vector_sub_k(p_f[tid], force3);
 	__syncthreads();
 	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
 	
@@ -166,8 +165,9 @@ __global__ void integrate_damping_force(float3 *p_p, float3 *s_p_p, float3 *s_p_
 	float3 force3 = vector_multiply_k(b_hat, vector_dot_k(v, b_hat) * C_C);
 
 	float3 result = vector_add_k(force1, force2);
+	result = vector_add_k(result, force3);
+
 	p_f[tid] = vector_add_k(p_f[tid], result);
-	//p_f[tid] = vector_sub_k(p_f[tid], force3);
 	__syncthreads();
 	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
 	
@@ -182,13 +182,40 @@ __global__ void update_position(float3 *p_p, float3 *p_v, int x, int y) {
 	p_p[tid] = vector_add_k(p_p[tid], vector_multiply_k(p_v[tid], dt));
 }
 
+__global__ void move_root_up_k(float3 *p_p) {
+	//if (threadIdx.x > y)return;
+	//if (blockIdx.x > x)return;
+	if (threadIdx.x != 0)return;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	p_p[tid].y += 0.05;
+	double dt = 0.00138883;
+}
+
+__global__ void move_root_down_k(float3 *p_p) {
+	//if (threadIdx.x > y)return;
+	//if (blockIdx.x > x)return;
+	if (threadIdx.x != 0)return;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	p_p[tid].y -= 0.05;
+	double dt = 0.00138883;
+}
+
+void HairModel::move_root(int dst) {
+	if (dst == 0) {
+		move_root_up_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d);
+	}
+	if (dst == 1) {
+		move_root_down_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d);
+	}
+}
+
 void HairModel:: simulation() {
 	//cudaEvent_t start, stop;
 	//cudaEventCreate(&start);
 	//cudaEventCreate(&stop);
 	//cudaEventRecord(start);
 
-	for (int iter1 = 0; iter1 < 2; iter1++) {
+	for (int iter1 = 0; iter1 < 10; iter1++) {
 		collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
 		array_copy(s_p_p, smoothing_function(p_p, r_p_l, A_B, true));
 		cudaMemcpy(s_p_p_d, s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);

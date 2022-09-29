@@ -320,8 +320,8 @@ void HairModel::core_spring_force(int i, int j) {
 	b_hat.normalize();
 
 	Vector3f force = k_c * (b.norm() - b_bar.norm()) * b_hat;
-	particle->force[i][j] -= force;
-	//particle->force[i][j+1] -= force;
+	particle->force[i][j] += force;
+	particle->force[i][j+1] -= force;
 }
 
 void HairModel::core_damping_force(int i, int j) {
@@ -332,8 +332,8 @@ void HairModel::core_damping_force(int i, int j) {
 	b_hat.normalize();
 
 	Vector3f force = c_c * ((v.dot(b_hat)) * b_hat);
-	particle->force[i][j] -= force;
-	//particle->force[i][j+1] -= force;
+	particle->force[i][j] += force;
+	particle->force[i][j+1] -= force;
 }
 
 //NOTE Wetting function
@@ -492,4 +492,4 @@ void HairModel::bouncing_test(float n) {
 	for (auto &p : particle->pos) {
 		p[0][1] -= sin(n) * 0.05;
 	}
-}
+} 

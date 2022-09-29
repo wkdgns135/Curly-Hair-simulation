@@ -19,11 +19,11 @@ public:
 	float			k_s			= 500000;
 	float			c_s			= 4000;
 	float			alpha_b		= 5;
-	float			k_b			= 400000;
+	float			k_b			= 30000;
 	float			c_b			= 2000;
 	float			alpha_c		= 1;
-	float			k_c			= 0;
-	float			c_c			= 0;
+	float			k_c			= 15000;
+	float			c_c			= 1000;
 	float			v_threshold = 1;
 	float			s_threshold = 1;
 	float			total_wet	= 1;
@@ -31,8 +31,9 @@ public:
 	float			w_d		= 0.8;
 
 public:
-	Vector3f	sphere = Vector3f(0, -12, -25);
-	float		radius = 0;
+	//Vector3f	sphere = Vector3f(0, -12, -25);
+	Vector3f	sphere = Vector3f(0, -30, -25);
+	float		radius = 4;
 public:
 					HairModel();
 	void			init(Particle *p);
@@ -45,7 +46,6 @@ public:
 	void			draw_frame(Particle *p);
 	void			move_root_particle(Vector3f dest);
 	void			bouncing_test(float n);
-
 public:
 	//void			wetting_function(float n);
 	void			collision_detect();

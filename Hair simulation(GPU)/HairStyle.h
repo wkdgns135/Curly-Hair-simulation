@@ -10,20 +10,42 @@
 #include "GL/glut.h"
 
 vector<vector<float3>> read_hair_asc(const char *filename) {
-	FILE *f = fopen(filename, "r");
+
 	vector<vector<float3>> tmp;
+	//for (float i = 0; i < 1; i++) {
+	//	vector<float3> v;
+	//	for (float j = 0; j < 128; j++) {
+	//		int size = 128;
+	//		//radius Á¶Àý
+	//		float r = j / size * 2 < 1 ? j / size * 2 : 1;
+	//		//float r = j / size * 2 < 1 ? j / size : 1 - j / size;
+	//
+	//		float t = j * 0.3;
+	//		float x = cos(t) * r;
+	//		float y = t * 0.2;
+	//		float z = sin(t) * r;
+	//
+	//		//helix hair
+	//		float3 pos = make_float3(x, -y, z + (i / 128) * 10);
+	//		pos = vector_add(pos, make_float3(0, 0, -100));
+	//		v.push_back(pos);
+	//	}
+	//	tmp.push_back(v);
+	//}
+
+	FILE *f = fopen(filename, "r");
 	if (!f) {
 		fprintf(stderr, "Couldn't open %s\n", filename);
 		return tmp;
 	}
-
+	
 	int nstrands = 0;
 	if (!fscanf(f, "%d", &nstrands)) {
 		fprintf(stderr, "Couldn't read number of strands\n");
 		fclose(f);
 		return tmp;
 	}
-
+	
 	nstrands = 64;
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
@@ -48,8 +70,10 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		if (nverts == 1 || nverts == 0)continue;
 		tmp.push_back(tmp2);
 	}
-
+	
 	fclose(f);
+	
+
 	return tmp;
 }
 
