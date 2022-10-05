@@ -46,7 +46,7 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		return tmp;
 	}
 	
-	nstrands = 64;
+	nstrands = 1024;
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
 		if (!fscanf(f, "%d", &nverts)) {

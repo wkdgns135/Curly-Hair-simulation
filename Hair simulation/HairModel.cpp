@@ -212,7 +212,7 @@ void HairModel::simulation(Vector3f _force) {
 		//Force loop iteration
 		
 		smoothed_particle->pos = smoothing_function(particle->pos, rest_particle->rest_length, alpha_b, true);
-		compute_frame(smoothed_particle, smoothed_rest_particle->pos);
+		//compute_frame(smoothed_particle, smoothed_rest_particle->pos);
 		for (int iter2 = 0; iter2 < 15; iter2++) { 
 			smoothed_particle->velocity = smoothing_function(particle->velocity, rest_particle->rest_length, alpha_c, false);
 

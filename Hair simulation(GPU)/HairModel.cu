@@ -61,6 +61,7 @@ void HairModel::device_init() {
 	cudaMalloc((void**)&s_f_d,sizeof(Frame) * TOTAL_SIZE);
 	cudaMalloc((void**)&t_d,sizeof(float3) * TOTAL_SIZE);
 	cudaMalloc((void**)&r_p_l_d,sizeof(double) * TOTAL_SIZE);
+	cudaMalloc((void**)&d,sizeof(float3) * TOTAL_SIZE);
 	
 	cudaMemcpy(p_p_d, p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(r_p_p_d, r_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
@@ -73,6 +74,7 @@ void HairModel::device_init() {
 
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_f_d);
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_v_d);
+	array_init << <STRAND_SIZE, MAX_SIZE >> > (d);
 }
 
 __global__ void collision_detect(float3 *p_p, float3 sphere, float radius, int x, int y) {
@@ -113,9 +115,6 @@ __global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, float3
 	float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
 	float3 rest_e = vector_sub_k(r_p_p[tid + 1], r_p_p[tid]);
 	float3 e_hat = vector_normalized_k(e);
-
-	float3 force1 = vector_multiply_k(e_hat,(vector_length_k(e)-vector_length_k(rest_e)) * K_S);
-
 	float3 b = vector_sub_k(s_p_p[tid + 1], s_p_p[tid]);
 	float3 b_bar = vector_sub_k(r_s_p_p[tid + 1], r_s_p_p[tid]);
 	float3 b_hat = vector_normalized_k(b);
@@ -123,11 +122,11 @@ __global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, float3
 	//float3 t;
 	//if(threadIdx.x == 0) t = multiply_frame_k(s_f[tid], _t[tid]);
 	//else t = multiply_frame_k(s_f[tid - 1], _t[tid]);
-
 	
-	//if (threadIdx.x == 50)printf("hi");
+	float3 force1 = vector_multiply_k(e_hat,(vector_length_k(e)-vector_length_k(rest_e)) * K_S);
 	float3 force2 = vector_multiply_k(vector_sub_k(e, rest_e), K_B);
-	float3 force3 = vector_multiply_k(b_hat, K_C * (vector_length_k(b) - vector_length_k(b_bar)));
+	float3 force3_1 = vector_multiply_k(b_hat, vector_length_k(b) - vector_length_k(b_bar));
+	float3 force3 = vector_multiply_k(force3_1, K_C);
 	
 	float3 result = vector_add_k(force1, force2);
 	result = vector_add_k(result, force3);
@@ -181,6 +180,59 @@ __global__ void update_position(float3 *p_p, float3 *p_v, int x, int y) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	p_p[tid] = vector_add_k(p_p[tid], vector_multiply_k(p_v[tid], dt));
 }
+//float3 *lambda, double *l, double alpha, bool is_position
+
+__global__ void position_smoothing_function_k(float3 *lambda, float3 *dst, float3 *d, double *l, float alpha) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	float beta = 0.0;
+
+	beta = 1 > 1 - exp(-l[blockIdx.x] / alpha) ? 1 - exp(-l[blockIdx.x] / alpha) : 1;
+	if (threadIdx.x == 0) {
+		d[tid] = vector_sub_k(lambda[tid + 1], lambda[tid]);
+	}
+	else {
+		int index_1 = threadIdx.x - 1 >= 0 ? tid - 1 : 0;
+		int index_2 = threadIdx.x - 2 >= 0 ? tid - 2 : 0;
+		float3 term1 = vector_multiply_k(d[index_1], 2 * (1 - beta));
+		float3 term2 = vector_multiply_k(d[index_2], ((1 - beta) * (1 - beta)));
+		float3 term3 = vector_sub_k(term1, term2);
+		float3 term4 = vector_multiply_k(vector_sub_k(lambda[tid + 1], lambda[tid]), (beta * beta));
+	}
+	
+	if (threadIdx.x == 0) {
+		dst[tid] = lambda[tid];
+	}
+	else {
+		dst[tid] = vector_add_k(d[tid - 1], dst[tid - 1]);
+	}
+}
+
+__global__ void velocity_smoothing_function_k(float3 *lambda, float3 *dst, double *l, float alpha) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	//if (threadIdx.x > 31) {
+	//	__syncthreads();
+	//	if (threadIdx.x > 63) {
+	//		__syncthreads();
+	//		if (threadIdx.x > 95) {
+	//			__syncthreads();
+	//		}
+	//	}
+	//}
+
+	float beta = 1 > 1 - exp(-l[blockIdx.x] / alpha) ? 1 - exp(-l[blockIdx.x] / alpha) : 1;
+	if (threadIdx.x == 0) {
+		dst[tid] = vector_sub_k(lambda[tid + 1], lambda[tid]);
+	}
+	else {
+		int index_1 = threadIdx.x - 1 >= 0 ? tid - 1 : 0;
+		int index_2 = threadIdx.x - 2 >= 0 ? tid - 2 : 0;
+		float3 term1 = vector_multiply_k(dst[index_1], 2 * (1 - beta));
+		float3 term2 = vector_multiply_k(dst[index_2], ((1 - beta) * (1 - beta)));
+		float3 term3 = vector_sub_k(term1, term2);
+		float3 term4 = vector_multiply_k(vector_sub_k(lambda[tid + 1], lambda[tid]), (beta * beta));
+		dst[tid] = vector_add_k(term3, term4);
+	}
+}
 
 __global__ void move_root_up_k(float3 *p_p) {
 	//if (threadIdx.x > y)return;
@@ -216,17 +268,19 @@ void HairModel:: simulation() {
 	//cudaEventRecord(start);
 
 	for (int iter1 = 0; iter1 < 10; iter1++) {
-		collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
+		//collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
 		array_copy(s_p_p, smoothing_function(p_p, r_p_l, A_B, true));
 		cudaMemcpy(s_p_p_d, s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+		//position_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, s_p_p_d, d,r_p_l_d, A_B);
 		//compute_frame(s_f, s_p_p);
 		//cudaMemcpy(s_f_d, s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 		
 		for (int iter2 = 0; iter2 < 15; iter2++) {
+			//velocity_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_v_d, s_p_v_d, r_p_l_d, A_C);
 			cudaMemcpy(p_v, p_v_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 			array_copy(s_p_v, smoothing_function(p_v, r_p_l, A_C, false));
 			cudaMemcpy(s_p_v_d, s_p_v, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-			
+
 			integrate_internal_hair_force <<<STRAND_SIZE, MAX_SIZE>>> (p_p_d, r_p_p_d, s_p_p_d, r_s_p_p_d, r_s_f_d, t_d , p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
 			integrate_external_hair_force <<<STRAND_SIZE, MAX_SIZE>>> (p_p_d, p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
 			integrate << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, 9.25887e-05, STRAND_SIZE, MAX_SIZE);
@@ -251,7 +305,6 @@ void HairModel:: simulation() {
 	//cudaEventDestroy(start);
 	//cudaEventDestroy(stop);
 
-	cudaMemcpy(p_p, p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
-	
+	cudaMemcpy(p_p, p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);	
 }
 

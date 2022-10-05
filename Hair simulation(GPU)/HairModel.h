@@ -11,10 +11,10 @@
 #define K_B 30000.0
 #define C_B 2000.0
 
-#define K_C 15000.0
+#define K_C 100000.0
 #define C_C 1000.0
 
-#define A_B 5.0
+#define A_B 1.0
 #define A_C 1.0
 
 using namespace std;
@@ -72,6 +72,7 @@ public: //Device
 	float3 *s_p_v_d;
 	float3 *r_p_p_d;
 	float3 *r_s_p_p_d;
+	float3 *d;
 	Frame *r_s_f_d;
 	Frame *s_f_d;
 	float3 *t_d;
