@@ -25,6 +25,7 @@ HairModel::HairModel() {
 	r_s_f = (Frame*)malloc(sizeof(Frame) * TOTAL_SIZE);
 	s_f = (Frame*)malloc(sizeof(Frame) * TOTAL_SIZE);
 	t = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
+	d = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	r_p_l = (double*)malloc(sizeof(double) * STRAND_SIZE);
 
 	vector2arr(v, p_p);
@@ -43,7 +44,7 @@ HairModel::HairModel() {
 		r_p_l[i] = sum;
 	}
 
-	array_copy(r_s_p_p, smoothing_function(r_p_p, r_p_l, A_B, true));
+	position_smoothing_function(r_p_p, r_s_p_p ,r_p_l,A_B, true);
 	compute_frame(r_s_f, r_s_p_p);
 	
 	int index = 0;

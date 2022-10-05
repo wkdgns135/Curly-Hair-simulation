@@ -11,7 +11,7 @@
 #define K_B 30000.0
 #define C_B 2000.0
 
-#define K_C 100000.0
+#define K_C 15000.0
 #define C_C 1000.0
 
 #define A_B 1.0
@@ -56,6 +56,7 @@ public: //Host
 	Frame *r_s_f;
 	Frame *s_f;
 	float3 *t;
+	float3 *d;
 
 	//collision
 	float3 sphere_pos;
@@ -72,13 +73,13 @@ public: //Device
 	float3 *s_p_v_d;
 	float3 *r_p_p_d;
 	float3 *r_s_p_p_d;
-	float3 *d;
 	Frame *r_s_f_d;
 	Frame *s_f_d;
 	float3 *t_d;
 
 public:
-	float3* smoothing_function(float3 *lambda, double *l, double alpha, bool is_position);
+	void velocity_smoothing_function(float3 *lambda, float3 *dst,double *l, double alpha, bool is_position);
+	void position_smoothing_function(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position);
 	void compute_frame(Frame *f, float3 *p);
 	void array_copy(float3 *a, float3 *b);
 

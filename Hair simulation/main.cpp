@@ -27,7 +27,7 @@ HairModel *hm;
 #pragma region Draw section
 void posed_curves() {
 	glColor3f(0, 0, 0);
-	hm->draw_point(hm->particle->pos);
+	//hm->draw_point(hm->particle->pos);
 	hm->draw_wire(hm->particle->pos);
 }
 

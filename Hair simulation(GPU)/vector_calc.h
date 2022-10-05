@@ -195,17 +195,13 @@ float3 multiply_frame(Frame f, float3 e) {
 	return tmp;
 }
 
-float3* HairModel::smoothing_function(float3 *lambda, double *l, double alpha, bool is_position) {
+void HairModel::position_smoothing_function(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position) {
 	double beta = 0.0;
-
-	float3  *d = new float3[TOTAL_SIZE];
-	float3 *pos = new float3[TOTAL_SIZE];
 	//lambda가 파티클 위치일 경우 return하기위한 pos vector
 
 	array_copy(d, lambda);
 
 	//beta formulation, l = 파티클간의 평균길이
-
 	int index = 0;
 	for (int i = 0; i < v.size(); i++) {
 		d[index] = vector_sub(lambda[index + 1], lambda[index]);
@@ -224,19 +220,41 @@ float3* HairModel::smoothing_function(float3 *lambda, double *l, double alpha, b
 		index++;
 	}
 
-	if (is_position) {
-		index = 0;
-		for (int i = 0; i < v.size(); i++) {
-			pos[index] = lambda[index];
+	index = 0;
+	for (int i = 0; i < v.size(); i++) {
+		dst[index] = lambda[index];
+		index++;
+		for (int j = 1; j < v[i].size(); j++) {
+			dst[index] = vector_add(d[index - 1], dst[index - 1]);
 			index++;
-			for (int j = 1; j < v[i].size(); j++) {
-				pos[index] = vector_add(d[index - 1], pos[index - 1]);
-				index++;
-			}
-
 		}
-		return pos;
 	}
-	return d;
+}
+
+void HairModel::velocity_smoothing_function(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position) {
+	double beta = 0.0;
+	//lambda가 파티클 위치일 경우 return하기위한 pos vector
+
+	array_copy(dst, lambda);
+
+	//beta formulation, l = 파티클간의 평균길이
+
+	int index = 0;
+	for (int i = 0; i < v.size(); i++) {
+		dst[index] = vector_sub(lambda[index + 1], lambda[index]);
+		beta = 1 > 1 - exp(-l[i] / alpha) ? 1 - exp(-l[i] / alpha) : 1;
+		index++;
+		for (int j = 1; j < v[i].size() - 1; j++) {
+			int index_1 = j - 1 >= 0 ? index - 1 : 0;
+			int index_2 = j - 2 >= 0 ? index - 2 : 0;
+
+			float3 term1 = vector_multiply(dst[index_1], 2 * (1 - beta));
+			float3 term2 = vector_multiply(dst[index_2], ((1 - beta) * (1 - beta)));
+			float3 term3 = vector_sub(term1, term2);
+			float3 term4 = vector_multiply(vector_sub(lambda[index + 1], lambda[index]), (beta * beta));
+			dst[index++] = vector_add(term3, term4);
+		}
+		index++;
+	}
 }
 #endif

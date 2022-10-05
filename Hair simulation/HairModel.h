@@ -22,7 +22,7 @@ public:
 	float			k_b			= 30000;
 	float			c_b			= 2000;
 	float			alpha_c		= 1;
-	float			k_c			= 15000;
+	float			k_c			= 100000;
 	float			c_c			= 1000;
 	float			v_threshold = 1;
 	float			s_threshold = 1;

@@ -61,7 +61,7 @@ void HairModel::device_init() {
 	cudaMalloc((void**)&s_f_d,sizeof(Frame) * TOTAL_SIZE);
 	cudaMalloc((void**)&t_d,sizeof(float3) * TOTAL_SIZE);
 	cudaMalloc((void**)&r_p_l_d,sizeof(double) * TOTAL_SIZE);
-	cudaMalloc((void**)&d,sizeof(float3) * TOTAL_SIZE);
+	//cudaMalloc((void**)&d,sizeof(float3) * TOTAL_SIZE);
 	
 	cudaMemcpy(p_p_d, p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(r_p_p_d, r_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
@@ -74,7 +74,7 @@ void HairModel::device_init() {
 
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_f_d);
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_v_d);
-	array_init << <STRAND_SIZE, MAX_SIZE >> > (d);
+	//array_init << <STRAND_SIZE, MAX_SIZE >> > (d);
 }
 
 __global__ void collision_detect(float3 *p_p, float3 sphere, float radius, int x, int y) {
@@ -269,7 +269,7 @@ void HairModel:: simulation() {
 
 	for (int iter1 = 0; iter1 < 10; iter1++) {
 		//collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
-		array_copy(s_p_p, smoothing_function(p_p, r_p_l, A_B, true));
+		position_smoothing_function(p_p, s_p_p, r_p_l, A_B, true);
 		cudaMemcpy(s_p_p_d, s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 		//position_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, s_p_p_d, d,r_p_l_d, A_B);
 		//compute_frame(s_f, s_p_p);
@@ -278,7 +278,7 @@ void HairModel:: simulation() {
 		for (int iter2 = 0; iter2 < 15; iter2++) {
 			//velocity_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_v_d, s_p_v_d, r_p_l_d, A_C);
 			cudaMemcpy(p_v, p_v_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
-			array_copy(s_p_v, smoothing_function(p_v, r_p_l, A_C, false));
+			velocity_smoothing_function(p_v, s_p_v, r_p_l, A_C, false);
 			cudaMemcpy(s_p_v_d, s_p_v, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 
 			integrate_internal_hair_force <<<STRAND_SIZE, MAX_SIZE>>> (p_p_d, r_p_p_d, s_p_p_d, r_s_p_p_d, r_s_f_d, t_d , p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
