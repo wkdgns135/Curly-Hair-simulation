@@ -45,26 +45,40 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		fclose(f);
 		return tmp;
 	}
-
-	nstrands = 128;
+	
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
+		float length = 0;
 		fscanf(f, "%d", &nverts);
-		vector<float3> tmp2;
+		vector<float3> verts;
 		for (int j = 0; j < nverts; j++) {
-			float3 tmp3;
-			if (!fscanf(f, "%f%f%f", &tmp3.x, &tmp3.y, &tmp3.z)) {
+			float3 vert;
+			float3 pre_vert;
+			if (!fscanf(f, "%f%f%f", &vert.x, &vert.y, &vert.z)) {
 				fprintf(stderr, "Couldn't read %d-th vertex in strand %d\n", j, i);
 				fclose(f);
 				return tmp;
 			}
 			if (nverts != 100)continue;
-			tmp3 = vector_multiply(tmp3, 100);
-			tmp3 = vector_add(tmp3, make_float3(0, -185, -25));
-			tmp2.push_back(tmp3);
+			vert = vector_multiply(vert, 100);
+			vert = vector_add(vert, make_float3(0, -185, -25));
+
+			if (j != 0) {
+				float3 edge = vector_sub(pre_vert, vert);
+				length += vector_length(edge);
+			}
+			verts.push_back(vert);
+			pre_vert = vert;
 		}
 		if (nverts != 100)continue;
-		tmp.push_back(tmp2);
+
+		// 파티클간 평균 길이가 0.2 보다 작은 strand 제외
+		length /= nverts;
+		if (length < 0.2) {
+			cout << "avg legth : " << length << endl;
+			continue;
+		}
+		tmp.push_back(verts);
 	}
 	fprintf(stderr, "Num of strands : %d\n", tmp.size());
 	fclose(f);

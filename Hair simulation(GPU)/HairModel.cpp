@@ -39,8 +39,6 @@ HairModel::HairModel() {
 		}
 
 		sum /= (v[i].size() - 1);
-		//cout << "rest_length : ";
-		//cout << sum << endl;
 		r_p_l[i] = sum;
 	}
 
