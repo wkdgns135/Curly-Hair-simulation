@@ -51,6 +51,9 @@
     <ClInclude Include="collision.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="HashTable.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="리소스 파일">
@@ -80,6 +83,9 @@
     </None>
     <None Include="SimpleVertexShader.vertexshader">
       <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="HashTable.cu">
+      <Filter>소스 파일</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

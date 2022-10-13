@@ -5,6 +5,8 @@
 #include "device_launch_parameters.h" 
 #include "vector_calc.cuh"
 
+
+
 void HairModel::device_info() {
 	cudaDeviceProp  prop;
 
@@ -75,6 +77,14 @@ void HairModel::device_init() {
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_f_d);
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_v_d);
 	//array_init << <STRAND_SIZE, MAX_SIZE >> > (d);
+
+	//Init hash table
+	hash_params.grid_size = make_uint3(128, 128, 128);
+	hash_params.num_cells = (hash_params.grid_size.x * hash_params.grid_size.y * hash_params.grid_size.z);
+	hash_params.world_origin = make_float3(-1.0f, -1.0f, -1.0f);
+	hash_params.cell_size = make_float3(0.01, 0.01, 0.01);
+	
+	hashing.init(MAX_SIZE, &hash_params);
 }
 
 __global__ void collision_detect(float3 *p_p, float3 sphere, float radius, int x, int y) {
@@ -83,7 +93,7 @@ __global__ void collision_detect(float3 *p_p, float3 sphere, float radius, int x
 	if (blockIdx.x == 0)return;
 	//if (threadIdx.x == 10)printf("%f %f %f\n", sphere.x, sphere.y, sphere.z);
 	
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	float3 &p = p_p[tid];
 	float3 dir = vector_sub_k(p, sphere);
 	float dist = vector_length_k(dir);
@@ -99,17 +109,16 @@ __global__ void integrate(float3 *p_p, float3 *p_f, float3 *p_v, double dt, int 
 	//if (blockIdx.x > x)return;
 	if (threadIdx.x == 0)return;
 
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	float3 ac = p_f[tid];
-	p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(ac, dt));
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(p_f[tid], dt));
 	p_f[tid] = make_float3(0.0, 0.0, 0.0);
 	
-}
+} 
 
 __global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, float3 *s_p_p, float3 *r_s_p_p, Frame *s_f, float3* _t, float3 *p_f, float3 *p_v, int x, int y) {
 	if (threadIdx.x > y - 2)return;
 	//if (blockIdx.x > x)return;
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 
 	//if(blockIdx.x == 0)printf("thread: %d\n", threadIdx.x);
 	float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
@@ -134,13 +143,13 @@ __global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, float3
 	p_f[tid] = vector_add_k(p_f[tid], result);
 	__syncthreads();
 	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
-	
+	 
 }
 
 __global__ void integrate_external_hair_force(float3 *p_p, float3 *p_f, float3 *p_v, int x, int y) {
 	if (threadIdx.x > y - 2)return;
 	//if (blockIdx.x > x)return;
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	
 	float3 gravity = make_float3(0.0, -10, 0.0);
 	p_f[tid] = vector_add_k(p_f[tid], gravity);
@@ -149,7 +158,7 @@ __global__ void integrate_external_hair_force(float3 *p_p, float3 *p_f, float3 *
 __global__ void integrate_damping_force(float3 *p_p, float3 *s_p_p, float3 *s_p_v, float3 *p_f, float3 *p_v, int x, int y) {
 	if (threadIdx.x > y - 2)return;
 	//if (blockIdx.x > x)return;
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 
 	float3 d_v = vector_sub_k(p_v[tid + 1], p_v[tid]);
 	float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
@@ -177,13 +186,13 @@ __global__ void update_position(float3 *p_p, float3 *p_v, int x, int y) {
 	//if (blockIdx.x > x)return;
 	if (threadIdx.x == 0)return;
 	double dt = 0.00138883;
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	p_p[tid] = vector_add_k(p_p[tid], vector_multiply_k(p_v[tid], dt));
 }
 //float3 *lambda, double *l, double alpha, bool is_position
 
 __global__ void position_smoothing_function_k(float3 *lambda, float3 *dst, float3 *d, double *l, float alpha) {
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	float beta = 0.0;
 
 	beta = 1 > 1 - exp(-l[blockIdx.x] / alpha) ? 1 - exp(-l[blockIdx.x] / alpha) : 1;
@@ -209,6 +218,7 @@ __global__ void position_smoothing_function_k(float3 *lambda, float3 *dst, float
 
 __global__ void velocity_smoothing_function_k(float3 *lambda, float3 *dst, double *l, float alpha) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
 	//if (threadIdx.x > 31) {
 	//	__syncthreads();
 	//	if (threadIdx.x > 63) {
@@ -238,18 +248,17 @@ __global__ void move_root_up_k(float3 *p_p) {
 	//if (threadIdx.x > y)return;
 	//if (blockIdx.x > x)return;
 	if (threadIdx.x != 0)return;
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	p_p[tid].y += 0.05;
-	double dt = 0.00138883;
 }
 
 __global__ void move_root_down_k(float3 *p_p) {
 	//if (threadIdx.x > y)return;
 	//if (blockIdx.x > x)return;
 	if (threadIdx.x != 0)return;
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	
+	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	p_p[tid].y -= 0.05;
-	double dt = 0.00138883;
 }
 
 void HairModel::move_root(int dst) {
@@ -262,10 +271,13 @@ void HairModel::move_root(int dst) {
 }
 
 void HairModel:: simulation() {
-	//cudaEvent_t start, stop;
-	//cudaEventCreate(&start);
-	//cudaEventCreate(&stop);
-	//cudaEventRecord(start);
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord(start);
+
+	//Calc hash table
+	//updateHashTable(hashing, p_p_d, MAX_SIZE, STRAND_SIZE, MAX_SIZE, hash_params);
 
 	for (int iter1 = 0; iter1 < 10; iter1++) {
 		//collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
@@ -296,14 +308,14 @@ void HairModel:: simulation() {
 
 	//performace check
 
-	//cudaEventRecord(stop);
-	//cudaEventSynchronize(stop);
-	//float milliseconds = 0.0;
-	//cudaEventElapsedTime(&milliseconds, start, stop);
-	//std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
+	cudaEventRecord(stop);
+	cudaEventSynchronize(stop);
+	float milliseconds = 0.0;
+	cudaEventElapsedTime(&milliseconds, start, stop);
+	std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
 
-	//cudaEventDestroy(start);
-	//cudaEventDestroy(stop);
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
 
 	cudaMemcpy(p_p, p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);	
 }

@@ -46,6 +46,8 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		return tmp;
 	}
 	
+	nstrands = 128;
+
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
 		float length = 0;
@@ -97,45 +99,45 @@ void vector2arr(vector<vector<float3>> v, float3 *p) {
 
 void capture(int _width, int _height)
 {
-	static int _frame = 0;
-	if (_frame == 0 || _frame % 2 == 0) {
-		static int index = 0;
-		char filename[100];
-		sprintf_s(filename, "capture\\capture-%d.bmp", index);
-		BITMAPFILEHEADER bf;
-		BITMAPINFOHEADER bi;
-		unsigned char *image = (unsigned char*)malloc(sizeof(unsigned char)*_width*_height * 3);
-		FILE *file;
-		fopen_s(&file, filename, "wb");
-		if (image != NULL) {
-			if (file != NULL) {
-				glReadPixels(0, 0, _width, _height, 0x80E0, GL_UNSIGNED_BYTE, image);
-				memset(&bf, 0, sizeof(bf));
-				memset(&bi, 0, sizeof(bi));
-				bf.bfType = 'MB';
-				bf.bfSize = sizeof(bf) + sizeof(bi) + _width * _height * 3;
-				bf.bfOffBits = sizeof(bf) + sizeof(bi);
-				bi.biSize = sizeof(bi);
-				bi.biWidth = _width;
-				bi.biHeight = _height;
-				bi.biPlanes = 1;
-				bi.biBitCount = 24;
-				bi.biSizeImage = _width * _height * 3;
-				fwrite(&bf, sizeof(bf), 1, file);
-				fwrite(&bi, sizeof(bi), 1, file);
-				fwrite(image, sizeof(unsigned char), _height*_width * 3, file);
-				fclose(file);
-			}
-			free(image);
-		}
-		//if (index == 60) { // cloth-bunny
-		//if (index == 75) { // avatar
-		//if (index == 122) { // rotating sphere
-		//if (index == 213) { // rotating bunny
-		if (index == 64) { // proximity_test0_2.obj
-		//	exit(0);
-		}
-		index++;
-	}
-	_frame++;
+	//static int _frame = 0;
+	//if (_frame == 0 || _frame % 2 == 0) {
+	//	static int index = 0;
+	//	char filename[100];
+	//	sprintf_s(filename, "capture\\capture-%d.bmp", index);
+	//	BITMAPFILEHEADER bf;
+	//	BITMAPINFOHEADER bi;
+	//	unsigned char *image = (unsigned char*)malloc(sizeof(unsigned char)*_width*_height * 3);
+	//	FILE *file;
+	//	fopen_s(&file, filename, "wb");
+	//	if (image != NULL) {
+	//		if (file != NULL) {
+	//			glReadPixels(0, 0, _width, _height, 0x80E0, GL_UNSIGNED_BYTE, image);
+	//			memset(&bf, 0, sizeof(bf));
+	//			memset(&bi, 0, sizeof(bi));
+	//			bf.bfType = 'MB';
+	//			bf.bfSize = sizeof(bf) + sizeof(bi) + _width * _height * 3;
+	//			bf.bfOffBits = sizeof(bf) + sizeof(bi);
+	//			bi.biSize = sizeof(bi);
+	//			bi.biWidth = _width;
+	//			bi.biHeight = _height;
+	//			bi.biPlanes = 1;
+	//			bi.biBitCount = 24;
+	//			bi.biSizeImage = _width * _height * 3;
+	//			fwrite(&bf, sizeof(bf), 1, file);
+	//			fwrite(&bi, sizeof(bi), 1, file);
+	//			fwrite(image, sizeof(unsigned char), _height*_width * 3, file);
+	//			fclose(file);
+	//		}
+	//		free(image);
+	//	}
+	//	//if (index == 60) { // cloth-bunny
+	//	//if (index == 75) { // avatar
+	//	//if (index == 122) { // rotating sphere
+	//	//if (index == 213) { // rotating bunny
+	//	if (index == 64) { // proximity_test0_2.obj
+	//	//	exit(0);
+	//	}
+	//	index++;
+	//}
+	//_frame++;
 }

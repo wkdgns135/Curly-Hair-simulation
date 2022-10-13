@@ -4,6 +4,22 @@
 #include <iostream>
 #include <vector>
 #include "vector_types.h"
+#include "HashTable.h"
+
+//struct HairParams {
+//	float K_S;
+//	float C_S;
+//
+//	float C_S;
+//	float K_B;
+//
+//	float K_C;
+//	float C_C;
+//
+//	float A_B;
+//	float A_C;
+//};
+
 
 #define K_S 500000.0
 #define C_S 4000.0
@@ -78,6 +94,10 @@ public: //Device
 	float3 *t_d;
 
 public:
+	HashTable hashing;
+	HashParams hash_params;
+
+public:
 	void velocity_smoothing_function(float3 *lambda, float3 *dst,double *l, double alpha, bool is_position);
 	void position_smoothing_function(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position);
 	void compute_frame(Frame *f, float3 *p);
@@ -94,6 +114,8 @@ public:
 
 public:
 	void device_info();
+
+
 public:
 	void device_init();
 	void simulation();
