@@ -31,13 +31,13 @@ vector<GLfloat> vertex_color;
 vector<GLfloat> vertex_noise;
 vector<glm::vec3> vertex_tangent;
 
-std::string vertexshader_fn = "SimpleVertexShader.vertexshader";
-std::string fragmentshader_fn = "SimpleFragmentShader.fragmentshader";
+string vertexshader_fn = "SimpleFragmentShader.vertexshader";
+string fragmentshader_fn = "SimpleFragmentShader.fragmentshader";
 GLFWwindow* window;
 void update_vertex();
 
 // added by jhkim
-bool isCapture = false;
+bool isCapture = true;
 
 // added by jhkim
 void FlipVertically(int width, int height, char *data)
@@ -215,7 +215,8 @@ void render(char* objpath)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//simulation
 		static int frame = 0;
-		if (frame == 0 || frame % 5 == 0) {
+		if (frame == 0 || frame % 5 == 0)
+		{
 			hm->simulation();
 			update_vertex();
 		}
@@ -256,7 +257,6 @@ void render(char* objpath)
 		glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
 		glBufferData(GL_ARRAY_BUFFER, vertex_tangent.size() * sizeof(glm::vec3), &vertex_tangent[0], GL_STATIC_DRAW);
 
-		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glVertexAttribPointer(
 			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
@@ -266,19 +266,19 @@ void render(char* objpath)
 			0,                  // stride
 			(void *)0            // array buffer offset
 		);
+		glEnableVertexAttribArray(0);
 
-		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
 		glVertexAttribPointer(
 			1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			1,                  // size
+			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
 			0,                  // stride
 			(void *)0            // array buffer offset
 		);
+		glEnableVertexAttribArray(1);
 
-		glEnableVertexAttribArray(2);
 		glBindBuffer(GL_ARRAY_BUFFER, noisebuffer);
 		glVertexAttribPointer(
 			2,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
@@ -288,8 +288,8 @@ void render(char* objpath)
 			0,                  // stride
 			(void *)0            // array buffer offset
 		);
+		glEnableVertexAttribArray(2);
 
-		glEnableVertexAttribArray(3);
 		glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
 		glVertexAttribPointer(
 			3,                  // attribute
@@ -299,6 +299,7 @@ void render(char* objpath)
 			0,                  // stride
 			(void*)0            // array buffer offset
 		);
+		glEnableVertexAttribArray(3);
 
 		glLineWidth(5.0f);
 
@@ -392,35 +393,35 @@ void load_vertex()
 	for (int i = 0; i < hm->v.size(); i++) {
 		cnt++;
 
-		vertex.push_back(hm->p_p[index].x);
-		vertex.push_back(hm->p_p[index].y);
-		vertex.push_back(hm->p_p[index].z);
+		vertex.push_back(hm->particle_host.position[index].x);
+		vertex.push_back(hm->particle_host.position[index].y);
+		vertex.push_back(hm->particle_host.position[index].z);
 
-		vertex_color.push_back((float)cnt);
+		//vertex_color.push_back((float)cnt);
 
-		point = glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z); // initial point
+		point = glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z); // initial point
 		vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
 		vertex_noise.push_back(rand());
 		index++;
 		for (size_t j = 1; j < hm->v[i].size(); ++j) {
-			vertex.push_back(hm->p_p[index].x);
-			vertex.push_back(hm->p_p[index].y);
-			vertex.push_back(hm->p_p[index].z);
+			vertex.push_back(hm->particle_host.position[index].x);
+			vertex.push_back(hm->particle_host.position[index].y);
+			vertex.push_back(hm->particle_host.position[index].z);
 
-			vertex_color.push_back((float)cnt);
+			//vertex_color.push_back((float)cnt);
 
-			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z))); // tangent vector
+			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z))); // tangent vector
 
 			vertex_noise.push_back(rand());
 			if (j < hm->v[i].size() - 1)
 			{
-				vertex.push_back(hm->p_p[index].x);
-				vertex.push_back(hm->p_p[index].y);
-				vertex.push_back(hm->p_p[index].z);
+				vertex.push_back(hm->particle_host.position[index].x);
+				vertex.push_back(hm->particle_host.position[index].y);
+				vertex.push_back(hm->particle_host.position[index].z);
 
-				vertex_color.push_back((float)cnt);
-				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z))); // tangent vector
-				point = glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z); // update previous point  
+				//vertex_color.push_back((float)cnt);
+				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z))); // tangent vector
+				point = glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z); // update previous point  
 				vertex_noise.push_back(rand());
 
 				//glm::vec3 t = vertex_tangent.at(vertex_tangent.size()-1);
@@ -431,7 +432,7 @@ void load_vertex()
 
 	}
 
-	for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
+	//for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
 }
 
 
@@ -442,7 +443,7 @@ void update_vertex()
 
 	srand(2210U); // just random seed
 	vertex.clear();
-	vertex_color.clear();
+	//vertex_color.clear();
 	vertex_noise.clear();
 	vertex_tangent.clear();
 
@@ -450,35 +451,35 @@ void update_vertex()
 	for (int i = 0; i < hm->v.size(); i++) {
 		cnt++;
 
-		vertex.push_back(hm->p_p[index].x);
-		vertex.push_back(hm->p_p[index].y);
-		vertex.push_back(hm->p_p[index].z);
+		vertex.push_back(hm->particle_host.position[index].x);
+		vertex.push_back(hm->particle_host.position[index].y);
+		vertex.push_back(hm->particle_host.position[index].z);
 
-		vertex_color.push_back((float)cnt);
+		//vertex_color.push_back((float)cnt);
 
-		point = glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z); // initial point
+		point = glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z); // initial point
 		vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
 		vertex_noise.push_back(rand());
 		index++;
 		for (size_t j = 1; j < hm->v[i].size(); ++j) {
-			vertex.push_back(hm->p_p[index].x);
-			vertex.push_back(hm->p_p[index].y);
-			vertex.push_back(hm->p_p[index].z);
+			vertex.push_back(hm->particle_host.position[index].x);
+			vertex.push_back(hm->particle_host.position[index].y);
+			vertex.push_back(hm->particle_host.position[index].z);
 
-			vertex_color.push_back((float)cnt);
+			//vertex_color.push_back((float)cnt);
 
-			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z))); // tangent vector
+			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z))); // tangent vector
 
 			vertex_noise.push_back(rand());
 			if (j < hm->v[i].size() - 1)
 			{
-				vertex.push_back(hm->p_p[index].x);
-				vertex.push_back(hm->p_p[index].y);
-				vertex.push_back(hm->p_p[index].z);
+				vertex.push_back(hm->particle_host.position[index].x);
+				vertex.push_back(hm->particle_host.position[index].y);
+				vertex.push_back(hm->particle_host.position[index].z);
 
-				vertex_color.push_back((float)cnt);
-				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z))); // tangent vector
-				point = glm::vec3(hm->p_p[index].x, hm->p_p[index].y, hm->p_p[index].z); // update previous point  
+				//vertex_color.push_back((float)cnt);
+				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z))); // tangent vector
+				point = glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z); // update previous point  
 				vertex_noise.push_back(rand());
 
 				//glm::vec3 t = vertex_tangent.at(vertex_tangent.size()-1);
@@ -487,12 +488,23 @@ void update_vertex()
 			index++;
 		}
 	}
-	for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
+	//for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
+}
+
+//Particle color array(float3) to vertex color array(float)
+void color_set() {
+	for (int i = 0; i < hm->TOTAL_SIZE; i++) {
+		vertex_color.push_back(hm->particle_host.color[i].x);
+		vertex_color.push_back(hm->particle_host.color[i].y);
+		vertex_color.push_back(hm->particle_host.color[i].z);
+	}
 }
 
 int main(int argc, char** argv) {
 	hm = new HairModel();
 	load_vertex();
-	cout << vertex.size() << endl;
+	color_set();
+	cout << "Vertex size : " << vertex.size() << endl;
+
 	render("head_model");
 }

@@ -45,8 +45,7 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		fclose(f);
 		return tmp;
 	}
-	
-	nstrands = 128;
+	nstrands = 256;
 
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
@@ -67,6 +66,7 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 
 			if (j != 0) {
 				float3 edge = vector_sub(pre_vert, vert);
+				//printf("length : %f\n", vector_length(edge));
 				length += vector_length(edge);
 			}
 			verts.push_back(vert);
@@ -77,7 +77,7 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		// 파티클간 평균 길이가 0.2 보다 작은 strand 제외
 		length /= nverts;
 		if (length < 0.2) {
-			cout << "avg legth : " << length << endl;
+			//printf("error length : %f\n", length);
 			continue;
 		}
 		tmp.push_back(verts);
@@ -99,45 +99,45 @@ void vector2arr(vector<vector<float3>> v, float3 *p) {
 
 void capture(int _width, int _height)
 {
-	//static int _frame = 0;
-	//if (_frame == 0 || _frame % 2 == 0) {
-	//	static int index = 0;
-	//	char filename[100];
-	//	sprintf_s(filename, "capture\\capture-%d.bmp", index);
-	//	BITMAPFILEHEADER bf;
-	//	BITMAPINFOHEADER bi;
-	//	unsigned char *image = (unsigned char*)malloc(sizeof(unsigned char)*_width*_height * 3);
-	//	FILE *file;
-	//	fopen_s(&file, filename, "wb");
-	//	if (image != NULL) {
-	//		if (file != NULL) {
-	//			glReadPixels(0, 0, _width, _height, 0x80E0, GL_UNSIGNED_BYTE, image);
-	//			memset(&bf, 0, sizeof(bf));
-	//			memset(&bi, 0, sizeof(bi));
-	//			bf.bfType = 'MB';
-	//			bf.bfSize = sizeof(bf) + sizeof(bi) + _width * _height * 3;
-	//			bf.bfOffBits = sizeof(bf) + sizeof(bi);
-	//			bi.biSize = sizeof(bi);
-	//			bi.biWidth = _width;
-	//			bi.biHeight = _height;
-	//			bi.biPlanes = 1;
-	//			bi.biBitCount = 24;
-	//			bi.biSizeImage = _width * _height * 3;
-	//			fwrite(&bf, sizeof(bf), 1, file);
-	//			fwrite(&bi, sizeof(bi), 1, file);
-	//			fwrite(image, sizeof(unsigned char), _height*_width * 3, file);
-	//			fclose(file);
-	//		}
-	//		free(image);
-	//	}
-	//	//if (index == 60) { // cloth-bunny
-	//	//if (index == 75) { // avatar
-	//	//if (index == 122) { // rotating sphere
-	//	//if (index == 213) { // rotating bunny
-	//	if (index == 64) { // proximity_test0_2.obj
-	//	//	exit(0);
-	//	}
-	//	index++;
-	//}
-	//_frame++;
+	static int _frame = 0;
+	if (_frame == 0 || _frame % 2 == 0) {
+		static int index = 0;
+		char filename[100];
+		sprintf_s(filename, "capture\\capture-%d.bmp", index);
+		BITMAPFILEHEADER bf;
+		BITMAPINFOHEADER bi;
+		unsigned char *image = (unsigned char*)malloc(sizeof(unsigned char)*_width*_height * 3);
+		FILE *file;
+		fopen_s(&file, filename, "wb");
+		if (image != NULL) {
+			if (file != NULL) {
+				glReadPixels(0, 0, _width, _height, 0x80E0, GL_UNSIGNED_BYTE, image);
+				memset(&bf, 0, sizeof(bf));
+				memset(&bi, 0, sizeof(bi));
+				bf.bfType = 'MB';
+				bf.bfSize = sizeof(bf) + sizeof(bi) + _width * _height * 3;
+				bf.bfOffBits = sizeof(bf) + sizeof(bi);
+				bi.biSize = sizeof(bi);
+				bi.biWidth = _width;
+				bi.biHeight = _height;
+				bi.biPlanes = 1;
+				bi.biBitCount = 24;
+				bi.biSizeImage = _width * _height * 3;
+				fwrite(&bf, sizeof(bf), 1, file);
+				fwrite(&bi, sizeof(bi), 1, file);
+				fwrite(image, sizeof(unsigned char), _height*_width * 3, file);
+				fclose(file);
+			}
+			free(image);
+		}
+		//if (index == 60) { // cloth-bunny
+		//if (index == 75) { // avatar
+		//if (index == 122) { // rotating sphere
+		//if (index == 213) { // rotating bunny
+		if (index == 64) { // proximity_test0_2.obj
+		//	exit(0);
+		}
+		index++;
+	}
+	_frame++;
 }

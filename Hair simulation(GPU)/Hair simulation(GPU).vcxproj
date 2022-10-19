@@ -50,7 +50,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>GLEW_STATIC;WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\ProgramData\NVIDIA Corporation\CUDA Samples\v11.2\common\inc;./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
@@ -70,7 +70,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>GLEW_STATIC;WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\ProgramData\NVIDIA Corporation\CUDA Samples\v11.2\common\inc;./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
@@ -98,8 +98,9 @@
     <ClInclude Include="controls.hpp" />
     <ClInclude Include="HairModel.h" />
     <ClInclude Include="HairStyle.h" />
-    <ClInclude Include="HashTable.h" />
+    <ClInclude Include="HashTableDevice.h" />
     <ClInclude Include="objloader.hpp" />
+    <ClInclude Include="Particle.h" />
     <ClInclude Include="shader.hpp" />
     <ClInclude Include="stb_image_write.h" />
     <ClInclude Include="texture.hpp" />
@@ -113,7 +114,7 @@
     <Text Include="strand.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="HashTable.cu" />
+    <None Include="HashTableDevice.cu" />
     <None Include="normalShader.fragmentshader" />
     <None Include="normalShader.vertexshader" />
     <None Include="SimpleFragmentShader.fragmentshader" />

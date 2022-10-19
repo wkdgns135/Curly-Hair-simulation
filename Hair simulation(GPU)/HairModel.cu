@@ -1,11 +1,21 @@
-﻿#pragma once
+﻿#ifndef __HAIR_MODEL_DEVICE__
+#define __HAIR_MODEL_DEVICE__
+
+#pragma once
 #include <stdio.h>
 #include "HairModel.h"
 #include <cuda_runtime.h>
 #include "device_launch_parameters.h" 
 #include "vector_calc.cuh"
-
-
+#include <thrust/sort.h>
+#include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
+#include <thrust/generate.h>
+#include <thrust/sort.h>
+#include <thrust/copy.h>
+#include <cstdio>
+#include <cstdlib>
+#include <thrust/random.h>
 
 void HairModel::device_info() {
 	cudaDeviceProp  prop;
@@ -53,120 +63,110 @@ void HairModel::device_info() {
 void HairModel::device_init() {
 	device_info();
 
-	cudaMalloc((void**)&p_p_d,sizeof(float3) * TOTAL_SIZE);
-	cudaMalloc((void**)&p_v_d,sizeof(float3) * TOTAL_SIZE);
-	cudaMalloc((void**)&p_f_d,sizeof(float3) * TOTAL_SIZE);
-	cudaMalloc((void**)&r_p_p_d,sizeof(float3) * TOTAL_SIZE);
-	cudaMalloc((void**)&s_p_p_d,sizeof(float3) * TOTAL_SIZE);
-	cudaMalloc((void**)&s_p_v_d,sizeof(float3) * TOTAL_SIZE);
-	cudaMalloc((void**)&r_s_p_p_d,sizeof(float3) * TOTAL_SIZE);
-	cudaMalloc((void**)&s_f_d,sizeof(Frame) * TOTAL_SIZE);
-	cudaMalloc((void**)&t_d,sizeof(float3) * TOTAL_SIZE);
-	cudaMalloc((void**)&r_p_l_d,sizeof(double) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.position, sizeof(float3) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.velocity, sizeof(float3) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.force, sizeof(float3) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.r_position, sizeof(float3) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.s_position, sizeof(float3) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.s_velocity, sizeof(float3) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.r_s_position, sizeof(float3) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.s_frame, sizeof(Frame) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.t, sizeof(float3) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.r_length, sizeof(double) * TOTAL_SIZE);
 	//cudaMalloc((void**)&d,sizeof(float3) * TOTAL_SIZE);
-	
-	cudaMemcpy(p_p_d, p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	cudaMemcpy(r_p_p_d, r_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	cudaMemcpy(r_s_p_p_d, r_s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	cudaMemcpy(r_s_f_d, r_s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	//cudaMemcpy(r_s_p_p, h.r_s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	cudaMemcpy(t_d, t, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	cudaMemcpy(r_p_l_d, r_p_l, sizeof(double) * STRAND_SIZE, cudaMemcpyHostToDevice);
+
+	cudaMemcpy(particle_device.position, particle_host.position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(particle_device.r_position, particle_host.r_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(particle_device.r_s_position, particle_host.r_s_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(particle_device.r_s_frame, particle_host.r_s_frame, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(particle_device.t, particle_host.t, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(particle_device.r_length, particle_host.r_length, sizeof(double) * STRAND_SIZE, cudaMemcpyHostToDevice);
 
 
-	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_f_d);
-	array_init << <STRAND_SIZE, MAX_SIZE >> > (p_v_d);
+	array_init << <STRAND_SIZE, MAX_SIZE >> > (particle_device.force);
+	array_init << <STRAND_SIZE, MAX_SIZE >> > (particle_device.velocity);
 	//array_init << <STRAND_SIZE, MAX_SIZE >> > (d);
-
-	//Init hash table
-	hash_params.grid_size = make_uint3(128, 128, 128);
-	hash_params.num_cells = (hash_params.grid_size.x * hash_params.grid_size.y * hash_params.grid_size.z);
-	hash_params.world_origin = make_float3(-1.0f, -1.0f, -1.0f);
-	hash_params.cell_size = make_float3(0.01, 0.01, 0.01);
-	
-	hashing.init(MAX_SIZE, &hash_params);
 }
 
-__global__ void collision_detect(float3 *p_p, float3 sphere, float radius, int x, int y) {
-	if (threadIdx.x > y)return;
-	if (blockIdx.x > x)return;
+__global__ void collision_detect(Particle particle, float3 sphere, float radius) {
 	if (blockIdx.x == 0)return;
 	//if (threadIdx.x == 10)printf("%f %f %f\n", sphere.x, sphere.y, sphere.z);
-	
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	float3 &p = p_p[tid];
+
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	float3 &p = particle.position[tid];
 	float3 dir = vector_sub_k(p, sphere);
 	float dist = vector_length_k(dir);
 	if (dist < (radius + 0.01f)) {
 		vector_normalize_k(dir);
-		float3 new_pos = vector_add_k(sphere,vector_multiply_k(dir, (radius + 0.01f)));
-		p_p[tid] = new_pos;
+		float3 new_pos = vector_add_k(sphere, vector_multiply_k(dir, (radius + 0.01f)));
+		particle.position[tid] = new_pos;
 	}
 }
 
-__global__ void integrate(float3 *p_p, float3 *p_f, float3 *p_v, double dt, int x, int y) {
+__global__ void integrate(Particle particle, double dt) {
 	//if (threadIdx.x > y)return; 
 	//if (blockIdx.x > x)return;
 	if (threadIdx.x == 0)return;
 
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	p_v[tid] = vector_add_k(p_v[tid], vector_multiply_k(p_f[tid], dt));
-	p_f[tid] = make_float3(0.0, 0.0, 0.0);
-	
-} 
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	float3 ac = particle.force[tid];
+	particle.velocity[tid] = vector_add_k(particle.velocity[tid], vector_multiply_k(ac, dt));
+	particle.force[tid] = make_float3(0.0, 0.0, 0.0);
 
-__global__ void integrate_internal_hair_force(float3 *p_p, float3 *r_p_p, float3 *s_p_p, float3 *r_s_p_p, Frame *s_f, float3* _t, float3 *p_f, float3 *p_v, int x, int y) {
-	if (threadIdx.x > y - 2)return;
+}
+
+__global__ void integrate_internal_hair_force(Particle particle) {
+	if (threadIdx.x > blockDim.x - 2)return;
 	//if (blockIdx.x > x)return;
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
 	//if(blockIdx.x == 0)printf("thread: %d\n", threadIdx.x);
-	float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
-	float3 rest_e = vector_sub_k(r_p_p[tid + 1], r_p_p[tid]);
+	float3 e = vector_sub_k(particle.position[tid + 1], particle.position[tid]);
+	float3 rest_e = vector_sub_k(particle.r_position[tid + 1], particle.r_position[tid]);
 	float3 e_hat = vector_normalized_k(e);
-	float3 b = vector_sub_k(s_p_p[tid + 1], s_p_p[tid]);
-	float3 b_bar = vector_sub_k(r_s_p_p[tid + 1], r_s_p_p[tid]);
+	float3 b = vector_sub_k(particle.s_position[tid + 1], particle.s_position[tid]);
+	float3 b_bar = vector_sub_k(particle.r_s_position[tid + 1], particle.r_s_position[tid]);
 	float3 b_hat = vector_normalized_k(b);
-	
+
 	//float3 t;
 	//if(threadIdx.x == 0) t = multiply_frame_k(s_f[tid], _t[tid]);
 	//else t = multiply_frame_k(s_f[tid - 1], _t[tid]);
-	
-	float3 force1 = vector_multiply_k(e_hat,(vector_length_k(e)-vector_length_k(rest_e)) * K_S);
+
+	float3 force1 = vector_multiply_k(e_hat, (vector_length_k(e) - vector_length_k(rest_e)) * K_S);
 	float3 force2 = vector_multiply_k(vector_sub_k(e, rest_e), K_B);
 	float3 force3_1 = vector_multiply_k(b_hat, vector_length_k(b) - vector_length_k(b_bar));
 	float3 force3 = vector_multiply_k(force3_1, K_C);
-	
+
 	float3 result = vector_add_k(force1, force2);
 	result = vector_add_k(result, force3);
 
-	p_f[tid] = vector_add_k(p_f[tid], result);
+	particle.force[tid] = vector_add_k(particle.force[tid], result);
 	__syncthreads();
-	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
-	 
+	particle.force[tid + 1] = vector_sub_k(particle.force[tid + 1], result);
+
 }
 
-__global__ void integrate_external_hair_force(float3 *p_p, float3 *p_f, float3 *p_v, int x, int y) {
-	if (threadIdx.x > y - 2)return;
+__global__ void integrate_external_hair_force(Particle particle) {
+	if (threadIdx.x > blockDim.x - 2)return;
 	//if (blockIdx.x > x)return;
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
 	float3 gravity = make_float3(0.0, -10, 0.0);
-	p_f[tid] = vector_add_k(p_f[tid], gravity);
+	particle.force[tid] = vector_add_k(particle.force[tid], gravity);
 }
 
-__global__ void integrate_damping_force(float3 *p_p, float3 *s_p_p, float3 *s_p_v, float3 *p_f, float3 *p_v, int x, int y) {
-	if (threadIdx.x > y - 2)return;
+__global__ void integrate_damping_force(Particle particle) {
+	if (threadIdx.x > blockDim.x - 2)return;
 	//if (blockIdx.x > x)return;
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-	float3 d_v = vector_sub_k(p_v[tid + 1], p_v[tid]);
-	float3 e = vector_sub_k(p_p[tid + 1], p_p[tid]);
+	float3 d_v = vector_sub_k(particle.velocity[tid + 1], particle.velocity[tid]);
+	float3 e = vector_sub_k(particle.position[tid + 1], particle.position[tid]);
 	float3 e_hat = vector_normalized_k(e);
 
-	float3 b = vector_sub_k(s_p_p[tid + 1], s_p_p[tid]);
+	float3 b = vector_sub_k(particle.s_position[tid + 1], particle.s_position[tid]);
 	float3 b_hat = vector_normalized_k(b);
-	float3 v = s_p_v[tid];
+	float3 v = particle.s_velocity[tid];
 
 	float3 force1 = vector_multiply_k(vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat)), C_S);
 	float3 force2 = vector_multiply_k(vector_sub_k(d_v, vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat))), C_B);
@@ -175,24 +175,24 @@ __global__ void integrate_damping_force(float3 *p_p, float3 *s_p_p, float3 *s_p_
 	float3 result = vector_add_k(force1, force2);
 	result = vector_add_k(result, force3);
 
-	p_f[tid] = vector_add_k(p_f[tid], result);
+	particle.force[tid] = vector_add_k(particle.force[tid], result);
 	__syncthreads();
-	p_f[tid + 1] = vector_sub_k(p_f[tid + 1], result);
-	
+	particle.force[tid + 1] = vector_sub_k(particle.force[tid + 1], result);
+
 }
 
-__global__ void update_position(float3 *p_p, float3 *p_v, int x, int y) {
+__global__ void update_position(Particle particle) {
 	//if (threadIdx.x > y)return;
 	//if (blockIdx.x > x)return;
 	if (threadIdx.x == 0)return;
 	double dt = 0.00138883;
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	p_p[tid] = vector_add_k(p_p[tid], vector_multiply_k(p_v[tid], dt));
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	particle.position[tid] = vector_add_k(particle.position[tid], vector_multiply_k(particle.velocity[tid], dt));
 }
 //float3 *lambda, double *l, double alpha, bool is_position
 
 __global__ void position_smoothing_function_k(float3 *lambda, float3 *dst, float3 *d, double *l, float alpha) {
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	float beta = 0.0;
 
 	beta = 1 > 1 - exp(-l[blockIdx.x] / alpha) ? 1 - exp(-l[blockIdx.x] / alpha) : 1;
@@ -207,7 +207,7 @@ __global__ void position_smoothing_function_k(float3 *lambda, float3 *dst, float
 		float3 term3 = vector_sub_k(term1, term2);
 		float3 term4 = vector_multiply_k(vector_sub_k(lambda[tid + 1], lambda[tid]), (beta * beta));
 	}
-	
+
 	if (threadIdx.x == 0) {
 		dst[tid] = lambda[tid];
 	}
@@ -218,7 +218,6 @@ __global__ void position_smoothing_function_k(float3 *lambda, float3 *dst, float
 
 __global__ void velocity_smoothing_function_k(float3 *lambda, float3 *dst, double *l, float alpha) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-
 	//if (threadIdx.x > 31) {
 	//	__syncthreads();
 	//	if (threadIdx.x > 63) {
@@ -244,79 +243,168 @@ __global__ void velocity_smoothing_function_k(float3 *lambda, float3 *dst, doubl
 	}
 }
 
-__global__ void move_root_up_k(float3 *p_p) {
+__global__ void move_root_up_k(float3 *position) {
 	//if (threadIdx.x > y)return;
 	//if (blockIdx.x > x)return;
 	if (threadIdx.x != 0)return;
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	p_p[tid].y += 0.05;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	position[tid].y += 0.05;
+	double dt = 0.00138883;
 }
 
-__global__ void move_root_down_k(float3 *p_p) {
+// added by jhkim
+__device__ unsigned int GetGridHash_CurlyHair(int3 gridPos, int3 gridSize)
+{
+	gridPos.x = gridPos.x & (gridSize.x - 1);
+	gridPos.y = gridPos.y & (gridSize.y - 1);
+	gridPos.z = gridPos.z & (gridSize.z - 1);
+	return ((gridPos.z * gridSize.y) * gridSize.x) + (gridPos.y * gridSize.x) + gridPos.x;
+}
+
+__device__ int3 GetGridPos_CurlyHair(float3 p, float3 cellSize)
+{
+	int3 gridPos;
+	gridPos.x = floor(p.x / 128.0f / cellSize.x);
+	gridPos.y = floor(p.y / 128.0f / cellSize.y);
+	gridPos.z = floor(p.z / 128.0f / cellSize.z);
+	return gridPos;
+}
+
+// added by jhkim
+__global__ void ReorderData_CurlyHair(HashTableDevice hashing, uint numParticles)
+{
+	extern __shared__ uint sharedHash[];
+	uint index = (blockIdx.x, blockDim.x) + threadIdx.x;
+	uint hash;
+	if (index < numParticles) {
+		hash = hashing._gridParticleHash[index];
+		sharedHash[threadIdx.x + 1] = hash;
+		if (index > 0 && threadIdx.x == 0) {
+			sharedHash[0] = hashing._gridParticleHash[index - 1];
+		}
+	}
+	__syncthreads();
+	if (index < numParticles) {
+		if (index == 0 || hash != sharedHash[threadIdx.x]) {
+			hashing._cellStart[hash] = index;
+			if (index > 0) {
+				hashing._cellEnd[sharedHash[threadIdx.x]] = index;
+			}
+		}
+		if (index == numParticles - 1) {
+			hashing._cellEnd[hash] = index + 1;
+		}
+	}
+}
+
+// added by jhkim
+__global__ void UpdateHashKernel_CulryHair(HashTableDevice hashing, Particle particles, int num_particles)
+{
+	unsigned int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+	if (index >= num_particles) return;
+
+	float res = 128.0f;
+	float3 dx = make_float3(1.0f / res, 1.0f / res, 1.0f / res);
+	int3 gridPos = GetGridPos_CurlyHair(particles.position[index], dx);
+	int3 gridSize = make_int3((int)res, (int)res, (int)res);
+	unsigned int hash = GetGridHash_CurlyHair(gridPos, gridSize);
+
+	hashing._gridParticleHash[index] = hash;
+	hashing._gridParticleIndex[index] = index;
+}
+
+__global__ void move_root_down_k(float3 *position) {
 	//if (threadIdx.x > y)return;
 	//if (blockIdx.x > x)return;
 	if (threadIdx.x != 0)return;
-	
-	unsigned int tid = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	p_p[tid].y -= 0.05;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	position[tid].y -= 0.05;
+	double dt = 0.00138883;
 }
 
 void HairModel::move_root(int dst) {
 	if (dst == 0) {
-		move_root_up_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d);
+		move_root_up_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device.position);
 	}
 	if (dst == 1) {
-		move_root_down_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d);
+		move_root_down_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device.position);
 	}
 }
 
-void HairModel:: simulation() {
-	cudaEvent_t start, stop;
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
-	cudaEventRecord(start);
+void HairModel::updateHashing(void)
+{
+	int numParticles = TOTAL_SIZE;
+	int numBlocks = 70000;
+	int numThreads = 1024;
+	int gridSize = 128;
+	int numCells = gridSize * gridSize * gridSize;
 
-	//Calc hash table
-	//updateHashTable(hashing, p_p_d, MAX_SIZE, STRAND_SIZE, MAX_SIZE, hash_params);
+	UpdateHashKernel_CulryHair << <numBlocks, numThreads >> > (_hashing, particle_device, numParticles);
+
+	// sort
+	//thrust::sort_by_key(thrust::device_ptr<uint>(_hashing._gridParticleHash),
+	//	thrust::device_ptr<uint>(_hashing._gridParticleHash + numParticles),
+	//	thrust::device_ptr<uint>(_hashing._gridParticleIndex));
+
+	//// reorder
+	//cudaMemset(_hashing._cellStart, 0xffffffff, numCells * sizeof(uint));
+	//auto sharedMemSize = sizeof(uint)*(numThreads + 1);
+	//ReorderData_CurlyHair << <numBlocks, numThreads, sharedMemSize >> > (_hashing, numParticles);
+}
+
+void HairModel::freeHashing(void)
+{
+	_hashing.free();
+}
+
+void HairModel::simulation() {
+	//cudaEvent_t start, stop;
+	//cudaEventCreate(&start);
+	//cudaEventCreate(&stop);
+	//cudaEventRecord(start);
+
+	//updateHashing();
 
 	for (int iter1 = 0; iter1 < 10; iter1++) {
 		//collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
-		position_smoothing_function(p_p, s_p_p, r_p_l, A_B, true);
-		cudaMemcpy(s_p_p_d, s_p_p, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+		position_smoothing_function(particle_host.position, particle_host.s_position, particle_host.r_length, A_B, true);
+		cudaMemcpy(particle_device.s_position, particle_host.s_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 		//position_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, s_p_p_d, d,r_p_l_d, A_B);
 		//compute_frame(s_f, s_p_p);
 		//cudaMemcpy(s_f_d, s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-		
+
 		for (int iter2 = 0; iter2 < 15; iter2++) {
 			//velocity_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_v_d, s_p_v_d, r_p_l_d, A_C);
-			cudaMemcpy(p_v, p_v_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
-			velocity_smoothing_function(p_v, s_p_v, r_p_l, A_C, false);
-			cudaMemcpy(s_p_v_d, s_p_v, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+			cudaMemcpy(particle_host.velocity, particle_device.velocity, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
+			velocity_smoothing_function(particle_host.velocity, particle_host.s_velocity, particle_host.r_length, A_C, false);
+			cudaMemcpy(particle_device.s_velocity, particle_host.s_velocity, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 
-			integrate_internal_hair_force <<<STRAND_SIZE, MAX_SIZE>>> (p_p_d, r_p_p_d, s_p_p_d, r_s_p_p_d, r_s_f_d, t_d , p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
-			integrate_external_hair_force <<<STRAND_SIZE, MAX_SIZE>>> (p_p_d, p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
-			integrate << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, 9.25887e-05, STRAND_SIZE, MAX_SIZE);
-
+			integrate_internal_hair_force << <STRAND_SIZE, MAX_SIZE >> > (particle_device);
+			integrate_external_hair_force << <STRAND_SIZE, MAX_SIZE >> > (particle_device);
+			integrate << <STRAND_SIZE, MAX_SIZE >> > (particle_device, 9.25887e-05);
 			for (int iter3 = 0; iter3 < 10; iter3++) {
-				integrate_damping_force <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d,s_p_p_d, s_p_v_d, p_f_d, p_v_d, STRAND_SIZE, MAX_SIZE);
-				integrate << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_f_d, p_v_d, 9.25887e-06, STRAND_SIZE, MAX_SIZE);
+				integrate_damping_force << <STRAND_SIZE, MAX_SIZE >> > (particle_device);
+				integrate << <STRAND_SIZE, MAX_SIZE >> > (particle_device, 9.25887e-06);
 			}
 		}
-		update_position <<<STRAND_SIZE, MAX_SIZE >> > (p_p_d, p_v_d, STRAND_SIZE, MAX_SIZE);
+		update_position << <STRAND_SIZE, MAX_SIZE >> > (particle_device);
 	}
+
+	//freeHashing();
 
 
 	//performace check
 
-	cudaEventRecord(stop);
-	cudaEventSynchronize(stop);
-	float milliseconds = 0.0;
-	cudaEventElapsedTime(&milliseconds, start, stop);
-	std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
+	//cudaEventRecord(stop);
+	//cudaEventSynchronize(stop);
+	//float milliseconds = 0.0;
+	//cudaEventElapsedTime(&milliseconds, start, stop);
+	//std::cout << " SAXPY execution time : " << milliseconds << " ms " << std::endl;
 
-	cudaEventDestroy(start);
-	cudaEventDestroy(stop);
+	//cudaEventDestroy(start);
+	//cudaEventDestroy(stop);
 
-	cudaMemcpy(p_p, p_p_d, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);	
+	cudaMemcpy(particle_host.position, particle_device.position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 }
 
+#endif // !__HAIR_MODEL_DEVICE__
