@@ -14,6 +14,7 @@ public:
 	uint *_gridParticleIndex;
 	uint *_cellStart;
 	uint *_cellEnd;
+
 public:
 	HashTableDevice(void);
 	~HashTableDevice(void);

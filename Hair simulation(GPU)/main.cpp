@@ -1,510 +1,211 @@
 ﻿#pragma once
 #include <stdio.h>
 #include <time.h>
-#include <vector>
-#include <string>
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
-#include <sys/stat.h>
-
-// added by jhkim
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-
+#include "GL/glut.h"
 #include "HairModel.h"
-#include "controls.hpp"
-#include "shader.hpp"
-#include "texture.hpp"
-#include "objloader.hpp"
-
+#include "FileController.h"
 using namespace std;
 
+float zoom = 17.5f;
+float rot_x = 90.0f;
+float rot_y = 180.0f;
+float trans_x = 0.0f;
+float trans_y = 0.0f;
+
+int last_x = 0;
+int last_y = 0;
+unsigned char buttons[3] = { 0 };
+double dt = 0.01;
+
+// 0 : bounsing test	Key(B)
+// 1 : wind test		Key(W)
+// 2 : simulation		key(SPACE)
+bool status[4] = { false, false, true, false };
+double n = 0;
+bool out_file = false;
+int out_file_num = 0;
+
 HairModel *hm;
-vector<GLfloat> vertex;
-vector<GLfloat> vertex_color;
-vector<GLfloat> vertex_noise;
-vector<glm::vec3> vertex_tangent;
+void Draw() {
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
 
-string vertexshader_fn = "SimpleFragmentShader.vertexshader";
-string fragmentshader_fn = "SimpleFragmentShader.fragmentshader";
-GLFWwindow* window;
-void update_vertex();
 
-// added by jhkim
-bool isCapture = true;
+	glPushMatrix();
+	//glTranslatef(hm->sphere[0], hm->sphere[1], hm->sphere[2]);
+	//glutSolidSphere(hm->radius - 0.01, 20, 20);
+	glPopMatrix();
 
-// added by jhkim
-void FlipVertically(int width, int height, char *data)
-{
-	char rgb[3];
-	for (int y = 0; y < height / 2; ++y) {
-		for (int x = 0; x < width; ++x) {
-			int top = (x + y * width) * 3;
-			int bottom = (x + (height - y - 1) * width) * 3;
-			memcpy(rgb, data + top, sizeof(rgb));
-			memcpy(data + top, data + bottom, sizeof(rgb));
-			memcpy(data + bottom, rgb, sizeof(rgb));
-		}
-	}
-}
+	//hm->draw_point();
+	hm->draw_wire();
 
-void Capture(void)
-{
-	static int frame = 0;
-	if (frame == 0 || frame % 5 == 0) {
-		static int index = 0;
-		char filename[100];
-		sprintf_s(filename, "capture\\capture-%d.bmp", index);
-		GLint viewport[4];
-		glGetIntegerv(GL_VIEWPORT, viewport);
-
-		int x = viewport[0];
-		int y = viewport[1];
-		int width = viewport[2];
-		int height = viewport[3];
-		char *data = (char*)malloc((size_t)(width * height * 3)); // 3 components (R, G, B)
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-		FlipVertically(width, height, data);
-		stbi_write_bmp(filename, width, height, 3, data);
-		free(data);
-		index++;
-	}
-	frame++;
+	glDisable(GL_LIGHTING);
 }
 
 
-void render(char* objpath)
-{
-	glewExperimental = true; // Needed for core profile
-	if (!glfwInit())
+void Mouse(int button, int state, int x, int y) {
+	last_x = x;
+	last_y = y;
+
+	switch (button)
 	{
-		fprintf(stderr, "Failed to initialize GLFW\n");
-		return;
+	case GLUT_LEFT_BUTTON:
+		buttons[0] = state == GLUT_DOWN ? 1 : 0;
+		break;
+	case GLUT_MIDDLE_BUTTON:
+		buttons[1] = state == GLUT_DOWN ? 1 : 0;
+		break;
+	case GLUT_RIGHT_BUTTON:
+		buttons[2] = state == GLUT_DOWN ? 1 : 0;
+		break;
+
+	default:
+		break;
 	}
 
-	glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glutPostRedisplay();
+}
+void Motion(int x, int y) {
+	int diff_x = x - last_x;
+	int diff_y = y - last_y;
+	last_x = x;
+	last_y = y;
 
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-	int winsize[2] = { 1440 * 0.7, 1080 * 0.7 }; // added by jhkim
-
-	window = glfwCreateWindow(winsize[0], winsize[1], "Geometric Image Viewer", NULL, NULL); // Windowed
-	if (window == NULL) {
-		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
-		glfwTerminate();
-		return;
+	if (buttons[2]) {
+		zoom -= (float)0.02f * diff_x;
+	}
+	else if (buttons[1]) {
+		trans_x += (float)0.02f * diff_x;
+		trans_y -= (float)0.02f * diff_y;
+	}
+	else if (buttons[0]) {
+		rot_x += (float)0.2f * diff_y;
+		rot_y += (float)0.2f *diff_x;
 	}
 
-	glfwMakeContextCurrent(window);
-
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK) {
-		fprintf(stderr, "Failed to initialize GLEW\n");
-		return;
-	}
-	// Ensure we can capture the escape key being pressed below
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	glutPostRedisplay();
+}
 
 
-	// GLFW callbacks to handle inputs
-	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-	// Set the mouse at the center of the screen
-	glfwPollEvents();
-	glfwSetCursorPos(window, winsize[0] / 2, winsize[1] / 2);
-
-	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-	// Enable depth test
-	glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
-
-	glEnable(GL_CULL_FACE);
-
-	//VAO
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
-
-	GLuint programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+void Display(void) {
+	//glClearColor(0.6, 0.6, 0.6, 1);
+	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(programID);
+	glLoadIdentity();
 
-	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-	GLuint LightID_hair = glGetUniformLocation(programID, "LightPosition_worldspace");
-
-	// Draw using a shader
-
-	glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(26.5f), (float)(6.0 / 6.0), 0.5f, 100.0f);
-	glm::vec3 eye_pos = glm::vec3(3, 0, 1.3);
-	glm::vec3 look_pos = glm::vec3(0, 0, -1);
-	glm::vec3 head_up = glm::vec3(0, -1, 0);
-
-	// Camera matrix
-	glm::mat4 ViewMatrix = glm::lookAt(
-		eye_pos, // Camera is at (4,3,3), in World Space
-		look_pos, // and looks at the origin
-		head_up // Head is up (set to 0,-1,0 to look upside-down)
-	);
-
-	//computeMatricesFromInputs();
-	//glm::mat4 ProjectionMatrix = getProjectionMatrix();
-	//glm::mat4 ViewMatrix = getViewMatrix();
-
-	glm::mat4 ModelMatrix = glm::translate(glm::vec3(0, 0, 0)) * glm::orientate4(glm::vec3(0, 0, 0)) * glm::translate(glm::vec3(0, -1.7, 0));
-
-	glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-	glm::vec3 cam_pos = getCameraPosition();
-
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
-	// Read our .obj file
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals; // Won't be used at the moment.
-
-	int hair_data_length = vertex.size();
-	// store data length of hair
-
-	std::string name(objpath);
-	bool res = loadOBJ((name + ".obj").c_str(), vertices, uvs, normals);
-	GLuint face_programID = LoadShaders("normalShader.vertexshader", "normalShader.fragmentshader");
-
-	// Face Shader :: Get a handle for our "MVP" uniform
-	glUseProgram(face_programID);
-	GLuint face_MatrixID = glGetUniformLocation(face_programID, "MVP");
-	GLuint face_ViewMatrixID = glGetUniformLocation(face_programID, "V");
-	GLuint face_ModelMatrixID = glGetUniformLocation(face_programID, "M");
-	GLuint LightID = glGetUniformLocation(face_programID, "LightPosition_worldspace");
-
-	GLuint NormalTexture = loadBMP_custom((name + ".isomap.bmp").c_str());
-	GLuint NormalTextureID = glGetUniformLocation(face_programID, "myTextureSampler");
-
-	GLuint face_vertexbuffer;
-	glGenBuffers(1, &face_vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, face_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices, GL_STATIC_DRAW);
-
-	GLuint face_uvbuffer;
-	glGenBuffers(1, &face_uvbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, face_uvbuffer);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs, GL_STATIC_DRAW);
-
-	GLuint face_normalbuffer;
-	glGenBuffers(1, &face_normalbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, face_normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals, GL_STATIC_DRAW);
-
-	//std::vector<float> head_color(vertices.size(), 0.0);
-	//vertex_color.insert(vertex_color.end(), head_color.begin(), head_color.end());
-	bool first = true;
-	do {
-		// Clear the screen. 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//simulation
-		static int frame = 0;
-		if (frame == 0 || frame % 5 == 0)
-		{
-			hm->simulation();
-			update_vertex();
-		}
-		frame++;
-
-
-		glUseProgram(programID);
-		computeMatricesFromInputs(hm);
-
-		ProjectionMatrix = getProjectionMatrix();
-		ViewMatrix = getViewMatrix();
-		MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		glm::vec3 lightPos = glm::vec3(0, 1, 3);
-		glUniform3f(LightID_hair, lightPos.x, lightPos.y, lightPos.z);
-
-		//update buffer
-		GLfloat* g_vertex_buffer_data = vertex.data();
-		GLuint vertexbuffer;
-		glGenBuffers(1, &vertexbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(float), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-		GLfloat* g_vertex_color_data = vertex_color.data();
-		GLuint colorbuffer;
-		glGenBuffers(1, &colorbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-		glBufferData(GL_ARRAY_BUFFER, vertex_color.size() * sizeof(float), g_vertex_color_data, GL_STATIC_DRAW);
-
-		GLfloat* g_vertex_noise_data = vertex_color.data();
-		GLuint noisebuffer;
-		glGenBuffers(1, &noisebuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, noisebuffer);
-		glBufferData(GL_ARRAY_BUFFER, vertex_noise.size() * sizeof(float), g_vertex_noise_data, GL_STATIC_DRAW);
-
-		GLuint tangentbuffer;
-		glGenBuffers(1, &tangentbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
-		glBufferData(GL_ARRAY_BUFFER, vertex_tangent.size() * sizeof(glm::vec3), &vertex_tangent[0], GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glVertexAttribPointer(
-			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void *)0            // array buffer offset
-		);
-		glEnableVertexAttribArray(0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-		glVertexAttribPointer(
-			1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void *)0            // array buffer offset
-		);
-		glEnableVertexAttribArray(1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, noisebuffer);
-		glVertexAttribPointer(
-			2,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			1,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void *)0            // array buffer offset
-		);
-		glEnableVertexAttribArray(2);
-
-		glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
-		glVertexAttribPointer(
-			3,                  // attribute
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
-		glEnableVertexAttribArray(3);
-
-		glLineWidth(5.0f);
-
-		glDrawArrays(GL_LINES, 0, hair_data_length / 3);
-
-		glUseProgram(face_programID);
-
-		glUniformMatrix4fv(face_MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(face_ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-		glUniformMatrix4fv(face_ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
-
-		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
-
-
-		// texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, NormalTexture);
-		// Set our "myTextureSampler" sampler to use Texture Unit 0
-		glUniform1i(NormalTextureID, 0);
-
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, face_vertexbuffer);
-		glVertexAttribPointer(
-			0,                  // attribute
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
-
-		// 2nd attribute buffer : UVs
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, face_uvbuffer);
-		glVertexAttribPointer(
-			1,                                // attribute
-			2,                                // size
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
-		);
-
-		glEnableVertexAttribArray(2);
-		glBindBuffer(GL_ARRAY_BUFFER, face_normalbuffer);
-		glVertexAttribPointer(
-			2,                                // attribute
-			3,                                // size
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
-		);
-
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-
-		//glDrawArrays(GL_TRIANGLES, hair_data_length/3, vertex_data.size()/3);
-		//printf("drawing done\n");
-		if (first) // save first image only.
-		{
-			//saveimage(1280, 960);
-			first = false;
-		}
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-		if (isCapture) {
-			Capture();
-		}
-	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
-
-	//saveimage(1280, 960);
-
-	glDeleteVertexArrays(1, &VertexArrayID);
-	glfwPollEvents();
-	//glDeleteBuffers(1, &vertexbuffer);
-	glDeleteProgram(programID);
-	//glDeleteVertexArrays(1, &VertexArrayID);
-
-	// Close OpenGL window and terminate GLFW
-	glfwTerminate();
+	glTranslatef(0, 0, -zoom);
+	glTranslatef(trans_x, trans_y, 0);
+	glRotatef(rot_x, 1, 0, 0);
+	glRotatef(rot_y, 0, 1, 0);
+	Draw();
+	glutSwapBuffers();
 }
 
-void load_vertex()
+void Init(void) {
+	zoom = 20;
+	trans_x = 0;
+	trans_y = zoom / 3;
+	rot_x = 15;
+	rot_y = 0;
+
+	glEnable(GL_DEPTH_TEST);
+}
+
+void Reshape(int w, int h) {
+	if (w == 0) {
+		h = 1;
+	}
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0, float(w) / h, dt, 1000);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+}
+
+void SpecialKeys(int key, int x, int y) {
+	switch (key)
+	{
+	case GLUT_KEY_RIGHT:
+		break;
+	case GLUT_KEY_LEFT:
+		break;
+	case GLUT_KEY_UP:
+		break;
+	case GLUT_KEY_DOWN:
+		break;
+	}
+	::glutPostRedisplay();
+}
+
+void KeyboardEvent(unsigned char key, int x, int y) {
+	switch (key)
+	{
+	case'r':
+	case'R':
+		break;
+	case 'b':
+	case 'B':
+		status[0] = !status[0];
+		break;
+	case 'w':
+	case 'W':
+		status[1] = !status[1];
+		break;
+	case ' ':
+		status[2] = !status[2];
+		break;
+	case 'S':
+	case 's':
+		status[3] = !status[3];
+		break;
+	case 'q':
+	case 'Q':
+		rot_y += 90;
+		break;
+	case 'v':
+	case 'V':
+		Init();
+		break;
+	default:
+		break;
+	}
+}
+
+void upLinePrompt(int count)
 {
-	int cnt = 0;
-	glm::vec3 point; // previous point
-
-	srand(2210U); // just random seed
-
-	int index = 0;
-	for (int i = 0; i < hm->v.size(); i++) {
-		cnt++;
-
-		vertex.push_back(hm->particle_host.position[index].x);
-		vertex.push_back(hm->particle_host.position[index].y);
-		vertex.push_back(hm->particle_host.position[index].z);
-
-		//vertex_color.push_back((float)cnt);
-
-		point = glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z); // initial point
-		vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
-		vertex_noise.push_back(rand());
-		index++;
-		for (size_t j = 1; j < hm->v[i].size(); ++j) {
-			vertex.push_back(hm->particle_host.position[index].x);
-			vertex.push_back(hm->particle_host.position[index].y);
-			vertex.push_back(hm->particle_host.position[index].z);
-
-			//vertex_color.push_back((float)cnt);
-
-			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z))); // tangent vector
-
-			vertex_noise.push_back(rand());
-			if (j < hm->v[i].size() - 1)
-			{
-				vertex.push_back(hm->particle_host.position[index].x);
-				vertex.push_back(hm->particle_host.position[index].y);
-				vertex.push_back(hm->particle_host.position[index].z);
-
-				//vertex_color.push_back((float)cnt);
-				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z))); // tangent vector
-				point = glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z); // update previous point  
-				vertex_noise.push_back(rand());
-
-				//glm::vec3 t = vertex_tangent.at(vertex_tangent.size()-1);
-				//std::cout << t.x << t.y << t.z << std::endl;
-			}
-			index++;
-		}
-
+	for (int i = 0; i < count; ++i) {
+		//printf("%c[2K",27);
+		cout << "\33[2K"; //line clear
+		cout << "\x1b[A"; //up line (ESC [ A) must be support VT100 escape seq
 	}
-
-	//for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
 }
 
+void Update() {
+	hm->simulation();
 
-void update_vertex()
-{
-	int cnt = 0;
-	glm::vec3 point; // previous point
-
-	srand(2210U); // just random seed
-	vertex.clear();
-	//vertex_color.clear();
-	vertex_noise.clear();
-	vertex_tangent.clear();
-
-	int index = 0;
-	for (int i = 0; i < hm->v.size(); i++) {
-		cnt++;
-
-		vertex.push_back(hm->particle_host.position[index].x);
-		vertex.push_back(hm->particle_host.position[index].y);
-		vertex.push_back(hm->particle_host.position[index].z);
-
-		//vertex_color.push_back((float)cnt);
-
-		point = glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z); // initial point
-		vertex_tangent.push_back(glm::vec3(0, 0, 1)); // tangent is (0, 0, 1) on initial point.
-		vertex_noise.push_back(rand());
-		index++;
-		for (size_t j = 1; j < hm->v[i].size(); ++j) {
-			vertex.push_back(hm->particle_host.position[index].x);
-			vertex.push_back(hm->particle_host.position[index].y);
-			vertex.push_back(hm->particle_host.position[index].z);
-
-			//vertex_color.push_back((float)cnt);
-
-			vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z))); // tangent vector
-
-			vertex_noise.push_back(rand());
-			if (j < hm->v[i].size() - 1)
-			{
-				vertex.push_back(hm->particle_host.position[index].x);
-				vertex.push_back(hm->particle_host.position[index].y);
-				vertex.push_back(hm->particle_host.position[index].z);
-
-				//vertex_color.push_back((float)cnt);
-				vertex_tangent.push_back(glm::normalize(point - glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z))); // tangent vector
-				point = glm::vec3(hm->particle_host.position[index].x, hm->particle_host.position[index].y, hm->particle_host.position[index].z); // update previous point  
-				vertex_noise.push_back(rand());
-
-				//glm::vec3 t = vertex_tangent.at(vertex_tangent.size()-1);
-				//std::cout << t.x << t.y << t.z << std::endl;
-			}
-			index++;
-		}
-	}
-	//for (int i = 0; i < vertex_color.size(); i++) vertex_color[i] /= (float)cnt; // [0,1), same along a strand
-}
-
-//Particle color array(float3) to vertex color array(float)
-void color_set() {
-	for (int i = 0; i < hm->TOTAL_SIZE; i++) {
-		vertex_color.push_back(hm->particle_host.color[i].x);
-		vertex_color.push_back(hm->particle_host.color[i].y);
-		vertex_color.push_back(hm->particle_host.color[i].z);
-	}
+	if (out_file)out_hair_asc(hm, "Test.txt");
+	::glutPostRedisplay();
 }
 
 int main(int argc, char** argv) {
 	hm = new HairModel();
-	load_vertex();
-	color_set();
-	cout << "Vertex size : " << vertex.size() << endl;
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+	glutInitWindowSize(680, 680);
+	glutInitWindowPosition(100, 100);
 
-	render("head_model");
+	glutCreateWindow("Hair Simulation");
+	glutDisplayFunc(Display);
+	glutReshapeFunc(Reshape);
+	glutMouseFunc(Mouse);
+
+	glutMotionFunc(Motion);
+	glutSpecialFunc(SpecialKeys);
+	glutKeyboardFunc(KeyboardEvent);
+	glutIdleFunc(Update);
+
+	Init();
+	glutMainLoop();
 }

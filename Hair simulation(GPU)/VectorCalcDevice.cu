@@ -1,8 +1,7 @@
-﻿#ifndef __VECTOR_CALC_K__
-#define __VECTOR_CALC_K__
-
-#include "vector_types.h"
+#pragma once
+#include "VectorCalcdevice.cuh"
 #include "math_functions.h"
+#include "vector_functions.h"
 
 __global__ void array_init(float3 *arr) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -72,6 +71,59 @@ __device__ float3 vector_sub_k(float3 a, double b) {
 	return tmp;
 }
 
+__device__ float3 operator + (float3 a, float3 &b) {
+	float3 tmp;
+	tmp.x = a.x + b.x;
+	tmp.y = a.y + b.y;
+	tmp.z = a.z + b.z;
+
+	return tmp;
+}
+
+__device__ float3 operator + (float3 a, float &b) {
+	float3 tmp;
+	tmp.x = a.x + b;
+	tmp.y = a.y + b;
+	tmp.z = a.z + b;
+
+	return tmp;
+}
+
+__device__ float3 operator - (float3 a, float3 &b) {
+	float3 tmp;
+	tmp.x = a.x - b.x;
+	tmp.y = a.y - b.y;
+	tmp.z = a.z - b.z;
+
+	return tmp;
+}
+
+__device__ float3 operator - (float3 a, float &b) {
+	float3 tmp;
+	tmp.x = a.x - b;
+	tmp.y = a.y - b;
+	tmp.z = a.z - b;
+
+	return tmp;
+}
+__device__ float3 operator * (float3 a, float3 &b) {
+	float3 tmp;
+	tmp.x = a.x * b.x;
+	tmp.y = a.y * b.y;
+	tmp.z = a.z * b.z;
+
+	return tmp;
+}
+
+__device__ float3 operator * (float3 a, float &b) {
+	float3 tmp;
+	tmp.x = a.x * b;
+	tmp.y = a.y * b;
+	tmp.z = a.z * b;
+
+	return tmp;
+}
+
 __device__ double vector_length_k(float3 a) {
 	return sqrt(float(a.x*a.x + a.y * a.y + a.z * a.z));
 }
@@ -109,42 +161,41 @@ __device__ double vector_dot_k(float3 a, float3 b) {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
-__device__ float3 multiply_transpose_frame_k(Frame f, float3 e) {
-	float3 tmp;
-	tmp.x =
-		e.x * f.aim.x +
-		e.y * f.up.x +
-		e.z * f.cross.x;
-
-	tmp.y =
-		e.x * f.aim.y +
-		e.y * f.up.y +
-		e.z * f.cross.y;
-
-	tmp.z =
-		e.x * f.aim.z +
-		e.y * f.up.z +
-		e.z * f.cross.z;
-	return tmp;
-}
-
-__device__ float3 multiply_frame_k(Frame f, float3 e) {
-	float3 tmp;
-	tmp.x =
-		e.x * f.aim.x +
-		e.y * f.aim.y +
-		e.z * f.aim.z;
-
-	tmp.y =
-		e.x * f.up.x +
-		e.y * f.up.y +
-		e.z * f.up.z;
-
-	tmp.z =
-		e.x * f.cross.x +
-		e.y * f.cross.y +
-		e.z * f.cross.z;
-	return tmp;
-}
-
-#endif
+//
+//__device__ float3 multiply_transpose_frame_k(Frame f, float3 e) {
+//	float3 tmp;
+//	tmp.x =
+//		e.x * f.aim.x +
+//		e.y * f.up.x +
+//		e.z * f.cross.x;
+//
+//	tmp.y =
+//		e.x * f.aim.y +
+//		e.y * f.up.y +
+//		e.z * f.cross.y;
+//
+//	tmp.z =
+//		e.x * f.aim.z +
+//		e.y * f.up.z +
+//		e.z * f.cross.z;
+//	return tmp;
+//}
+//
+//__device__ float3 multiply_frame_k(Frame f, float3 e) {
+//	float3 tmp;
+//	tmp.x =
+//		e.x * f.aim.x +
+//		e.y * f.aim.y +
+//		e.z * f.aim.z;
+//
+//	tmp.y =
+//		e.x * f.up.x +
+//		e.y * f.up.y +
+//		e.z * f.up.z;
+//
+//	tmp.z =
+//		e.x * f.cross.x +
+//		e.y * f.cross.y +
+//		e.z * f.cross.z;
+//	return tmp;
+//}

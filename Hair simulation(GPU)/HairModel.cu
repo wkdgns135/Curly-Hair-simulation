@@ -1,21 +1,20 @@
 ﻿#ifndef __HAIR_MODEL_DEVICE__
 #define __HAIR_MODEL_DEVICE__
 
-#pragma once
 #include <stdio.h>
-#include "HairModel.h"
 #include <cuda_runtime.h>
+#include "HairModel.h"
 #include "device_launch_parameters.h" 
-#include "vector_calc.cuh"
+#include "VectorCalcDevice.cuh"
 #include <thrust/sort.h>
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
 #include <thrust/generate.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
-#include <cstdio>
-#include <cstdlib>
 #include <thrust/random.h>
+
+__constant__ struct Params params;
 
 void HairModel::device_info() {
 	cudaDeviceProp  prop;
@@ -73,6 +72,7 @@ void HairModel::device_init() {
 	cudaMalloc((void**)&particle_device.s_frame, sizeof(Frame) * TOTAL_SIZE);
 	cudaMalloc((void**)&particle_device.t, sizeof(float3) * TOTAL_SIZE);
 	cudaMalloc((void**)&particle_device.r_length, sizeof(double) * TOTAL_SIZE);
+	cudaMalloc((void**)&particle_device.R, sizeof(float3) * MAX_SIZE);
 	//cudaMalloc((void**)&d,sizeof(float3) * TOTAL_SIZE);
 
 	cudaMemcpy(particle_device.position, particle_host.position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
@@ -81,10 +81,13 @@ void HairModel::device_init() {
 	cudaMemcpy(particle_device.r_s_frame, particle_host.r_s_frame, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(particle_device.t, particle_host.t, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(particle_device.r_length, particle_host.r_length, sizeof(double) * STRAND_SIZE, cudaMemcpyHostToDevice);
+	cudaMemcpy(particle_device.R, particle_host.R, sizeof(float3) * MAX_SIZE, cudaMemcpyHostToDevice);
 
 
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (particle_device.force);
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (particle_device.velocity);
+	
+	cudaMemcpyToSymbol(params, &params_host, sizeof(Params));
 	//array_init << <STRAND_SIZE, MAX_SIZE >> > (d);
 }
 
@@ -132,13 +135,16 @@ __global__ void integrate_internal_hair_force(Particle particle) {
 	//if(threadIdx.x == 0) t = multiply_frame_k(s_f[tid], _t[tid]);
 	//else t = multiply_frame_k(s_f[tid - 1], _t[tid]);
 
-	float3 force1 = vector_multiply_k(e_hat, (vector_length_k(e) - vector_length_k(rest_e)) * K_S);
-	float3 force2 = vector_multiply_k(vector_sub_k(e, rest_e), K_B);
+	float3 force1 = vector_multiply_k(e_hat, (vector_length_k(e) - vector_length_k(rest_e)) * params.K_S);
+	float3 force2 = vector_multiply_k(vector_sub_k(e, rest_e), params.K_B);
 	float3 force3_1 = vector_multiply_k(b_hat, vector_length_k(b) - vector_length_k(b_bar));
-	float3 force3 = vector_multiply_k(force3_1, K_C);
+	float3 force3 = vector_multiply_k(force3_1, params.K_C);
+	
+	float3 force4 = (particle.R[threadIdx.x + 1] - particle.R[threadIdx.x]) * params.R_C;
 
 	float3 result = vector_add_k(force1, force2);
 	result = vector_add_k(result, force3);
+	result = result + force4;
 
 	particle.force[tid] = vector_add_k(particle.force[tid], result);
 	__syncthreads();
@@ -168,9 +174,10 @@ __global__ void integrate_damping_force(Particle particle) {
 	float3 b_hat = vector_normalized_k(b);
 	float3 v = particle.s_velocity[tid];
 
-	float3 force1 = vector_multiply_k(vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat)), C_S);
-	float3 force2 = vector_multiply_k(vector_sub_k(d_v, vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat))), C_B);
-	float3 force3 = vector_multiply_k(b_hat, vector_dot_k(v, b_hat) * C_C);
+	float3 force1 = vector_multiply_k(vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat)), params.C_S);
+	float3 force2 = vector_multiply_k(vector_sub_k(d_v, vector_multiply_k(e_hat, vector_dot_k(d_v, e_hat))), params.C_B);
+	float3 force3 = vector_multiply_k(b_hat, vector_dot_k(v, b_hat) * params.C_C);
+
 
 	float3 result = vector_add_k(force1, force2);
 	result = vector_add_k(result, force3);
@@ -255,7 +262,7 @@ __global__ void move_root_up_k(float3 *position) {
 // added by jhkim
 __device__ unsigned int GetGridHash_CurlyHair(int3 gridPos, int3 gridSize)
 {
-	gridPos.x = gridPos.x & (gridSize.x - 1);
+	gridPos.x = gridPos.x & (gridSize.x - 1); 
 	gridPos.y = gridPos.y & (gridSize.y - 1);
 	gridPos.z = gridPos.z & (gridSize.z - 1);
 	return ((gridPos.z * gridSize.y) * gridSize.x) + (gridPos.y * gridSize.x) + gridPos.x;
@@ -302,7 +309,7 @@ __global__ void UpdateHashKernel_CulryHair(HashTableDevice hashing, Particle par
 {
 	unsigned int index = (blockIdx.x * blockDim.x) + threadIdx.x;
 	if (index >= num_particles) return;
-
+	
 	float res = 128.0f;
 	float3 dx = make_float3(1.0f / res, 1.0f / res, 1.0f / res);
 	int3 gridPos = GetGridPos_CurlyHair(particles.position[index], dx);
@@ -313,6 +320,46 @@ __global__ void UpdateHashKernel_CulryHair(HashTableDevice hashing, Particle par
 	hashing._gridParticleIndex[index] = index;
 }
 
+//__global__ void ComputeCurlyHairNormalKernel(HashTableDevice hashing, Particle particles)
+//{
+//	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+//
+//	unsigned int p_index = hashing._gridParticleHash[index];
+//	float3 p_pos = particles.n_position[p_index];
+//	int3 gridPos = GetGridPos_CurlyHair(p_pos, params.cell_size);
+//	float3 normal = make_float3(0.0f, 0.0f, 0.0f);
+//
+//	for (int z = -3; z <= 3; z++) {
+//		for (int y = -3; y <= 3; y++) {
+//			for (int x = -3; x <= 3; x++) {
+//				int3 neighborPos = gridPos + make_int3(x, y, z);
+//				uint gridHash = GetGridHash_CurlyHair(neighborPos);
+//				uint startIndex = FETCH(hashing._cellStart, gridHash);
+//				float force = 0.0f;
+//				if (startIndex != 0xffffffff) {
+//					uint endIndex = FETCH(hashing._cellEnd, gridHash);
+//					for (uint j = startIndex; j < endIndex; j++) {
+//						unsigned int np_index = hashing._gridIndex[j];
+//						float3 np_pos = particles.n_position[np_index];
+//						float np_dens = particles._density[np_index];
+//						float3 diff = p_pos - np_pos;
+//						//float lenSq = dot(diff, diff);
+//						float dx = np_pos.x - p_pos.x;
+//						float dy = np_pos.y - p_pos.y;
+//						float dz = np_pos.z - p_pos.z;
+//						float lenSq = (dx*dx + dy * dy + dz * dz);
+//						float w = fmax(1.0 - lenSq / (_CurlyHairParam._particleRadius*_CurlyHairParam._particleRadius), 0.0);
+//						normal += (diff * w) / np_dens;
+//					}
+//				}
+//			}
+//		}
+//	}
+//	particles._normal[p_index] = normal;
+//}
+
+
+
 __global__ void move_root_down_k(float3 *position) {
 	//if (threadIdx.x > y)return;
 	//if (blockIdx.x > x)return;
@@ -322,12 +369,16 @@ __global__ void move_root_down_k(float3 *position) {
 	double dt = 0.00138883;
 }
 
+
+
+
+
 void HairModel::move_root(int dst) {
 	if (dst == 0) {
 		move_root_up_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device.position);
 	}
 	if (dst == 1) {
-		move_root_down_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device.position);
+		move_root_down_k <<<STRAND_SIZE, MAX_SIZE >> > (particle_device.position);
 	}
 }
 
@@ -340,7 +391,7 @@ void HairModel::updateHashing(void)
 	int numCells = gridSize * gridSize * gridSize;
 
 	UpdateHashKernel_CulryHair << <numBlocks, numThreads >> > (_hashing, particle_device, numParticles);
-
+	
 	// sort
 	//thrust::sort_by_key(thrust::device_ptr<uint>(_hashing._gridParticleHash),
 	//	thrust::device_ptr<uint>(_hashing._gridParticleHash + numParticles),
@@ -362,21 +413,21 @@ void HairModel::simulation() {
 	//cudaEventCreate(&start);
 	//cudaEventCreate(&stop);
 	//cudaEventRecord(start);
-
+	
 	//updateHashing();
 
 	for (int iter1 = 0; iter1 < 10; iter1++) {
 		//collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
-		position_smoothing_function(particle_host.position, particle_host.s_position, particle_host.r_length, A_B, true);
+		position_smoothing_function(particle_host.position, particle_host.s_position, particle_host.r_length, params_host.A_B, true);
 		cudaMemcpy(particle_device.s_position, particle_host.s_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 		//position_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, s_p_p_d, d,r_p_l_d, A_B);
 		//compute_frame(s_f, s_p_p);
 		//cudaMemcpy(s_f_d, s_f, sizeof(Frame) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-
+		
 		for (int iter2 = 0; iter2 < 15; iter2++) {
 			//velocity_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_v_d, s_p_v_d, r_p_l_d, A_C);
 			cudaMemcpy(particle_host.velocity, particle_device.velocity, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
-			velocity_smoothing_function(particle_host.velocity, particle_host.s_velocity, particle_host.r_length, A_C, false);
+			velocity_smoothing_function(particle_host.velocity, particle_host.s_velocity, particle_host.r_length, params_host.A_C, false);
 			cudaMemcpy(particle_device.s_velocity, particle_host.s_velocity, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 
 			integrate_internal_hair_force << <STRAND_SIZE, MAX_SIZE >> > (particle_device);
@@ -384,7 +435,7 @@ void HairModel::simulation() {
 			integrate << <STRAND_SIZE, MAX_SIZE >> > (particle_device, 9.25887e-05);
 			for (int iter3 = 0; iter3 < 10; iter3++) {
 				integrate_damping_force << <STRAND_SIZE, MAX_SIZE >> > (particle_device);
-				integrate << <STRAND_SIZE, MAX_SIZE >> > (particle_device, 9.25887e-06);
+				integrate <<<STRAND_SIZE, MAX_SIZE >>> (particle_device, 9.25887e-06);
 			}
 		}
 		update_position << <STRAND_SIZE, MAX_SIZE >> > (particle_device);

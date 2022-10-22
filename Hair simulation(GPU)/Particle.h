@@ -11,8 +11,8 @@ typedef struct Frame {
 class Particle
 {
 public:
-	//Particle color
-	float3		*color;
+	//Particle normalize position
+	float3		*n_position;
 
 public:
 	double		*r_length;
@@ -27,6 +27,7 @@ public:
 	Frame		*s_frame;
 	float3		*t;
 	float3		*d;
+	float3		*R;
 };
 
 

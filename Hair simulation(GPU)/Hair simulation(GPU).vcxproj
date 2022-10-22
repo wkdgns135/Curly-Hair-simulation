@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E66BE584-5771-4902-9F1C-254A208D0C8D}</ProjectGuid>
     <RootNamespace>Hair_simulation_GPU_</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -33,7 +33,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.2.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.0.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -49,8 +49,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>GLEW_STATIC;WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT__SECURE__WARNINGS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
@@ -61,6 +61,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -69,8 +70,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>GLEW_STATIC;WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT__SECURE__WARNINGS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./glm;./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include;./include;./include/Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
@@ -83,45 +84,34 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="controls.cpp" />
+    <ClCompile Include="FileController.cpp" />
     <ClCompile Include="HairModel.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="objloader.cpp" />
-    <ClCompile Include="shader.cpp" />
-    <ClCompile Include="texture.cpp" />
+    <ClCompile Include="vector_calc.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="collision.h" />
-    <ClInclude Include="controls.hpp" />
     <ClInclude Include="HairModel.h" />
-    <ClInclude Include="HairStyle.h" />
+    <ClInclude Include="FileController.h" />
     <ClInclude Include="HashTableDevice.h" />
-    <ClInclude Include="objloader.hpp" />
     <ClInclude Include="Particle.h" />
-    <ClInclude Include="shader.hpp" />
     <ClInclude Include="stb_image_write.h" />
-    <ClInclude Include="texture.hpp" />
-    <ClInclude Include="vector_calc.cuh" />
+    <ClInclude Include="VectorCalcDevice.cuh" />
     <ClInclude Include="vector_calc.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="HairModel.cu" />
+    <CudaCompile Include="HashTableDevice.cu" />
+    <CudaCompile Include="VectorCalcDevice.cu" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="strand.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="HashTableDevice.cu" />
-    <None Include="normalShader.fragmentshader" />
-    <None Include="normalShader.vertexshader" />
-    <None Include="SimpleFragmentShader.fragmentshader" />
-    <None Include="SimpleVertexShader.vertexshader" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.2.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.0.targets" />
   </ImportGroup>
 </Project>

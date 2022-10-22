@@ -9,19 +9,27 @@
 #include "Particle.h"
 #include "HashTableDevice.h"
 
-#define K_S 500000.0
-#define C_S 4000.0
-
-#define K_B 30000.0
-#define C_B 2000.0
-
-#define K_C 15000.0
-#define C_C 1000.0
-
-#define A_B 0.23
-#define A_C 1.0
-
 using namespace std;
+
+struct Params
+{
+	float	K_S;
+	float	C_S;
+	
+	float	K_B;
+	float	C_B;
+
+	float	K_C;
+	float	C_C;
+
+	float	A_B;
+	float	A_C;
+
+	float	R_C;
+
+	int grid_size;
+	int cell_size;
+};
 
 class Sphere {
 public:
@@ -39,12 +47,14 @@ public:
 	unsigned int MAX_SIZE = 0;
 	unsigned int STRAND_SIZE = 0;
 	vector<vector<float3>> v;
-
-public://Coefficient
+	float3 min_b, max_b;
+	
+public:
 
 public:
 	Particle particle_host;
 	Particle particle_device;
+	Params params_host;
 
 	//collision
 	float3 sphere_pos;
@@ -53,25 +63,28 @@ public: // added by jhkim
 	HashTableDevice	_hashing;
 
 public:
+	void pre_compute();
 	void velocity_smoothing_function(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position);
 	void position_smoothing_function(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position);
 	void compute_frame(Frame *f, float3 *p);
 	void array_copy(float3 *a, float3 *b);
+	void normalize_position();
 
 public:
 	void move_sphere(float3 dst);
 	void move_root(int dst);
 public:
 	HairModel();
-	//void draw_point();
-	//void draw_wire();
-	//void draw_frame();
+	void draw_point();
+	void draw_wire();
+	void draw_frame();
 public:
 	// added by jhkim
 	void	open(char *filename);
 public:
 	void device_info();
 public:
+	void params_init();
 	void device_init();
 	void simulation();
 public: // added by jhkim

@@ -1,13 +1,12 @@
 #pragma once
-#include "HairModel.h"
+#include "FileController.h"
+#include <fstream>
 #include <string>
-#include <cstdio>
 #include <iostream>
-#include <vector>
-#include "vector_calc.h"
-#include "vector_functions.h"
-
 #include "GL/glut.h"
+#include "vector_calc.h"
+
+using namespace std;
 
 vector<vector<float3>> read_hair_asc(const char *filename) {
 
@@ -46,7 +45,7 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		return tmp;
 	}
 	nstrands = 256;
-
+	
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
 		float length = 0;
@@ -61,11 +60,11 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 				return tmp;
 			}
 			if (nverts != 100)continue;
-			vert = vector_multiply(vert, 100);
-			vert = vector_add(vert, make_float3(0, -185, -25));
+			vert = vert * 100;
+			vert = vert + make_float3(0, -185, -25);
 
 			if (j != 0) {
-				float3 edge = vector_sub(pre_vert, vert);
+				float3 edge = pre_vert - vert;
 				//printf("length : %f\n", vector_length(edge));
 				length += vector_length(edge);
 			}
@@ -94,6 +93,34 @@ void vector2arr(vector<vector<float3>> v, float3 *p) {
 			p[index++] = v[i][j];
 		}
 	}
+}
+
+void print_strand(std::ostream &oss, size_t start, size_t end_num) {
+	oss << "l";
+	for (auto i = start; i < end_num; ++i) {
+		oss << " " << i + 1;
+	}
+	oss << "\n";
+}
+
+void out_hair_asc(HairModel *hm, const char *filename) {
+
+	// write output to file
+	ofstream out_file;
+	out_file.open(filename);
+
+	int index = 0;
+	out_file << hm->TOTAL_SIZE << endl;
+	for (int i = 0; i < hm->STRAND_SIZE; i++) {
+		out_file << hm->MAX_SIZE << endl;
+		for (int j = 0; j < hm->MAX_SIZE; j++) {
+			out_file << "v "
+				<< hm->particle_host.position[index].x << " "
+				<< hm->particle_host.position[index].y << " "
+				<< hm->particle_host.position[index++].z << "\n";
+		}
+	}
+	out_file.close();
 }
 
 
