@@ -22,8 +22,11 @@ double dt = 0.01;
 // 2 : simulation		key(SPACE)
 bool status[4] = { false, false, true, false };
 double n = 0;
+
 bool out_file = true;
 int out_file_num = 0;
+
+bool out_capture = false;
 
 HairModel *hm;
 void Draw() {

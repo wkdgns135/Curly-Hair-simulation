@@ -112,11 +112,11 @@ void out_hair_asc(HairModel *hm, const char *filename, int filenum) {
 	out_file.open(name);
 
 	int index = 0;
-	out_file << hm->TOTAL_SIZE << endl;
+	out_file << hm->STRAND_SIZE << endl;
 	for (int i = 0; i < hm->STRAND_SIZE; i++) {
 		out_file << hm->MAX_SIZE << endl;
 		for (int j = 0; j < hm->MAX_SIZE; j++) {
-			out_file << "v "
+			out_file 
 				<< hm->particle_host.position[index].x << " "
 				<< hm->particle_host.position[index].y << " "
 				<< hm->particle_host.position[index++].z << "\n";
