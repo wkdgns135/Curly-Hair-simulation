@@ -44,7 +44,7 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		fclose(f);
 		return tmp;
 	}
-	nstrands = 256;
+	nstrands = 128;
 	
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;
@@ -103,11 +103,13 @@ void print_strand(std::ostream &oss, size_t start, size_t end_num) {
 	oss << "\n";
 }
 
-void out_hair_asc(HairModel *hm, const char *filename) {
+void out_hair_asc(HairModel *hm, const char *filename, int filenum) {
 
 	// write output to file
 	ofstream out_file;
-	out_file.open(filename);
+	char name[100];
+	sprintf_s(name, "frame\\strand-%d.txt", filenum);
+	out_file.open(name);
 
 	int index = 0;
 	out_file << hm->TOTAL_SIZE << endl;

@@ -22,7 +22,7 @@ double dt = 0.01;
 // 2 : simulation		key(SPACE)
 bool status[4] = { false, false, true, false };
 double n = 0;
-bool out_file = false;
+bool out_file = true;
 int out_file_num = 0;
 
 HairModel *hm;
@@ -185,7 +185,7 @@ void upLinePrompt(int count)
 void Update() {
 	hm->simulation();
 
-	if (out_file)out_hair_asc(hm, "Test.txt");
+	if (out_file)out_hair_asc(hm, "Test", out_file_num++);
 	::glutPostRedisplay();
 }
 

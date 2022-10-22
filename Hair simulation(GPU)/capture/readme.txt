@@ -1,0 +1,1 @@
+This folder for capture out image(bmp) files

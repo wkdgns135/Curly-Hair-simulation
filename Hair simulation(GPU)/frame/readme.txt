@@ -1,0 +1,1 @@
+This folder is an extract of vertex per simulation frame.
