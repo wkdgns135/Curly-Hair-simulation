@@ -124,6 +124,24 @@ __device__ float3 operator * (float3 a, float &b) {
 	return tmp;
 }
 
+__device__ float3 operator / (float3 a, float3 &b) {
+	float3 tmp;
+	tmp.x = a.x / b.x;
+	tmp.y = a.y / b.y;
+	tmp.z = a.z / b.z;
+
+	return tmp;
+}
+
+__device__ int3 operator + (int3 a, int3 b) {
+	int3 tmp;
+	tmp.x = a.x + b.x;
+	tmp.y = a.y + b.y;
+	tmp.z = a.z + b.z;
+	return tmp;
+}
+
+
 __device__ double vector_length_k(float3 a) {
 	return sqrt(float(a.x*a.x + a.y * a.y + a.z * a.z));
 }

@@ -1,9 +1,9 @@
-#include "HashTableDevice.h"
 #include "thrust/device_ptr.h"
 #include "thrust/for_each.h"
 #include "thrust/iterator/zip_iterator.h"
 #include "thrust/sort.h"
 #include <cuda_runtime.h>
+#include "HashTableDevice.h"
 
 HashTableDevice::HashTableDevice(void)
 {
@@ -29,3 +29,4 @@ void HashTableDevice::free(void)
 	cudaFree(_cellStart);
 	cudaFree(_cellEnd);
 }
+

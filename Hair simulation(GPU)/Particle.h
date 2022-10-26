@@ -13,6 +13,7 @@ class Particle
 public:
 	//Particle normalize position
 	float3		*n_position;
+	float		*density;
 
 public:
 	double		*r_length;

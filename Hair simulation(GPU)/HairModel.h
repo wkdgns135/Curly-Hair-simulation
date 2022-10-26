@@ -27,8 +27,8 @@ struct Params
 
 	float	R_C;
 
-	int grid_size;
-	int cell_size;
+	int3 grid_size;
+	float3 cell_size;
 };
 
 class Sphere {

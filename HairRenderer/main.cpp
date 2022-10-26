@@ -101,7 +101,7 @@ void FlipVertically(int width, int height, char *data)
 		for (int x = 0; x < width; ++x) {
 			int top = (x + y * width) * 3;
 			int bottom = (x + (height - y - 1) * width) * 3;
-			memcpy(rgb, data + top, sizeof(rgb));
+			memcpy(rgb, data + top, sizeof(rgb));   
 			memcpy(data + top, data + bottom, sizeof(rgb));
 			memcpy(data + bottom, rgb, sizeof(rgb));
 		}
@@ -109,7 +109,7 @@ void FlipVertically(int width, int height, char *data)
 }
 
 void Capture(void)
-{
+{ 
 	static int frame = 0;
 	if (frame == 0 || frame % 5 == 0) {
 		static int index = 0;

@@ -34,13 +34,14 @@ HairModel::HairModel() {
 	particle_host.r_length = (double*)malloc(sizeof(double) * STRAND_SIZE);
 	particle_host.n_position = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	particle_host.R = (float3*)malloc(sizeof(float3) * MAX_SIZE);
+	particle_host.density = (float*)malloc(sizeof(float) * TOTAL_SIZE);
 	
 	vector2arr(v, particle_host.position);
 	vector2arr(v, particle_host.r_position);
 
 	params_init();
 
-	_hashing.init(TOTAL_SIZE, params_host.cell_size);
+	_hashing.init(TOTAL_SIZE, params_host.cell_size.x * params_host.cell_size.y * params_host.cell_size.z);
 
 	pre_compute();
 
@@ -65,8 +66,8 @@ void HairModel::params_init() {
 	params_host.R_C = 0;
 
 	// added by jhkim
-	params_host.grid_size = 256;
-	params_host.cell_size = params_host.grid_size * params_host.grid_size * params_host.grid_size;
+	params_host.grid_size = make_int3(128, 128, 128);
+	params_host.cell_size = make_float3(128, 128, 128);
 }
 
 void HairModel::pre_compute() {
@@ -222,10 +223,10 @@ void HairModel::draw_wire() {
 		for (int i = 0; i < STRAND_SIZE; i++) {
 			for (int j = 0; j < MAX_SIZE; j++) {
 				if (j < MAX_SIZE - 1) {
-					//float w = _density[index] / _maxDensity;
+					float w = particle_host.density[index] / _maxDensity;
 					//float w = _saturation[index];
-					//auto c = SCALAR_TO_COLOR<float>(w);
-					auto c = color;
+					auto c = SCALAR_TO_COLOR<float>(w);
+					//auto c = color;
 					color = make_float3(c.x, c.y, c.z);
 					float3 N = make_float3(particle_host.t[index].x, particle_host.t[index].y, particle_host.t[index].z);
 					float3 pos = make_float3(particle_host.position[index].x, particle_host.position[index].y, particle_host.position[index].z);
