@@ -51,9 +51,9 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		float length = 0;
 		fscanf(f, "%d", &nverts);
 		vector<float3> verts;
+		float3 pre_vert;
 		for (int j = 0; j < nverts; j++) {
 			float3 vert;
-			float3 pre_vert;
 			if (!fscanf(f, "%f%f%f", &vert.x, &vert.y, &vert.z)) {
 				fprintf(stderr, "Couldn't read %d-th vertex in strand %d\n", j, i);
 				fclose(f);

@@ -23,7 +23,7 @@ double dt = 0.01;
 bool status[4] = { false, false, true, false };
 double n = 0;
 
-bool out_file = true;
+bool out_file = false;
 int out_file_num = 0;
 
 bool out_capture = false;

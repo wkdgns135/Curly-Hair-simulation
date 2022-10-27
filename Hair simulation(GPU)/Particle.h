@@ -14,6 +14,7 @@ public:
 	//Particle normalize position
 	float3		*n_position;
 	float		*density;
+	float		*saturation;
 
 public:
 	double		*r_length;

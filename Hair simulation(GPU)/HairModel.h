@@ -29,6 +29,7 @@ struct Params
 
 	int3 grid_size;
 	float3 cell_size;
+	float particle_radius;
 };
 
 class Sphere {
@@ -75,6 +76,7 @@ public:
 	void move_root(int dst);
 public:
 	HairModel();
+	~HairModel();
 	void draw_point();
 	void draw_wire();
 	void draw_frame();
@@ -86,6 +88,7 @@ public:
 public:
 	void params_init();
 	void device_init();
+	void device_free();
 	void simulation();
 public: // added by jhkim
 	void	saveParticle(char *filename);

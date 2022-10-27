@@ -32,9 +32,10 @@ HairModel::HairModel() {
 	particle_host.t = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	particle_host.d = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	particle_host.r_length = (double*)malloc(sizeof(double) * STRAND_SIZE);
-	particle_host.n_position = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	particle_host.R = (float3*)malloc(sizeof(float3) * MAX_SIZE);
+	particle_host.n_position = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	particle_host.density = (float*)malloc(sizeof(float) * TOTAL_SIZE);
+	particle_host.saturation = (float*)malloc(sizeof(float) * TOTAL_SIZE);
 	
 	vector2arr(v, particle_host.position);
 	vector2arr(v, particle_host.r_position);
@@ -50,6 +51,27 @@ HairModel::HairModel() {
 	//saveParticle("curlyHairs.txt");
 }
 
+HairModel::~HairModel() {
+	free(particle_host.position);
+	free(particle_host.velocity);
+	free(particle_host.s_position);
+	free(particle_host.r_position);
+	free(particle_host.r_s_position);
+	free(particle_host.s_velocity);
+	free(particle_host.r_s_frame);
+	free(particle_host.s_frame);
+	free(particle_host.t);
+	free(particle_host.d);
+	free(particle_host.r_length);
+	free(particle_host.R);
+	free(particle_host.n_position);
+	free(particle_host.density);
+	free(particle_host.saturation);
+
+	device_free();
+}
+
+
 void HairModel::params_init() {
 	params_host.K_S = 500000.0;
 	params_host.C_S = 4000.0;
@@ -63,11 +85,15 @@ void HairModel::params_init() {
 	params_host.A_B = 0.23;
 	params_host.A_C = 1.0;
 
-	params_host.R_C = 0;
+	params_host.R_C = 70000;
 
 	// added by jhkim
-	params_host.grid_size = make_int3(128, 128, 128);
-	params_host.cell_size = make_float3(128, 128, 128);
+	float res = 128.0f;
+	params_host.grid_size = make_int3(res, res, res);
+	float3 dx = make_float3(1.0f / res, 1.0f / res, 1.0f / res);
+	params_host.cell_size = dx;
+
+	params_host.particle_radius = (float)(4.0 * 0.5 / params_host.grid_size.x);;
 }
 
 void HairModel::pre_compute() {
@@ -109,8 +135,8 @@ void HairModel::pre_compute() {
 	max_b = make_float3(-1000000.0, -1000000.0, -1000000.0);
 
 	int index = 0;
-	for (int i = 0; i < v.size(); i++) {
-		for (int j = 0; j < v[i].size(); j++) {
+	for (int i = 0; i < STRAND_SIZE; i++) {
+		for (int j = 0; j < MAX_SIZE; j++) {
 			min_b.x = (fmin(min_b.x, v[i][j].x));
 			min_b.y = (fmin(min_b.y, v[i][j].y));
 			min_b.z = (fmin(min_b.z, v[i][j].z));
@@ -118,8 +144,14 @@ void HairModel::pre_compute() {
 			max_b.y = (fmax(max_b.y, v[i][j].y));
 			max_b.z = (fmax(max_b.z, v[i][j].z));
 
+			particle_host.saturation[index] = (float)j / (float)(MAX_SIZE - 1);
+			index++;
+		}
+	}
 
-
+	index = 0;
+	for (int i = 0; i < v.size(); i++) {
+		for (int j = 0; j < v[i].size(); j++) {
 			if (v[i].size() - 1 == j) {
 				index++; continue;
 			}
@@ -210,6 +242,23 @@ void HairModel::draw_point() {
 	glEnable(GL_LIGHTING);
 }
 
+float3 SCALAR_TO_COLOR(float val)
+{
+	// T fColorMap[3][3] = {{0.960784314,0.498039216,0.011764706},{0,0,0},{0,0.462745098,0.88627451}};
+	float fColorMap[5][3] = { { 0,0,1 },{ 0,1,1 },{ 0,1,0 },{ 1,1,0 },{ 1,0,0 } };   //Red->Blue
+   //T fColorMap[5][3] = { { 1, 0, 0 }, { 1, 1, 0 }, { 0, 1, 0 }, { 0, 1, 1 }, { 0, 0, 1 } };
+   //T fColorMap[4][3] = {{0.15,0.35,1.0},{1.0,1.0,1.0},{1.0,0.5,0.0},{0.0,0.0,0.0}};
+	float v = val;
+	if (val > 1.0) v = 1.0; if (val < 0.0) v = 0.0; v *= 4.0;
+	int low = (int)floor(v), high = (int)ceil(v);
+	float t = v - low;
+	float3 color;
+	color.x = (fColorMap[low][0])*(1 - t) + (fColorMap[high][0])*t;
+	color.y = (fColorMap[low][1])*(1 - t) + (fColorMap[high][1])*t;
+	color.z = (fColorMap[low][2])*(1 - t) + (fColorMap[high][2])*t;
+	return color;
+}
+
 void HairModel::draw_wire() {
 		glPushMatrix();
 		glDisable(GL_LIGHTING);
@@ -223,9 +272,9 @@ void HairModel::draw_wire() {
 		for (int i = 0; i < STRAND_SIZE; i++) {
 			for (int j = 0; j < MAX_SIZE; j++) {
 				if (j < MAX_SIZE - 1) {
-					float w = particle_host.density[index] / _maxDensity;
-					//float w = _saturation[index];
-					auto c = SCALAR_TO_COLOR<float>(w);
+					//float w = particle_host.density[index];
+					float w = particle_host.saturation[index];
+					float3 c = SCALAR_TO_COLOR(w);
 					//auto c = color;
 					color = make_float3(c.x, c.y, c.z);
 					float3 N = make_float3(particle_host.t[index].x, particle_host.t[index].y, particle_host.t[index].z);

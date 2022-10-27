@@ -146,15 +146,6 @@ __device__ double vector_length_k(float3 a) {
 	return sqrt(float(a.x*a.x + a.y * a.y + a.z * a.z));
 }
 
-__device__ void vector_normalize_k(float3 &a) {
-	double norm = vector_length_k(a);
-	if (norm != 0) {
-		a.x = a.x / norm;
-		a.y = a.y / norm;
-		a.z = a.z / norm;
-	}
-}
-
 __device__ float3 vector_normalized_k(float3 a) {
 	float3 tmp;
 	double norm = vector_length_k(a);
