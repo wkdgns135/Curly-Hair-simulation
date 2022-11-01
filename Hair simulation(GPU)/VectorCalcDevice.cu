@@ -170,6 +170,62 @@ __device__ double vector_dot_k(float3 a, float3 b) {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
+__device__ matrix3 operator +(matrix3 a, matrix3 b) {
+	matrix3 tmp;
+
+	tmp.x = make_float3(a.x.x + b.x.x, a.x.y + b.x.y, a.x.z + b.x.z);
+	tmp.x = make_float3(a.y.x + b.y.x, a.y.y + b.y.y, a.y.z + b.y.z);
+	tmp.x = make_float3(a.z.x + b.z.x, a.z.y + b.z.y, a.z.z + b.z.z);
+
+	return tmp;
+}
+
+__device__ matrix3 operator *(matrix3 a, matrix3 b) {
+	matrix3 tmp;
+
+	tmp.x.x = a.x.x * b.x.x + a.x.y * b.y.x + a.x.z * b.z.x;
+	tmp.x.y = a.x.x * b.x.y + a.x.y * b.y.y + a.x.z * b.z.y;
+	tmp.x.z = a.x.x * b.x.z + a.x.y * b.y.z + a.x.z * b.z.z;
+
+	tmp.y.x = a.y.x * b.x.x + a.y.y * b.y.x + a.y.z * b.z.x;
+	tmp.y.y = a.y.x * b.x.y + a.y.y * b.y.y + a.y.z * b.z.y;
+	tmp.y.z = a.y.x * b.x.z + a.y.y * b.y.z + a.y.z * b.z.z;
+
+	tmp.z.x = a.z.x * b.x.x + a.z.y * b.y.x + a.z.z * b.z.x;
+	tmp.z.y = a.z.x * b.x.y + a.z.y * b.y.y + a.z.z * b.z.y;
+	tmp.z.z = a.z.x * b.x.z + a.z.y * b.y.z + a.z.z * b.z.z;
+	
+	return tmp;
+}
+
+__device__ matrix3 set_identity(matrix3 a) {
+	a.x = make_float3(1, 0, 0);
+	a.y = make_float3(0, 1, 0);
+	a.z = make_float3(0, 0, 1);
+}
+
+__device__ matrix3 rot_mat_from_two_vectors(float3 a, float3 b) {
+	a = vector_normalized_k(a);
+	float b_norm = vector_length_k(b);
+	b = vector_normalized_k(b);
+
+	float3 v = vector_cross_k(a, b);
+	float s = vector_length_k(v);
+	float c = vector_dot_k(a,b);
+	matrix3 vx;
+	vx.x = make_float3(0, -v.z, v.y);
+	vx.y = make_float3(v.z, 0, -v.x);
+	vx.z = make_float3(-v.y, v.x, 0);
+
+	matrix3 r = set_identity(r);
+	if (s != 0) {
+		r = r + vx + vx * vx*((1 - c) / pow(s, 2));
+	}
+
+	return r;
+}
+
+
 //
 //__device__ float3 multiply_transpose_frame_k(Frame f, float3 e) {
 //	float3 tmp;
