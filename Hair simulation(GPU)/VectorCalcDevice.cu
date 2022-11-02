@@ -198,15 +198,32 @@ __device__ matrix3 operator *(matrix3 a, matrix3 b) {
 	return tmp;
 }
 
-__device__ matrix3 set_identity(matrix3 a) {
+__device__ matrix3 operator *(matrix3 a, float b) {
+	matrix3 tmp;
+
+	tmp.x = a.x * b;
+	tmp.y = a.y * b;
+	tmp.z = a.z * b;
+	return tmp;
+}
+
+__device__ void set_identity(matrix3 &a) {
 	a.x = make_float3(1, 0, 0);
 	a.y = make_float3(0, 1, 0);
 	a.z = make_float3(0, 0, 1);
 }
 
+__device__ float3 rot_vec_by_mat(float3 a, matrix3 b) {
+	float3 tmp;
+	tmp.x = a.x * b.x.x + a.y * b.x.y + a.z * b.x.z;
+	tmp.y = a.x * b.y.x + a.y * b.y.y + a.z * b.y.z;
+	tmp.z = a.x * b.z.x + a.y * b.z.y + a.z * b.z.z;
+
+	return tmp;
+}
+
 __device__ matrix3 rot_mat_from_two_vectors(float3 a, float3 b) {
 	a = vector_normalized_k(a);
-	float b_norm = vector_length_k(b);
 	b = vector_normalized_k(b);
 
 	float3 v = vector_cross_k(a, b);
@@ -217,9 +234,11 @@ __device__ matrix3 rot_mat_from_two_vectors(float3 a, float3 b) {
 	vx.y = make_float3(v.z, 0, -v.x);
 	vx.z = make_float3(-v.y, v.x, 0);
 
-	matrix3 r = set_identity(r);
+	matrix3 r;
+	set_identity(r);
+
 	if (s != 0) {
-		r = r + vx + vx * vx*((1 - c) / pow(s, 2));
+		r = r + vx + vx * vx * ((1 - c) / pow(s, 2));
 	}
 
 	return r;

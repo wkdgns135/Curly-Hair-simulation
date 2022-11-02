@@ -31,8 +31,11 @@ __device__ double vector_dot_k(float3 a, float3 b);
 
 __device__ matrix3 operator +(matrix3 a, matrix3 b);
 __device__ matrix3 operator *(matrix3 a, matrix3 b);
+__device__ matrix3 operator *(matrix3 a, float b);
+
+__device__ float3 rot_vec_by_mat(float3 a, matrix3 b);
 __device__ matrix3 rot_mat_from_two_vectors(float3 a, float3 b);
-__device__ matrix3 set_identity(matrix3 a);
+__device__ void set_identity(matrix3 &a);
 //__device__ float3 multiply_transpose_frame_k(Frame f, float3 e);
 //
 //__device__ float3 multiply_frame_k(Frame f, float3 e);

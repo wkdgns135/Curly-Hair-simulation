@@ -167,13 +167,20 @@ __global__ void integrate_internal_hair_force(Particle particle) {
 	float3 force3 = vector_multiply_k(force3_1, params.K_C);
 	
 	//internal_hair_force 
-	float r_c = params.R_C * particle.saturation[tid]; 
-	force2 = vector_multiply_k(force2 , (particle.saturation[tid])); //bending spring
-	float3 force4 = ((particle.R[threadIdx.x + 1] - particle.R[threadIdx.x])) *  r_c;
+	float3 particle_root_tip = particle.position[(blockIdx.x + 1) * blockDim.x - 1] - particle.position[blockIdx.x * blockDim.x];
+	particle_root_tip = vector_normalized_k(particle_root_tip);
+	float3 helix_root_tip = particle.R[blockDim.x - 1] - particle.R[0];
+	helix_root_tip = vector_normalized_k(helix_root_tip);
+	matrix3 rotmat = rot_mat_from_two_vectors(helix_root_tip, particle_root_tip);
 
-	float3 result = vector_add_k(force1, force2);
-	result = vector_add_k(result, force3);
-	result = result + force4;
+	float r_c = params.R_C * particle.saturation[tid];
+	//force2 = vector_multiply_k(force2 , (particle.saturation[tid])); //bending spring
+	float3 ref_vec = (particle.R[threadIdx.x + 1] - particle.R[threadIdx.x]);
+	ref_vec = rot_vec_by_mat(ref_vec, rotmat);
+
+	float3 force4 = ref_vec *  r_c;
+
+	float3 result = force1 + force2 + force3 + force4;
 
 
 	particle.force[tid] = vector_add_k(particle.force[tid], result);
