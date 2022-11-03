@@ -36,7 +36,8 @@ HairModel::HairModel() {
 	particle_host.n_position = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 	particle_host.density = (float*)malloc(sizeof(float) * TOTAL_SIZE);
 	particle_host.saturation = (float*)malloc(sizeof(float) * TOTAL_SIZE);
-	
+	particle_host.test_pos = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
+
 	vector2arr(v, particle_host.position);
 	vector2arr(v, particle_host.r_position);
 
@@ -85,7 +86,7 @@ void HairModel::params_init() {
 	params_host.A_B = 0.23;
 	params_host.A_C = 1.0;
 
-	params_host.R_C = 100000;
+	params_host.R_C = 70000;
 
 	// added by jhkim
 	float res = 128.0f;
@@ -116,7 +117,7 @@ void HairModel::pre_compute() {
 	compute_frame(particle_host.r_s_frame, particle_host.r_s_position);
 
 
-	for (int i = 0; i < MAX_SIZE; i++) {
+	for (float i = 0; i < MAX_SIZE; i++) {
 		float r = i / MAX_SIZE * 2 < 1 ? i / MAX_SIZE * 2 : 1;
 
 		float t = i * 0.3;
@@ -126,7 +127,7 @@ void HairModel::pre_compute() {
 
 		//helix hair
 		float3 pos = make_float3(x, -y, z + (i / MAX_SIZE) * 10);
-		particle_host.R[i] = pos;
+		particle_host.R[int(i)] = pos;
 	}
 
 
@@ -309,6 +310,61 @@ void HairModel::draw_wire() {
 		glEnable(GL_LIGHTING);
 		glPopMatrix();
 }
+void HairModel::draw_vertex(float3 v) {
+	glVertex3f(v.x, v.y, v.z);
+}
+
+void HairModel::test_draw() {
+	glPushMatrix();
+	glDisable(GL_LIGHTING);
+	glPointSize(2.0);
+	//vec3 color(0, 0.462745098, 0.88627451);
+	float3 color = make_float3(1.0, 0.8, 0.0);
+	int index = 0;
+	float3 l_pos = make_float3(1.0, 1.0, 1.0);
+	float3 eyePos = make_float3(-1, 1, 0);
+
+	for (int i = 0; i < STRAND_SIZE; i++) {
+		for (int j = 0; j < MAX_SIZE; j++) {
+			if (j < MAX_SIZE - 1) {
+				//float w = particle_host.density[index];
+				float w = particle_host.saturation[index];
+				float3 c = SCALAR_TO_COLOR(w);
+				//auto c = color;
+				color = make_float3(c.x, c.y, c.z);
+				float3 N = make_float3(particle_host.t[index].x, particle_host.t[index].y, particle_host.t[index].z);
+				float3 pos = make_float3(particle_host.test_pos[index].x, particle_host.test_pos[index].y, particle_host.test_pos[index].z);
+				vector_normalize(N);
+				float3 L = l_pos - pos;
+				vector_normalize(L);
+				// lambert 
+				auto lambert = fabs(vector_dot(N, L));
+				double shading = lambert;
+				// phong
+				float3 R = N * 2.0 - L;
+				vector_normalize(R);
+				float k_specular = 20.0f;
+				float n_specular = 300.0f;
+				float3 eyeVec = pos - eyePos;
+				vector_normalize(eyeVec);
+				float3 E = eyeVec * -1;
+				vector_normalize(E);
+				float specular = k_specular * powf(fabs(vector_dot(R, E)), n_specular);
+				shading += specular;
+				glColor3d(color.x * shading, color.y * shading, color.z * shading);
+				glBegin(GL_LINES);
+				draw_vertex(particle_host.test_pos[index]);
+				draw_vertex(particle_host.test_pos[index+1]);
+				glEnd();
+			}
+			index++;
+		}
+	}
+	glPointSize(1.0);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
 
 void HairModel::normalize_position(void)
 {

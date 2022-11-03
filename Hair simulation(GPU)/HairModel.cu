@@ -76,6 +76,8 @@ void HairModel::device_init() {
 	cudaMalloc((void**)&particle_device.n_position, sizeof(float3) * TOTAL_SIZE);
 	cudaMalloc((void**)&particle_device.density, sizeof(float) * TOTAL_SIZE);
 	cudaMalloc((void**)&particle_device.saturation, sizeof(float) * TOTAL_SIZE);
+
+	cudaMalloc((void**)&particle_device.test_pos, sizeof(float3) * TOTAL_SIZE);
 	//cudaMalloc((void**)&d,sizeof(float3) * TOTAL_SIZE);
 
 	cudaMemcpy(particle_device.position, particle_host.position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
@@ -108,6 +110,7 @@ void HairModel::device_free() {
 	cudaFree(particle_device.r_length);
 	cudaFree(particle_device.R);
 	cudaFree(particle_device.n_position);
+	cudaFree(particle_device.test_pos);
 	cudaFree(particle_device.density);
 	cudaFree(particle_device.saturation);
 }
@@ -169,11 +172,10 @@ __global__ void integrate_internal_hair_force(Particle particle) {
 	//internal_hair_force 
 	float3 particle_root_tip = particle.position[(blockIdx.x + 1) * blockDim.x - 1] - particle.position[blockIdx.x * blockDim.x];
 	particle_root_tip = vector_normalized_k(particle_root_tip);
-	float3 helix_root_tip = particle.R[blockDim.x - 1] - particle.R[0];
-	helix_root_tip = vector_normalized_k(helix_root_tip);
-	matrix3 rotmat = rot_mat_from_two_vectors(helix_root_tip, particle_root_tip);
+	float3 helix_root_tip = make_float3(0.0, -1.0, 0.0);
+	matrix3 rotmat = rot_mat_from_two_vectors(particle_root_tip, helix_root_tip);
 
-	float r_c = params.R_C * particle.saturation[tid];
+	float r_c = params.R_C * particle.saturation[tid] * particle.saturation[tid];
 	//force2 = vector_multiply_k(force2 , (particle.saturation[tid])); //bending spring
 	float3 ref_vec = (particle.R[threadIdx.x + 1] - particle.R[threadIdx.x]);
 	ref_vec = rot_vec_by_mat(ref_vec, rotmat);
@@ -232,6 +234,7 @@ __global__ void update_position(Particle particle) {
 	double dt = 0.00138883;
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	particle.position[tid] = vector_add_k(particle.position[tid], vector_multiply_k(particle.velocity[tid], dt));
+
 }
 //float3 *lambda, double *l, double alpha, bool is_position
 
@@ -436,7 +439,6 @@ __global__ void ComputeCurlyHairDensityKernel(HashTableDevice hashing, Particle 
 //}
 
 
-
 void HairModel::move_root(int dst) {
 	if (dst == 0) {
 		move_root_up_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device.position);
@@ -523,10 +525,10 @@ void HairModel::simulation() {
 	//cudaEventDestroy(stop);
 
 	cudaMemcpy(particle_host.position, particle_device.position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
-	//
+	cudaMemcpy(particle_host.test_pos, particle_device.test_pos, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
+	
 	//normalize_position();
 	//cudaMemcpy(particle_device.n_position, particle_host.n_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	//
 	//ComputeCurlyHairDensityKernel << <STRAND_SIZE, MAX_SIZE >> > (_hashing, particle_device);
 	//cudaMemcpy(particle_host.density, particle_device.density, sizeof(float) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 	//ComputeCurlyHairNormalKernel << <STRAND_SIZE, MAX_SIZE >> > (_hashing, particle_device);

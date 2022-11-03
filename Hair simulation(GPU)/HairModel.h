@@ -77,8 +77,10 @@ public:
 public:
 	HairModel();
 	~HairModel();
+	void draw_vertex(float3 v);
 	void draw_point();
 	void draw_wire();
+	void test_draw();
 	void draw_frame();
 public:
 	// added by jhkim

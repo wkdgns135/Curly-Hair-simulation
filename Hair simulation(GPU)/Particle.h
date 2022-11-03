@@ -17,6 +17,8 @@ public:
 	float		*saturation;
 
 public:
+	float3		*test_pos;
+public:
 	double		*r_length;
 	float3		*position;
 	float3		*velocity;

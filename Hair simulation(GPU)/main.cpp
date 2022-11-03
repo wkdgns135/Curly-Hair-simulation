@@ -41,6 +41,7 @@ void Draw() {
 
 	//hm->draw_point();
 	hm->draw_wire();
+	//hm->test_draw();
 
 	glDisable(GL_LIGHTING);
 }
