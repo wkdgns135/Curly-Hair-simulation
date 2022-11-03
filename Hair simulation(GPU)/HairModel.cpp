@@ -86,7 +86,7 @@ void HairModel::params_init() {
 	params_host.A_B = 0.23;
 	params_host.A_C = 1.0;
 
-	params_host.R_C = 70000;
+	params_host.R_C = 50000;
 
 	// added by jhkim
 	float res = 128.0f;
@@ -353,8 +353,8 @@ void HairModel::test_draw() {
 				shading += specular;
 				glColor3d(color.x * shading, color.y * shading, color.z * shading);
 				glBegin(GL_LINES);
-				draw_vertex(particle_host.test_pos[index]);
-				draw_vertex(particle_host.test_pos[index+1]);
+				draw_vertex(particle_host.R[j]);
+				draw_vertex(particle_host.R[j+1]);
 				glEnd();
 			}
 			index++;
