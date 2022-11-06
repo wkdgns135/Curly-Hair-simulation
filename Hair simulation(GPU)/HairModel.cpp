@@ -86,7 +86,7 @@ void HairModel::params_init() {
 	params_host.A_B = 0.23;
 	params_host.A_C = 1.0;
 
-	params_host.R_C = 50000;
+	params_host.R_C = 30000;
 
 	// added by jhkim
 	float res = 128.0f;

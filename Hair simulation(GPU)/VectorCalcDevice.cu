@@ -174,8 +174,8 @@ __device__ matrix3 operator +(matrix3 a, matrix3 b) {
 	matrix3 tmp;
 
 	tmp.x = make_float3(a.x.x + b.x.x, a.x.y + b.x.y, a.x.z + b.x.z);
-	tmp.x = make_float3(a.y.x + b.y.x, a.y.y + b.y.y, a.y.z + b.y.z);
-	tmp.x = make_float3(a.z.x + b.z.x, a.z.y + b.z.y, a.z.z + b.z.z);
+	tmp.y = make_float3(a.y.x + b.y.x, a.y.y + b.y.y, a.y.z + b.y.z);
+	tmp.z = make_float3(a.z.x + b.z.x, a.z.y + b.z.y, a.z.z + b.z.z);
 
 	return tmp;
 }

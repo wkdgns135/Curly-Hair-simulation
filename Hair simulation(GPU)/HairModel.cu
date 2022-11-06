@@ -164,19 +164,20 @@ __global__ void integrate_internal_hair_force(Particle particle) {
 	//if(threadIdx.x == 0) t = multiply_frame_k(s_f[tid], _t[tid]);
 	//else t = multiply_frame_k(s_f[tid - 1], _t[tid]);
 
+	//internal_hair_force 
 	float3 force1 = vector_multiply_k(e_hat, (vector_length_k(e) - vector_length_k(rest_e)) * params.K_S);
 	float3 force2 = vector_multiply_k(vector_sub_k(e, rest_e), params.K_B);
 	float3 force3_1 = vector_multiply_k(b_hat, vector_length_k(b) - vector_length_k(b_bar));
 	float3 force3 = vector_multiply_k(force3_1, params.K_C);
 	
-	//internal_hair_force 
+	//Curl force
 	float3 particle_root_tip = particle.position[(blockIdx.x + 1) * blockDim.x - 1] - particle.position[blockIdx.x * blockDim.x];
 	particle_root_tip = vector_normalized_k(particle_root_tip);
 	float3 helix_root_tip = make_float3(0.0, -1.0, 0.0);
 	matrix3 rotmat = rot_mat_from_two_vectors(particle_root_tip, helix_root_tip);
 
 	float r_c = params.R_C * particle.saturation[tid] * particle.saturation[tid];
-	//force2 = vector_multiply_k(force2 , (particle.saturation[tid])); //bending spring
+	force2 = vector_multiply_k(force2 , (1 - particle.saturation[tid])); //bending spring
 	float3 ref_vec = (particle.R[threadIdx.x + 1] - particle.R[threadIdx.x]);
 	ref_vec = rot_vec_by_mat(ref_vec, rotmat);
 
