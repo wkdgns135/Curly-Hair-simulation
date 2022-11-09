@@ -3,12 +3,9 @@
 #include "FileController.h"
 #include "vector_calc.h"
 #include "GL/glut.h"
-#include <glm/glm.hpp>
-
-using namespace glm;
 
 HairModel::HairModel() {
-	v = read_hair_asc("strand.txt");
+	v = read_hair_asc("strands\\strands00001.txt");
 	//open("rescaledCurlyHairs.txt"); // adjusting domain size
 	
 	sphere_pos = make_float3(0, -30, 0);
@@ -18,7 +15,7 @@ HairModel::HairModel() {
 	for (int i = 0; i < v.size(); i++) {
 		MAX_SIZE = MAX_SIZE < v[i].size() ? v[i].size() : MAX_SIZE;
 		TOTAL_SIZE += v[i].size();
-	}
+	}                   
 
 	printf("TOTAL_SIZE : %d, MAX_SIZE : %d\n", TOTAL_SIZE, MAX_SIZE);
 	particle_host.position = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
@@ -86,7 +83,7 @@ void HairModel::params_init() {
 	params_host.A_B = 0.23;
 	params_host.A_C = 1.0;
 
-	params_host.R_C = 30000;
+	params_host.R_C = 10000;
 
 	// added by jhkim
 	float res = 128.0f;
@@ -261,6 +258,22 @@ float3 SCALAR_TO_COLOR(float val)
 }
 
 void HairModel::draw_wire() {
+	static double table[13][3] =
+	{ { 0.4901960784313725, 0.6392156862745098, 0.9725490196078431 },
+	{ 0.992156862745098, 0.5294117647058824, 0.8274509803921569 },
+	{ 0.7176470588235294, 0.9450980392156863, 0.5411764705882353 },
+	{ 0.9254901960784314, 0.8352941176470588, 0.5686274509803922 },
+	{ 0.5372549019607843, 0.8235294117647059, 0.5450980392156863 },
+	{ 0.5843137254901961, 0.7098039215686275, 0.6980392156862745 },
+	{ 0.4705882352941176, 0.7490196078431373, 0.7254901960784314 },
+	{ 0.5529411764705882, 0.8274509803921569, 0.7176470588235294 },
+	{ 0.992156862745098, 0.9607843137254902, 0.4862745098039216 },
+	{ 0.9333333333333333, 0.8509803921568627, 0.8392156862745098 },
+	{ 0.7647058823529412, 0.6274509803921569, 0.603921568627451 },
+	{ 0.5568627450980392, 0.5019607843137255, 0.4588235294117647 },
+	{ 0.807843137254902, 0.3764705882352941, 0.4745098039215686 } };
+	srand(123456);
+
 		glPushMatrix();
 		glDisable(GL_LIGHTING);
 		glPointSize(2.0);
@@ -268,15 +281,19 @@ void HairModel::draw_wire() {
 		float3 color = make_float3(1.0, 0.8, 0.0);
 		int index = 0;
 		float3 l_pos = make_float3(1.0, 1.0, 1.0);
-		float3 eyePos= make_float3(-1, 1, 0);
+		float3 eyePos= make_float3(0.5, 1.0, 1.0);
+
 
 		for (int i = 0; i < STRAND_SIZE; i++) {
+			int id = 13 * ((double)rand() / RAND_MAX);
+			int mode = id % 13;
+			//color = make_float3(table[mode][0], table[mode][1], table[mode][2]);
 			for (int j = 0; j < MAX_SIZE; j++) {
 				if (j < MAX_SIZE - 1) {
 					//float w = particle_host.density[index];
-					float w = particle_host.saturation[index];
-					float3 c = SCALAR_TO_COLOR(w);
-					//auto c = color;
+					//float w = particle_host.saturation[index];
+					//float3 c = SCALAR_TO_COLOR(w);
+					auto c = color;
 					color = make_float3(c.x, c.y, c.z);
 					float3 N = make_float3(particle_host.t[index].x, particle_host.t[index].y, particle_host.t[index].z);
 					float3 pos = make_float3(particle_host.position[index].x, particle_host.position[index].y, particle_host.position[index].z);
@@ -289,8 +306,8 @@ void HairModel::draw_wire() {
 					// phong
 					float3 R = N * 2.0 - L;
 					vector_normalize(R);
-					float k_specular = 20.0f;
-					float n_specular = 300.0f;
+					float k_specular = 1.0f;
+					float n_specular = 15.0f;
 					float3 eyeVec = pos - eyePos;
 					vector_normalize(eyeVec);
 					float3 E = eyeVec * -1;

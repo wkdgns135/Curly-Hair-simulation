@@ -177,12 +177,11 @@ __global__ void integrate_internal_hair_force(Particle particle) {
 	matrix3 rotmat = rot_mat_from_two_vectors(particle_root_tip, helix_root_tip);
 
 	float r_c = params.R_C * particle.saturation[tid] * particle.saturation[tid];
-	force2 = vector_multiply_k(force2 , (1 - particle.saturation[tid])); //bending spring
+	//force2 = vector_multiply_k(force2 , (1 - particle.saturation[tid])); //bending spring
 	float3 ref_vec = (particle.R[threadIdx.x + 1] - particle.R[threadIdx.x]);
 	ref_vec = rot_vec_by_mat(ref_vec, rotmat);
 
 	float3 force4 = ref_vec *  r_c;
-
 	float3 result = force1 + force2 + force3 + force4;
 
 
