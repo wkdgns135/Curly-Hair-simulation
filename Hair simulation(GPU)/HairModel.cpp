@@ -4,8 +4,8 @@
 #include "vector_calc.h"
 #include "GL/glut.h"
 
-HairModel::HairModel() {
-	v = read_hair_asc("strands\\strands00000.txt");
+HairModel::HairModel(char *filename) {
+	v = read_hair_asc(filename);
 	//open("rescaledCurlyHairs.txt"); // adjusting domain size
 	
 	sphere_pos = make_float3(0, -30, 0);
@@ -67,6 +67,7 @@ HairModel::~HairModel() {
 	free(particle_host.n_position);
 	free(particle_host.density);
 	free(particle_host.saturation);
+	free(colors);
 
 	device_free();
 }
@@ -349,7 +350,6 @@ void HairModel::get_colors() {
 	srand(123456);
 
 	//vec3 color(0, 0.462745098, 0.88627451);
-	float3 color = make_float3(1.0, 0.8, 0.0);
 	int index = 0;
 	float3 l_pos = make_float3(1.0, 1.0, 1.0);
 	float3 eyePos = make_float3(0.5, 1.0, 1.0);
@@ -364,8 +364,6 @@ void HairModel::get_colors() {
 				//float w = particle_host.density[index];
 				//float w = particle_host.saturation[index];
 				//float3 c = SCALAR_TO_COLOR(w);
-				auto c = color;
-				color = make_float3(c.x, c.y, c.z);
 				float3 N = make_float3(particle_host.t[index].x, particle_host.t[index].y, particle_host.t[index].z);
 				float3 pos = make_float3(particle_host.position[index].x, particle_host.position[index].y, particle_host.position[index].z);
 				vector_normalize(N);

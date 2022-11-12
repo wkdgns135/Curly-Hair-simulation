@@ -18,11 +18,16 @@
 #include <nanogui/imageview.h>
 #include <nanogui/vscrollpanel.h>
 #include <nanogui/colorwheel.h>
+#include <nanogui/colorpicker.h>
 #include <nanogui/graph.h>
 #include <nanogui/tabwidget.h>
 #include <nanogui/glcanvas.h>
 #include <iostream>
 #include <string>
+
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 #include "HairModel.h"
 
@@ -30,24 +35,6 @@
 #include <cstdint>
 #include <memory>
 #include <utility>
-
-#if defined(__GNUC__)
-#  pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#endif
-#if defined(_WIN32)
-#  pragma warning(push)
-#  pragma warning(disable: 4457 4456 4005 4312)
-#endif
-
-#if defined(_WIN32)
-#  pragma warning(pop)
-#endif
-#if defined(_WIN32)
-#  if defined(APIENTRY)
-#    undef APIENTRY
-#  endif
-#  include <windows.h>
-#endif
 
 using std::cout;
 using std::cerr;
@@ -64,7 +51,8 @@ class SimulationCanvas : public nanogui::GLCanvas {
 public:
 	SimulationCanvas(Widget *parent) : nanogui::GLCanvas(parent), mRotation(nanogui::Vector3f(0.25f, 0.5f, 0.33f)) {
 		using namespace nanogui;
-		hm = new HairModel();
+		hm = new HairModel("strands\\strands00000.txt");
+		hm->color = make_float3(1.0, 0.8, 0.0);
 
 		mShader.init(
 			/* An identifying name */
@@ -155,9 +143,7 @@ public:
 		MatrixXf colors(3, hm->TOTAL_SIZE);
 		setColor(hm->colors, colors);
 
-		mShader.bind();
 		mShader.uploadIndices(indices);
-
 		mShader.uploadAttrib("position", positions);
 		mShader.uploadAttrib("color", colors);
 		mShader.bind();
@@ -183,23 +169,127 @@ private:
 	Eigen::Vector3f mRotation;
 };
 
+class GLTexture {
+public:
+	using handleType = std::unique_ptr<uint8_t[], void(*)(void*)>;
+	GLTexture() = default;
+	GLTexture(const std::string& textureName)
+		: mTextureName(textureName), mTextureId(0) {}
+
+	GLTexture(const std::string& textureName, GLint textureId)
+		: mTextureName(textureName), mTextureId(textureId) {}
+
+	GLTexture(const GLTexture& other) = delete;
+	GLTexture(GLTexture&& other) noexcept
+		: mTextureName(std::move(other.mTextureName)),
+		mTextureId(other.mTextureId) {
+		other.mTextureId = 0;
+	}
+	GLTexture& operator=(const GLTexture& other) = delete;
+	GLTexture& operator=(GLTexture&& other) noexcept {
+		mTextureName = std::move(other.mTextureName);
+		std::swap(mTextureId, other.mTextureId);
+		return *this;
+	}
+	~GLTexture() noexcept {
+		if (mTextureId)
+			glDeleteTextures(1, &mTextureId);
+	}
+
+	GLuint texture() const { return mTextureId; }
+	const std::string& textureName() const { return mTextureName; }
+
+	/**
+	*  Load a file in memory and create an OpenGL texture.
+	*  Returns a handle type (an std::unique_ptr) to the loaded pixels.
+	*/
+	handleType load(const std::string& fileName) {
+		if (mTextureId) {
+			glDeleteTextures(1, &mTextureId);
+			mTextureId = 0;
+		}
+		int force_channels = 0;
+		int w, h, n;
+		handleType textureData(stbi_load(fileName.c_str(), &w, &h, &n, force_channels), stbi_image_free);
+		if (!textureData)
+			throw std::invalid_argument("Could not load texture data from file " + fileName);
+		glGenTextures(1, &mTextureId);
+		glBindTexture(GL_TEXTURE_2D, mTextureId);
+		GLint internalFormat;
+		GLint format;
+		switch (n) {
+		case 1: internalFormat = GL_R8; format = GL_RED; break;
+		case 2: internalFormat = GL_RG8; format = GL_RG; break;
+		case 3: internalFormat = GL_RGB8; format = GL_RGB; break;
+		case 4: internalFormat = GL_RGBA8; format = GL_RGBA; break;
+		default: internalFormat = 0; format = 0; break;
+		}
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, w, h, 0, format, GL_UNSIGNED_BYTE, textureData.get());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		return textureData;
+	}
+
+private:
+	std::string mTextureName;
+	GLuint mTextureId;
+};
 
 class MainScene : public nanogui::Screen {\
 public:
-	MainScene() : nanogui::Screen(Eigen::Vector2i(800, 600), "MainScene", false, true) {
+	MainScene() : nanogui::Screen(Eigen::Vector2i(1980, 1080), "MainScene", false, true) {
 		using namespace nanogui;
 		//Simuation window
 		Window *window = new Window(this, "Simulation window");
-		window->setPosition(Vector2i(15, 15));
+		window->setPosition(Vector2i(0, 0));
 		window->setLayout(new GroupLayout());
-		
+
 		simulation_canvas = new SimulationCanvas(window);
 		simulation_canvas->setBackgroundColor({ 100, 100, 100, 255 });
-		simulation_canvas->setSize({ 400, 400 });
+		simulation_canvas->setSize({1980 - 1980 / 3 - 50, 1080 - 50});
 
-		//Parameter window
-		window = new Window(this, "Grid of small widgets");
-		window->setPosition(Vector2i(425, 300));
+		//Hair style window
+		window = new Window(this, "Select hair style");
+		window->setPosition(Vector2i(1980 - 1980 / 3, 0));
+		vector<pair<int, string>>icons = loadImageDirectory(mNVGContext, "icons");
+		new Label(window, "Image panel & scroll panel", "sans-bold");
+		PopupButton *imagePanelBtn = new PopupButton(window, "Image Panel");
+		imagePanelBtn->setIcon(ENTYPO_ICON_FOLDER);
+		Popup *popup = imagePanelBtn->popup();
+		VScrollPanel *vscroll = new VScrollPanel(popup);
+		ImagePanel *imgPanel = new ImagePanel(vscroll);
+		imgPanel->setImages(icons);
+		popup->setFixedSize(Vector2i(245, 150));
+
+		imgPanel->setCallback([this](int i) {
+			float3 tmp;
+			switch (i)
+			{
+			case 0:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00000.txt");
+				hm->color = tmp;
+				break;
+			case 1:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00001.txt");
+				hm->color = tmp;
+				break;
+			case 2:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00002.txt");
+				hm->color = tmp;
+				break;
+			case 3:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00003.txt");
+				hm->color = tmp;
+				break;
+			}
+		});
+
 		GridLayout *layout =
 			new GridLayout(Orientation::Horizontal, 2,
 				Alignment::Middle, 15, 5);
@@ -208,7 +298,32 @@ public:
 		layout->setSpacing(0, 10);
 		window->setLayout(layout);
 
-		new Label(window, "Test slider", "sans-bold");
+		new Label(window, "Color picker :", "sans-bold");
+		auto cp = new ColorPicker(window, { 255, 200, 0, 255 });
+		cp->setFixedSize({ 100, 20 });
+		cp->setFinalCallback([](const Color &c) {
+			hm->color = make_float3(c.r(), c.g(), c.b());
+			std::cout << "Set color : ["
+				<< c.r() << ", "
+				<< c.g() << ", "
+				<< c.b() << ", "
+				<< c.w() << "]" << std::endl;
+		});
+
+
+		//Parameter window
+		window = new Window(this, "Parmameter setting");
+		window->setPosition(Vector2i(1980 - 1980 / 3, 1080/2));
+
+		layout =
+			new GridLayout(Orientation::Horizontal, 2,
+				Alignment::Middle, 15, 5);
+		layout->setColAlignment(
+			{ Alignment::Maximum, Alignment::Fill });
+		layout->setSpacing(0, 10);
+		window->setLayout(layout);
+
+		new Label(window, "Test slider1", "sans-bold");
 		Widget *tools = new Widget(window);
 		tools->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
@@ -229,7 +344,7 @@ public:
 		slider->setFinalCallback([&](float value) {
 			cout << "test2:" << value << endl;
 		});
-		
+
 		performLayout();
 	}
 	virtual bool keyboardEvent(int key, int scancode, int action, int modifiers) {
@@ -247,6 +362,8 @@ public:
 		Screen::draw(ctx);
 	}
 private:
+	using imagesDataType = vector<pair<GLTexture, GLTexture::handleType>>;
+	imagesDataType mImagesData;
 	SimulationCanvas *simulation_canvas;
 };
 
@@ -265,229 +382,9 @@ int main(int /* argc */, char ** /* argv */) {
 	}
 	catch (const std::runtime_error &e) {
 		std::string error_msg = std::string("Caught a fatal error: ") + std::string(e.what());
-#if defined(_WIN32)
-		MessageBoxA(nullptr, error_msg.c_str(), NULL, MB_ICONERROR | MB_OK);
-#else
 		std::cerr << error_msg << endl;
-#endif
 		return -1;
 	}
 
 	return 0;
 }
-
-//#pragma once
-//#include <stdio.h>
-//#include <time.h>
-//#include "GL/glut.h"
-//#include "HairModel.h"
-//#include "FileController.h"
-//using namespace std;
-//
-//float zoom = 17.5f;
-//float rot_x = 90.0f;
-//float rot_y = 180.0f;
-//float trans_x = 0.0f;
-//float trans_y = 0.0f;
-//
-//int last_x = 0;
-//int last_y = 0;
-//unsigned char buttons[3] = { 0 };
-//double dt = 0.01;
-//
-//// 0 : bounsing test	Key(B)
-//// 1 : wind test		Key(W)
-//// 2 : simulation		key(SPACE)
-//bool status[4] = { false, false, true, false };
-//double n = 0;
-//
-//bool out_file = false;
-//int out_file_num = 0;
-//
-//bool out_capture = false;
-//
-//HairModel *hm;
-//void Draw() {
-//	glEnable(GL_LIGHTING);
-//	glEnable(GL_LIGHT0);
-//
-//
-//	glPushMatrix();
-//	//glTranslatef(hm->sphere[0], hm->sphere[1], hm->sphere[2]);
-//	//glutSolidSphere(hm->radius - 0.01, 20, 20);
-//	glPopMatrix();
-//
-//	//hm->draw_point();
-//	hm->draw_wire();
-//	//hm->test_draw();
-//
-//	glDisable(GL_LIGHTING);
-//}
-//
-//
-//void Mouse(int button, int state, int x, int y) {
-//	last_x = x;
-//	last_y = y;
-//
-//	switch (button)
-//	{
-//	case GLUT_LEFT_BUTTON:
-//		buttons[0] = state == GLUT_DOWN ? 1 : 0;
-//		break;
-//	case GLUT_MIDDLE_BUTTON:
-//		buttons[1] = state == GLUT_DOWN ? 1 : 0;
-//		break;
-//	case GLUT_RIGHT_BUTTON:
-//		buttons[2] = state == GLUT_DOWN ? 1 : 0;
-//		break;
-//
-//	default:
-//		break;
-//	}
-//
-//	glutPostRedisplay();
-//}
-//void Motion(int x, int y) {
-//	int diff_x = x - last_x;
-//	int diff_y = y - last_y;
-//	last_x = x;
-//	last_y = y;
-//
-//	if (buttons[2]) {
-//		zoom -= (float)0.02f * diff_x;
-//	}
-//	else if (buttons[1]) {
-//		trans_x += (float)0.02f * diff_x;
-//		trans_y -= (float)0.02f * diff_y;
-//	}
-//	else if (buttons[0]) {
-//		rot_x += (float)0.2f * diff_y;
-//		rot_y += (float)0.2f *diff_x;
-//	}
-//
-//	glutPostRedisplay();
-//}
-//
-//
-//void Display(void) {
-//	//glClearColor(0.6, 0.6, 0.6, 1);
-//	glClearColor(0, 0, 0, 1);
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//	glLoadIdentity();
-//
-//	glTranslatef(0, 0, -zoom);
-//	glTranslatef(trans_x, trans_y, 0);
-//	glRotatef(rot_x, 1, 0, 0);
-//	glRotatef(rot_y, 0, 1, 0);
-//	Draw();
-//	glutSwapBuffers();
-//}
-//
-//void Init(void) {
-//	zoom = 20;
-//	trans_x = 0;
-//	trans_y = zoom / 3;
-//	rot_x = 15;
-//	rot_y = 0;
-//
-//	glEnable(GL_DEPTH_TEST);
-//}
-//
-//void Reshape(int w, int h) {
-//	if (w == 0) {
-//		h = 1;
-//	}
-//	glViewport(0, 0, w, h);
-//	glMatrixMode(GL_PROJECTION);
-//	glLoadIdentity();
-//	gluPerspective(45.0, float(w) / h, dt, 1000);
-//	glMatrixMode(GL_MODELVIEW);
-//	glLoadIdentity();
-//
-//}
-//
-//void SpecialKeys(int key, int x, int y) {
-//	switch (key)
-//	{
-//	case GLUT_KEY_RIGHT:
-//		break;
-//	case GLUT_KEY_LEFT:
-//		break;
-//	case GLUT_KEY_UP:
-//		break;
-//	case GLUT_KEY_DOWN:
-//		break;
-//	}
-//	::glutPostRedisplay();
-//}
-//
-//void KeyboardEvent(unsigned char key, int x, int y) {
-//	switch (key)
-//	{
-//	case'r':
-//	case'R':
-//		break;
-//	case 'b':
-//	case 'B':
-//		status[0] = !status[0];
-//		break;
-//	case 'w':
-//	case 'W':
-//		status[1] = !status[1];
-//		break;
-//	case ' ':
-//		status[2] = !status[2];
-//		break;
-//	case 'S':
-//	case 's':
-//		status[3] = !status[3];
-//		break;
-//	case 'q':
-//	case 'Q':
-//		rot_y += 90;
-//		break;
-//	case 'v':
-//	case 'V':
-//		Init();
-//		break;
-//	default:
-//		break;
-//	}
-//}
-//
-//void upLinePrompt(int count)
-//{
-//	for (int i = 0; i < count; ++i) {
-//		//printf("%c[2K",27);
-//		cout << "\33[2K"; //line clear
-//		cout << "\x1b[A"; //up line (ESC [ A) must be support VT100 escape seq
-//	}
-//}
-//
-//void Update() {
-//	hm->simulation();
-//
-//	if (out_file)out_hair_asc(hm, "Test", out_file_num++);
-//	::glutPostRedisplay();
-//}
-//
-//int main(int argc, char** argv) {
-//	hm = new HairModel();
-//	glutInit(&argc, argv);
-//	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-//	glutInitWindowSize(680, 680);
-//	glutInitWindowPosition(100, 100);
-//
-//	glutCreateWindow("Hair Simulation");
-//	glutDisplayFunc(Display);
-//	glutReshapeFunc(Reshape);
-//	glutMouseFunc(Mouse);
-//
-//	glutMotionFunc(Motion);
-//	glutSpecialFunc(SpecialKeys);
-//	glutKeyboardFunc(KeyboardEvent);
-//	glutIdleFunc(Update);
-//
-//	Init();
-//	glutMainLoop();
-//}

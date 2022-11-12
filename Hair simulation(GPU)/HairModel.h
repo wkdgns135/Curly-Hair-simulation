@@ -53,6 +53,7 @@ public:
 public:
 	vector<vector<uint>> indices;
 	float3 *colors;
+	float3 color;
 	void	get_colors();
 public:
 	Particle particle_host;
@@ -77,7 +78,7 @@ public:
 	void move_sphere(float3 dst);
 	void move_root(int dst);
 public:
-	HairModel();
+	HairModel(char *filename);
 	~HairModel();
 	void draw_vertex(float3 v);
 	void draw_point();
