@@ -51,7 +51,9 @@ public:
 	float3 min_b, max_b;
 	
 public:
-
+	vector<vector<uint>> indices;
+	float3 *colors;
+	void	get_colors();
 public:
 	Particle particle_host;
 	Particle particle_device;

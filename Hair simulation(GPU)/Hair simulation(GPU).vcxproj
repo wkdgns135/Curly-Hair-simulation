@@ -49,8 +49,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT__SECURE__WARNINGS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include;./include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NANOGUI_SHARED;NVG_SHARED;GLAD_GLAPI_EXPORT;NANOGUI_GLAD;GLEW_STATIC;WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT__SECURE__WARNINGS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glad\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\eigen;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glfw\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\nanovg\src;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU);./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include;./include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
@@ -70,8 +70,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLEW_STATIC;WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT__SECURE__WARNINGS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include;./include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NANOGUI_SHARED;NVG_SHARED;GLAD_GLAPI_EXPORT;NANOGUI_GLAD;GLEW_STATIC;WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT__SECURE__WARNINGS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glad\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\eigen;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glfw\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\nanovg\src;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU);./;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include;./include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
@@ -109,6 +109,11 @@
     <CudaCompile Include="HairModel.cu" />
     <CudaCompile Include="HashTableDevice.cu" />
     <CudaCompile Include="VectorCalcDevice.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="nanogui.vcxproj">
+      <Project>{bf18496e-5926-3247-8635-bd429242aa15}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
