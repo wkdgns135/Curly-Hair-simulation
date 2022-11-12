@@ -73,6 +73,7 @@ public:
 	void compute_frame(Frame *f, float3 *p);
 	void array_copy(float3 *a, float3 *b);
 	void normalize_position();
+	void set_parameter();
 
 public:
 	void move_sphere(float3 dst);

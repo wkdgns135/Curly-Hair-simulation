@@ -310,10 +310,15 @@ public:
 				<< c.w() << "]" << std::endl;
 		});
 
+		//Physics test window
+		window = new Window(this, "Physics test window");
+		window->setPosition(Vector2i(1980 - 1980 / 3, 1080 / 3));
 
-		//Parameter window
+
+
+
 		window = new Window(this, "Parmameter setting");
-		window->setPosition(Vector2i(1980 - 1980 / 3, 1080/2));
+		window->setPosition(Vector2i(1980 - 1980 / 3, 1080 / 3 * 2));
 
 		layout =
 			new GridLayout(Orientation::Horizontal, 2,
@@ -323,26 +328,80 @@ public:
 		layout->setSpacing(0, 10);
 		window->setLayout(layout);
 
-		new Label(window, "Test slider1", "sans-bold");
-		Widget *tools = new Widget(window);
-		tools->setLayout(new BoxLayout(Orientation::Horizontal,
+		new Label(window, "Stretch spring coefficient", "sans-bold");
+		Widget *panel = new Widget(window);
+		panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		Slider *slider = new Slider(tools);
-		slider->setValue(0.5f);
+		Slider *slider = new Slider(panel);
+
+		slider->setRange(pair<float, float>(0, 500000 * 2));
+		slider->setValue(500000);
 		slider->setFixedWidth(160);
-		slider->setFinalCallback([&](float value) {
-			cout << "test1:" << value << endl;
+		TextBox *textBox = new TextBox(panel);
+		textBox->setFixedSize(Vector2i(100, 25));
+		textBox->setValue("500000");
+
+		slider->setCallback([textBox](float value) {
+			textBox->setValue(std::to_string((int)(value)));
+			hm->params_host.K_S = value;
+			hm->set_parameter();
 		});
 
-		new Label(window, "Test slider2", "sans-bold");
-		tools = new Widget(window);
-		tools->setLayout(new BoxLayout(Orientation::Horizontal,
+		new Label(window, "Bending spring coefficient", "sans-bold");
+		panel = new Widget(window);
+		panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		slider = new Slider(tools);
-		slider->setValue(0.5f);
+		slider = new Slider(panel);
+
+		slider->setRange(pair<float, float>(0, 60000));
+		slider->setValue(30000);
 		slider->setFixedWidth(160);
-		slider->setFinalCallback([&](float value) {
-			cout << "test2:" << value << endl;
+		textBox = new TextBox(panel);
+		textBox->setFixedSize(Vector2i(100, 25));
+		textBox->setValue("30000");
+
+		slider->setCallback([textBox](float value) {
+			textBox->setValue(std::to_string((int)(value)));
+			hm->params_host.K_B = value;
+			hm->set_parameter();
+		});
+
+		new Label(window, "Core spring coefficient", "sans-bold");
+		panel = new Widget(window);
+		panel->setLayout(new BoxLayout(Orientation::Horizontal,
+			Alignment::Middle, 0, 5));
+		slider = new Slider(panel);
+
+		slider->setRange(std::pair<float, float>(0, 30000));
+		slider->setValue(15000);
+		slider->setFixedWidth(160);
+		textBox = new TextBox(panel);
+		textBox->setFixedSize(Vector2i(100, 25));
+		textBox->setValue("15000");
+
+		slider->setCallback([textBox](float value) {
+			textBox->setValue(std::to_string((int)(value)));
+			hm->params_host.K_C = value;
+			hm->set_parameter();
+		});
+
+		new Label(window, "Saturation coefficient", "sans-bold");
+		panel = new Widget(window);
+		panel->setLayout(new BoxLayout(Orientation::Horizontal,
+			Alignment::Middle, 0, 5));
+		slider = new Slider(panel);
+
+		slider->setRange(std::pair<float, float>(0, 30000));
+		slider->setValue(0);
+		slider->setFixedWidth(160);
+		textBox = new TextBox(panel);
+		textBox->setFixedSize(Vector2i(100, 25));
+		textBox->setValue("0");
+
+		slider->setCallback([textBox](float value) {
+			textBox->setValue(std::to_string((int)(value)));
+			hm->params_host.R_C = value;
+			hm->set_parameter();
 		});
 
 		performLayout();

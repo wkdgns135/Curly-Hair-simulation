@@ -115,6 +115,10 @@ void HairModel::device_free() {
 	cudaFree(particle_device.saturation);
 }
 
+void HairModel::set_parameter() {
+	cudaMemcpyToSymbol(params, &params_host, sizeof(Params));
+}
+
 __global__ void collision_detect(Particle particle, float3 sphere, float radius) {
 	if (blockIdx.x == 0)return;
 	//if (threadIdx.x == 10)printf("%f %f %f\n", sphere.x, sphere.y, sphere.z);

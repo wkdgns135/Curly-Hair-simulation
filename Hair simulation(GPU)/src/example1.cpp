@@ -320,6 +320,7 @@ public:
         Slider *slider = new Slider(panel);
         slider->setValue(0.5f);
         slider->setFixedWidth(80);
+		
 
         TextBox *textBox = new TextBox(panel);
         textBox->setFixedSize(Vector2i(60, 25));
@@ -331,6 +332,7 @@ public:
         slider->setFinalCallback([&](float value) {
             cout << "Final slider value: " << (int) (value * 100) << endl;
         });
+
         textBox->setFixedSize(Vector2i(60,25));
         textBox->setFontSize(20);
         textBox->setAlignment(TextBox::Alignment::Right);
