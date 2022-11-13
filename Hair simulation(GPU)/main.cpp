@@ -45,7 +45,7 @@ using std::pair;
 using std::to_string;
 
 HairModel *hm;
-
+bool is_simulation = true;
 
 class SimulationCanvas : public nanogui::GLCanvas {
 public:
@@ -130,22 +130,25 @@ public:
 	virtual void drawGL() override {
 		using namespace nanogui;
 
-		hm->simulation();
-		hm->get_colors();
+		if (is_simulation) {
+			hm->simulation();
+			hm->get_colors();
 
-		MatrixXu indices(2, hm->TOTAL_SIZE); /* Draw a cube */
-		setIndex(indices);
 
-		MatrixXf positions(3, hm->TOTAL_SIZE);
-		setPosition(hm->particle_host.position, positions);
+			MatrixXu indices(2, hm->TOTAL_SIZE); /* Draw a cube */
+			setIndex(indices);
 
-		hm->get_colors();
-		MatrixXf colors(3, hm->TOTAL_SIZE);
-		setColor(hm->colors, colors);
+			MatrixXf positions(3, hm->TOTAL_SIZE);
+			setPosition(hm->particle_host.position, positions);
 
-		mShader.uploadIndices(indices);
-		mShader.uploadAttrib("position", positions);
-		mShader.uploadAttrib("color", colors);
+			hm->get_colors();
+			MatrixXf colors(3, hm->TOTAL_SIZE);
+			setColor(hm->colors, colors);
+
+			mShader.uploadIndices(indices);
+			mShader.uploadAttrib("position", positions);
+			mShader.uploadAttrib("color", colors);
+		}
 		mShader.bind();
 
 
@@ -244,7 +247,30 @@ public:
 		//Simuation window
 		Window *window = new Window(this, "Simulation window");
 		window->setPosition(Vector2i(0, 0));
-		window->setLayout(new GroupLayout());
+		window->setLayout(new BoxLayout(Orientation::Vertical,
+			Alignment::Middle, 0, 5));
+		
+		Widget *panel = new Widget(window);
+		panel->setLayout(new BoxLayout(Orientation::Horizontal,
+			Alignment::Middle, 0, 5));
+
+		ToolButton *b = new ToolButton(panel, ENTYPO_ICON_CONTROLLER_PLAY);
+		b->setCallback([this]() {
+			is_simulation = true;
+		});
+
+		b = new ToolButton(panel, ENTYPO_ICON_CONTROLLER_STOP);
+		b->setCallback([this]() {
+			is_simulation = false;
+		});
+		b = new ToolButton(panel, ENTYPO_ICON_CCW);
+		b->setCallback([this]() {
+			float3 tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+			char *dir = hm->hair_style;
+			hm = new HairModel(dir);
+			hm->color = tmp;
+		});
+
 
 		simulation_canvas = new SimulationCanvas(window);
 		simulation_canvas->setBackgroundColor({ 100, 100, 100, 255 });
@@ -255,13 +281,13 @@ public:
 		window->setPosition(Vector2i(1980 - 1980 / 3, 0));
 		vector<pair<int, string>>icons = loadImageDirectory(mNVGContext, "icons");
 		new Label(window, "Image panel & scroll panel", "sans-bold");
-		PopupButton *imagePanelBtn = new PopupButton(window, "Image Panel");
+		PopupButton *imagePanelBtn = new PopupButton(window, "Select style");
 		imagePanelBtn->setIcon(ENTYPO_ICON_FOLDER);
 		Popup *popup = imagePanelBtn->popup();
 		VScrollPanel *vscroll = new VScrollPanel(popup);
 		ImagePanel *imgPanel = new ImagePanel(vscroll);
 		imgPanel->setImages(icons);
-		popup->setFixedSize(Vector2i(245, 150));
+		popup->setFixedSize(Vector2i(245, 1080 / 3 - 100));
 
 		imgPanel->setCallback([this](int i) {
 			float3 tmp;
@@ -287,6 +313,11 @@ public:
 				hm = new HairModel("strands\\strands00003.txt");
 				hm->color = tmp;
 				break;
+			case 4:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00004.txt");
+				hm->color = tmp;
+				break;
 			}
 		});
 
@@ -300,7 +331,7 @@ public:
 
 		new Label(window, "Color picker :", "sans-bold");
 		auto cp = new ColorPicker(window, { 255, 200, 0, 255 });
-		cp->setFixedSize({ 100, 20 });
+		cp->setFixedSize({ 150, 30 });
 		cp->setFinalCallback([](const Color &c) {
 			hm->color = make_float3(c.r(), c.g(), c.b());
 			std::cout << "Set color : ["
@@ -329,7 +360,7 @@ public:
 		window->setLayout(layout);
 
 		new Label(window, "Stretch spring coefficient", "sans-bold");
-		Widget *panel = new Widget(window);
+		panel = new Widget(window);
 		panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
 		Slider *slider = new Slider(panel);
@@ -429,7 +460,6 @@ private:
 int main(int /* argc */, char ** /* argv */) {
 	try {
 		nanogui::init();
-
 		/* scoped variables */ {
 			nanogui::ref<MainScene> app = new MainScene();
 			app->drawAll();

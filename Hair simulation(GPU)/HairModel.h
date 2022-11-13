@@ -52,6 +52,7 @@ public:
 	
 public:
 	vector<vector<uint>> indices;
+	char *hair_style;
 	float3 *colors;
 	float3 color;
 	void	get_colors();
@@ -96,6 +97,7 @@ public:
 	void device_init();
 	void device_free();
 	void simulation();
+
 public: // added by jhkim
 	void	saveParticle(char *filename);
 	void	updateHashing(void);

@@ -5,7 +5,8 @@
 #include "GL/glut.h"
 
 HairModel::HairModel(char *filename) {
-	v = read_hair_asc(filename);
+	hair_style = filename;
+	v = read_hair_asc(hair_style);
 	//open("rescaledCurlyHairs.txt"); // adjusting domain size
 	
 	sphere_pos = make_float3(0, -30, 0);
