@@ -59,7 +59,7 @@ void read_directory(const std::string& name, vector<string>& v)
 	std::transform(start, end, std::back_inserter(v), path_leaf_string());
 }
 
-void read_hair_asc(const char *filename) {
+void read_hair_asc(const char *filename, int num_strands) {
 	FILE *f = fopen(filename, "r");
 	if (!f) {
 		fprintf(stderr, "Couldn't open %s\n", filename);

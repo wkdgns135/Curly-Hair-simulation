@@ -8,7 +8,7 @@
 
 using namespace std;
 
-vector<vector<float3>> read_hair_asc(const char *filename) {
+vector<vector<float3>> read_hair_asc(const char *filename, int num_strands) {
 
 	vector<vector<float3>> tmp;
 	//for (float i = 0; i < 1; i++) {
@@ -44,7 +44,7 @@ vector<vector<float3>> read_hair_asc(const char *filename) {
 		fclose(f);
 		return tmp;
 	}
-	nstrands = 128;
+	nstrands = num_strands;
 	
 	for (int i = 0; i < nstrands; i++) {
 		int nverts = 0;

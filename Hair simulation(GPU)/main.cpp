@@ -45,6 +45,7 @@ using std::pair;
 using std::to_string;
 
 HairModel *hm;
+unsigned int num_strands = 128;
 bool is_simulation = true;
 
 class SimulationCanvas : public nanogui::GLCanvas {
@@ -64,7 +65,7 @@ private:
 public:
 	SimulationCanvas(Widget *parent) : nanogui::GLCanvas(parent), mRotation(nanogui::Vector3f(0.25f, 0.5f, 0.33f)) {
 		using namespace nanogui;
-		hm = new HairModel("strands\\strands00000.txt");
+		hm = new HairModel("strands\\strands00000.txt", num_strands);
 		hm->color = make_float3(1.0, 0.8, 0.0);
 
 		hair_shader.init(
@@ -424,7 +425,7 @@ public:
 		reset_btn->setCallback([this]() {
 			float3 tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
 			char *dir = hm->hair_style;
-			hm = new HairModel(dir);
+			hm = new HairModel(dir, num_strands);
 			hm->color = tmp;
 		});
 
@@ -452,27 +453,27 @@ public:
 			{
 			case 0:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00000.txt");
+				hm = new HairModel("strands\\strands00000.txt", num_strands);
 				hm->color = tmp;
 				break;
 			case 1:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00001.txt");
+				hm = new HairModel("strands\\strands00001.txt", num_strands);
 				hm->color = tmp;
 				break;
 			case 2:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00002.txt");
+				hm = new HairModel("strands\\strands00002.txt", num_strands);
 				hm->color = tmp;
 				break;
 			case 3:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00003.txt");
+				hm = new HairModel("strands\\strands00003.txt", num_strands);
 				hm->color = tmp;
 				break;
 			case 4:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00004.txt");
+				hm = new HairModel("strands\\strands00004.txt", num_strands);
 				hm->color = tmp;
 				break;
 			}
@@ -497,6 +498,30 @@ public:
 				<< c.b() << ", "
 				<< c.w() << "]" << std::endl;
 		});
+
+		new Label(hair_style_window, "Hair density", "sans-bold");
+		Widget *hair_density_panel = new Widget(hair_style_window);
+		hair_density_panel->setLayout(new BoxLayout(Orientation::Horizontal,
+			Alignment::Middle, 0, 5));
+		Slider *hair_density_slider = new Slider(hair_density_panel);
+
+		hair_density_slider->setRange(std::pair<float, float>(64, 512));
+		hair_density_slider->setValue(128);
+		hair_density_slider->setFixedWidth(160);
+		TextBox *hair_density_textBox = new TextBox(hair_density_panel);
+		hair_density_textBox->setFixedSize(Vector2i(100, 25));
+		hair_density_textBox->setValue("128");
+
+		hair_density_slider->setCallback([hair_density_textBox](float value) {
+			hair_density_textBox->setValue(std::to_string((int)(value)));
+			float3 tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+			char *dir = hm->hair_style;
+			num_strands = (int)value;
+			hm = new HairModel(dir, num_strands);
+			hm->color = tmp;
+
+		});
+
 
 		//Physics test window
 		Window *physics_window = new Window(this, "Physics test window");

@@ -93,7 +93,7 @@ public:
 	void move_sphere(float3 dst);
 	void move_root(int dst);
 public:
-	HairModel(char *filename);
+	HairModel(char *filename, int num_strands);
 	~HairModel();
 
 	void draw_vertex(float3 v);

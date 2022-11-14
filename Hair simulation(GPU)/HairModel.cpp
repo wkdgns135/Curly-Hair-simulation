@@ -4,9 +4,9 @@
 #include "vector_calc.h"
 #include "GL/glut.h"
 
-HairModel::HairModel(char *filename) {
+HairModel::HairModel(char *filename, int num_strands) {
 	hair_style = filename;
-	v = read_hair_asc(hair_style);
+	v = read_hair_asc(hair_style, num_strands);
 	//open("rescaledCurlyHairs.txt"); // adjusting domain size
 	
 	state = GENERAL_SIMULATION;
@@ -49,7 +49,7 @@ HairModel::HairModel(char *filename) {
 
 	normalize_position();
 	device_init();
-	computeMaxDensity();
+	//computeMaxDensity();
 	//saveParticle("curlyHairs.txt");
 }
 
@@ -101,7 +101,6 @@ void HairModel::params_init() {
 	float3 dx = make_float3(1.0f / res, 1.0f / res, 1.0f / res);
 	params_host.cell_size = dx;
 	params_host.particle_radius = (float)(4.0 * 0.5 / params_host.grid_size.x);
-
 
 	params_host.scaling = 0.7f;
 	params_host.sphere_rad = 0.28f;
