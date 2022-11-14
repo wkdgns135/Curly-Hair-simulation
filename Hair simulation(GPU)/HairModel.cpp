@@ -9,6 +9,8 @@ HairModel::HairModel(char *filename) {
 	v = read_hair_asc(hair_style);
 	//open("rescaledCurlyHairs.txt"); // adjusting domain size
 	
+	state = GENERAL_SIMULATION;
+
 	sphere_pos = make_float3(0, -30, 0);
 	sphere_radius = 10;
 
@@ -51,6 +53,7 @@ HairModel::HairModel(char *filename) {
 
 	//saveParticle("curlyHairs.txt");
 }
+
 
 HairModel::~HairModel() {
 	free(particle_host.position);

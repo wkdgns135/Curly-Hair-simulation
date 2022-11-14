@@ -245,26 +245,30 @@ public:
 	MainScene() : nanogui::Screen(Eigen::Vector2i(1980, 1080), "MainScene", false, true) {
 		using namespace nanogui;
 		//Simuation window
-		Window *window = new Window(this, "Simulation window");
-		window->setPosition(Vector2i(0, 0));
-		window->setLayout(new BoxLayout(Orientation::Vertical,
+		Window *simulation_window = new Window(this, "Simulation window");
+		simulation_window->setPosition(Vector2i(0, 0));
+		simulation_window->setLayout(new BoxLayout(Orientation::Vertical,
 			Alignment::Middle, 0, 5));
 		
-		Widget *panel = new Widget(window);
-		panel->setLayout(new BoxLayout(Orientation::Horizontal,
+		Widget *tool_btn_panel = new Widget(simulation_window);
+		tool_btn_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
 
-		ToolButton *b = new ToolButton(panel, ENTYPO_ICON_CONTROLLER_PLAY);
-		b->setCallback([this]() {
+		Button *play_btn = new ToolButton(tool_btn_panel, ENTYPO_ICON_CONTROLLER_PLAY);
+		play_btn->setFixedSize(nanogui::Vector2i(30, 30));
+		play_btn->setCallback([this]() {
 			is_simulation = true;
 		});
 
-		b = new ToolButton(panel, ENTYPO_ICON_CONTROLLER_STOP);
-		b->setCallback([this]() {
+		Button *stop_btn = new ToolButton(tool_btn_panel, ENTYPO_ICON_CONTROLLER_STOP);
+		stop_btn->setFixedSize(nanogui::Vector2i(30, 30));
+		stop_btn->setCallback([this]() {
 			is_simulation = false;
 		});
-		b = new ToolButton(panel, ENTYPO_ICON_CCW);
-		b->setCallback([this]() {
+
+		Button *rest_btn = tool_btn_panel->add<Button>("", ENTYPO_ICON_CCW);
+		rest_btn->setFixedSize(nanogui::Vector2i(30, 30));
+		rest_btn->setCallback([this]() {
 			float3 tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
 			char *dir = hm->hair_style;
 			hm = new HairModel(dir);
@@ -272,16 +276,16 @@ public:
 		});
 
 
-		simulation_canvas = new SimulationCanvas(window);
+		simulation_canvas = new SimulationCanvas(simulation_window);
 		simulation_canvas->setBackgroundColor({ 100, 100, 100, 255 });
 		simulation_canvas->setSize({1980 - 1980 / 3 - 50, 1080 - 50});
 
 		//Hair style window
-		window = new Window(this, "Select hair style");
-		window->setPosition(Vector2i(1980 - 1980 / 3, 0));
+		Window *hair_style_window = new Window(this, "Select hair style");
+		hair_style_window->setPosition(Vector2i(1980 - 1980 / 3, 0));
 		vector<pair<int, string>>icons = loadImageDirectory(mNVGContext, "icons");
-		new Label(window, "Image panel & scroll panel", "sans-bold");
-		PopupButton *imagePanelBtn = new PopupButton(window, "Select style");
+		new Label(hair_style_window, "Image panel & scroll panel", "sans-bold");
+		PopupButton *imagePanelBtn = new PopupButton(hair_style_window, "Select style");
 		imagePanelBtn->setIcon(ENTYPO_ICON_FOLDER);
 		Popup *popup = imagePanelBtn->popup();
 		VScrollPanel *vscroll = new VScrollPanel(popup);
@@ -327,10 +331,10 @@ public:
 		layout->setColAlignment(
 			{ Alignment::Maximum, Alignment::Fill });
 		layout->setSpacing(0, 10);
-		window->setLayout(layout);
+		hair_style_window->setLayout(layout);
 
-		new Label(window, "Color picker :", "sans-bold");
-		auto cp = new ColorPicker(window, { 255, 200, 0, 255 });
+		new Label(hair_style_window, "Color picker :", "sans-bold");
+		auto cp = new ColorPicker(hair_style_window, { 255, 200, 0, 255 });
 		cp->setFixedSize({ 150, 30 });
 		cp->setFinalCallback([](const Color &c) {
 			hm->color = make_float3(c.r(), c.g(), c.b());
@@ -342,14 +346,8 @@ public:
 		});
 
 		//Physics test window
-		window = new Window(this, "Physics test window");
-		window->setPosition(Vector2i(1980 - 1980 / 3, 1080 / 3));
-
-
-
-
-		window = new Window(this, "Parmameter setting");
-		window->setPosition(Vector2i(1980 - 1980 / 3, 1080 / 3 * 2));
+		Window *physics_window = new Window(this, "Physics test window");
+		physics_window->setPosition(Vector2i(1980 - 1980 / 3, 1080 / 3));
 
 		layout =
 			new GridLayout(Orientation::Horizontal, 2,
@@ -357,18 +355,65 @@ public:
 		layout->setColAlignment(
 			{ Alignment::Maximum, Alignment::Fill });
 		layout->setSpacing(0, 10);
-		window->setLayout(layout);
+		physics_window->setLayout(layout);
 
-		new Label(window, "Stretch spring coefficient", "sans-bold");
-		panel = new Widget(window);
-		panel->setLayout(new BoxLayout(Orientation::Horizontal,
+		new Label(physics_window, "General", "sans-bold");
+		Button *rb = new Button(physics_window, "General Simulation");
+		rb->setFlags(Button::RadioButton);
+		rb->setCallback([]() {
+			hm->state = GENERAL_SIMULATION;
+		});
+		
+
+		new Label(physics_window, "Bouncing test", "sans-bold");
+		rb = new Button(physics_window, "Bouncing Simulation");
+		rb->setFlags(Button::RadioButton);
+		rb->setCallback([]() {
+			hm->state = BOUNCING_TEST;
+		});
+
+		new Label(physics_window, "Rotate test", "sans-bold");
+		rb = new Button(physics_window, "Rotate Simulation");
+		rb->setFlags(Button::RadioButton);
+		rb->setCallback([]() {
+			hm->state = ROTATE_TEST;
+		});
+
+		new Label(physics_window, "Collision test", "sans-bold");
+		rb = new Button(physics_window, "Collision Simulation");
+		rb->setFlags(Button::RadioButton);
+		rb->setCallback([]() {
+			hm->state = COLLISION_TEST;
+		});
+
+		new Label(physics_window, "Cohesion test", "sans-bold");
+		rb = new Button(physics_window, "Cohesion Simulation");
+		rb->setFlags(Button::RadioButton);
+		rb->setCallback([]() {
+			hm->state = COHESION_TEST;
+		});
+
+		Window *parameter_window = new Window(this, "Parmameter setting");
+		parameter_window->setPosition(Vector2i(1980 - 1980 / 3, 1080 / 3 * 2));
+
+		layout =
+			new GridLayout(Orientation::Horizontal, 2,
+				Alignment::Middle, 15, 5);
+		layout->setColAlignment(
+			{ Alignment::Maximum, Alignment::Fill });
+		layout->setSpacing(0, 10);
+		parameter_window->setLayout(layout);
+
+		new Label(parameter_window, "Stretch spring coefficient", "sans-bold");
+		Widget *parameter_panel = new Widget(parameter_window);
+		parameter_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		Slider *slider = new Slider(panel);
+		Slider *slider = new Slider(parameter_panel);
 
 		slider->setRange(pair<float, float>(0, 500000 * 2));
 		slider->setValue(500000);
 		slider->setFixedWidth(160);
-		TextBox *textBox = new TextBox(panel);
+		TextBox *textBox = new TextBox(parameter_panel);
 		textBox->setFixedSize(Vector2i(100, 25));
 		textBox->setValue("500000");
 
@@ -378,16 +423,16 @@ public:
 			hm->set_parameter();
 		});
 
-		new Label(window, "Bending spring coefficient", "sans-bold");
-		panel = new Widget(window);
-		panel->setLayout(new BoxLayout(Orientation::Horizontal,
+		new Label(parameter_window, "Bending spring coefficient", "sans-bold");
+		parameter_panel = new Widget(parameter_window);
+		parameter_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		slider = new Slider(panel);
+		slider = new Slider(parameter_panel);
 
 		slider->setRange(pair<float, float>(0, 60000));
 		slider->setValue(30000);
 		slider->setFixedWidth(160);
-		textBox = new TextBox(panel);
+		textBox = new TextBox(parameter_panel);
 		textBox->setFixedSize(Vector2i(100, 25));
 		textBox->setValue("30000");
 
@@ -397,16 +442,16 @@ public:
 			hm->set_parameter();
 		});
 
-		new Label(window, "Core spring coefficient", "sans-bold");
-		panel = new Widget(window);
-		panel->setLayout(new BoxLayout(Orientation::Horizontal,
+		new Label(parameter_window, "Core spring coefficient", "sans-bold");
+		parameter_panel = new Widget(parameter_window);
+		parameter_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		slider = new Slider(panel);
+		slider = new Slider(parameter_panel);
 
 		slider->setRange(std::pair<float, float>(0, 30000));
 		slider->setValue(15000);
 		slider->setFixedWidth(160);
-		textBox = new TextBox(panel);
+		textBox = new TextBox(parameter_panel);
 		textBox->setFixedSize(Vector2i(100, 25));
 		textBox->setValue("15000");
 
@@ -416,16 +461,16 @@ public:
 			hm->set_parameter();
 		});
 
-		new Label(window, "Saturation coefficient", "sans-bold");
-		panel = new Widget(window);
-		panel->setLayout(new BoxLayout(Orientation::Horizontal,
+		new Label(parameter_window, "Saturation coefficient", "sans-bold");
+		parameter_panel = new Widget(parameter_window);
+		parameter_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		slider = new Slider(panel);
+		slider = new Slider(parameter_panel);
 
 		slider->setRange(std::pair<float, float>(0, 30000));
 		slider->setValue(0);
 		slider->setFixedWidth(160);
-		textBox = new TextBox(panel);
+		textBox = new TextBox(parameter_panel);
 		textBox->setFixedSize(Vector2i(100, 25));
 		textBox->setValue("0");
 

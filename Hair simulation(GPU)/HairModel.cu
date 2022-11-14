@@ -404,6 +404,8 @@ __global__ void ComputeCurlyHairDensityKernel(HashTableDevice hashing, Particle 
 	particles.density[p_index] = density;
 }
 
+
+
 //__global__ void ComputeCurlyHairNormalKernel(HashTableDevice hashing, Particle particles)
 //{
 //	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -442,6 +444,12 @@ __global__ void ComputeCurlyHairDensityKernel(HashTableDevice hashing, Particle 
 //	particles.n_position[p_index] = normal;
 //}
 
+__global__ void bouncing_test(Particle particle, float offset) {
+	if (threadIdx.x != 0)return;
+	int tid = blockIdx.x * blockDim.x;
+	particle.position[tid].y += sin(offset * 0.25) * 0.5;
+
+};
 
 void HairModel::move_root(int dst) {
 	if (dst == 0) {
@@ -478,6 +486,9 @@ void HairModel::freeHashing(void)
 	_hashing.free();
 }
 
+
+
+
 void HairModel::simulation() {
 	//cudaEvent_t start, stop;
 	//cudaEventCreate(&start);
@@ -488,7 +499,9 @@ void HairModel::simulation() {
 	//cudaMemcpy(particle_device.n_position, particle_host.n_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	//updateHashing();
 
+	if (state == BOUNCING_TEST)bouncing_test << <STRAND_SIZE, MAX_SIZE >> > (particle_device, bouncing_offset++);
 	for (int iter1 = 0; iter1 < 10; iter1++) {
+
 		//collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
 		position_smoothing_function(particle_host.position, particle_host.s_position, particle_host.r_length, params_host.A_B, true);
 		cudaMemcpy(particle_device.s_position, particle_host.s_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);

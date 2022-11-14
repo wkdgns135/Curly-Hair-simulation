@@ -32,6 +32,14 @@ struct Params
 	float particle_radius;
 };
 
+enum State {
+	GENERAL_SIMULATION,
+	BOUNCING_TEST,
+	ROTATE_TEST,
+	COLLISION_TEST,
+	COHESION_TEST,
+};
+
 class Sphere {
 public:
 	float3 pos;
@@ -56,6 +64,10 @@ public:
 	float3 *colors;
 	float3 color;
 	void	get_colors();
+	State state;
+	
+	float bouncing_offset = 0;
+
 public:
 	Particle particle_host;
 	Particle particle_device;
@@ -82,6 +94,7 @@ public:
 public:
 	HairModel(char *filename);
 	~HairModel();
+
 	void draw_vertex(float3 v);
 	void draw_point();
 	void draw_wire();
