@@ -16,7 +16,7 @@ __device__ void array_copy_k(float3 *a, float3 *b) {
 	}
 }
 
-__device__  float3 vector_multiply_k(float3 a, float3 b) {
+__device__ __host__  float3 vector_multiply_k(float3 a, float3 b) {
 	float3 tmp;
 	tmp.x = a.x * b.x;
 	tmp.y = a.y * b.y;
@@ -25,7 +25,7 @@ __device__  float3 vector_multiply_k(float3 a, float3 b) {
 }
 
 
-__device__  float3 vector_multiply_k(float3 a, double b) {
+__device__ __host__  float3 vector_multiply_k(float3 a, double b) {
 	float3 tmp;
 	tmp.x = a.x * b;
 	tmp.y = a.y * b;
@@ -34,7 +34,7 @@ __device__  float3 vector_multiply_k(float3 a, double b) {
 	return tmp;
 }
 
-__device__  float3 vector_add_k(float3 a, float3 b) {
+__device__ __host__  float3 vector_add_k(float3 a, float3 b) {
 	float3 tmp;
 	tmp.x = a.x + b.x;
 	tmp.y = a.y + b.y;
@@ -44,7 +44,7 @@ __device__  float3 vector_add_k(float3 a, float3 b) {
 }
 
 
-__device__ float3 vector_add_k(float3 a, double b) {
+__device__ __host__ float3 vector_add_k(float3 a, double b) {
 	float3 tmp;
 	tmp.x = a.x + b;
 	tmp.y = a.y + b;
@@ -53,7 +53,7 @@ __device__ float3 vector_add_k(float3 a, double b) {
 	return tmp;
 }
 
-__device__ float3 vector_sub_k(float3 a, float3 b) {
+__device__ __host__ float3 vector_sub_k(float3 a, float3 b) {
 	float3 tmp;
 	tmp.x = a.x - b.x;
 	tmp.y = a.y - b.y;
@@ -62,7 +62,7 @@ __device__ float3 vector_sub_k(float3 a, float3 b) {
 	return tmp;
 }
 
-__device__ float3 vector_sub_k(float3 a, double b) {
+__device__ __host__ float3 vector_sub_k(float3 a, double b) {
 	float3 tmp;
 	tmp.x = a.x - b;
 	tmp.y = a.y - b;
@@ -71,7 +71,7 @@ __device__ float3 vector_sub_k(float3 a, double b) {
 	return tmp;
 }
 
-__device__ float3 operator + (float3 a, float3 &b) {
+__device__ __host__ float3 operator + (float3 a, float3 &b) {
 	float3 tmp;
 	tmp.x = a.x + b.x;
 	tmp.y = a.y + b.y;
@@ -80,7 +80,7 @@ __device__ float3 operator + (float3 a, float3 &b) {
 	return tmp;
 }
 
-__device__ float3 operator + (float3 a, float &b) {
+__device__ __host__ float3 operator + (float3 a, float &b) {
 	float3 tmp;
 	tmp.x = a.x + b;
 	tmp.y = a.y + b;
@@ -89,7 +89,7 @@ __device__ float3 operator + (float3 a, float &b) {
 	return tmp;
 }
 
-__device__ float3 operator - (float3 a, float3 &b) {
+__device__ __host__ float3 operator - (float3 a, float3 &b) {
 	float3 tmp;
 	tmp.x = a.x - b.x;
 	tmp.y = a.y - b.y;
@@ -98,7 +98,7 @@ __device__ float3 operator - (float3 a, float3 &b) {
 	return tmp;
 }
 
-__device__ float3 operator - (float3 a, float &b) {
+__device__ __host__ float3 operator - (float3 a, float &b) {
 	float3 tmp;
 	tmp.x = a.x - b;
 	tmp.y = a.y - b;
@@ -106,7 +106,7 @@ __device__ float3 operator - (float3 a, float &b) {
 
 	return tmp;
 }
-__device__ float3 operator * (float3 a, float3 &b) {
+__device__ __host__ float3 operator * (float3 a, float3 &b) {
 	float3 tmp;
 	tmp.x = a.x * b.x;
 	tmp.y = a.y * b.y;
@@ -115,7 +115,7 @@ __device__ float3 operator * (float3 a, float3 &b) {
 	return tmp;
 }
 
-__device__ float3 operator * (float3 a, float &b) {
+__device__ __host__ float3 operator * (float3 a, float &b) {
 	float3 tmp;
 	tmp.x = a.x * b;
 	tmp.y = a.y * b;
@@ -124,7 +124,7 @@ __device__ float3 operator * (float3 a, float &b) {
 	return tmp;
 }
 
-__device__ float3 operator / (float3 a, float3 &b) {
+__device__ __host__ float3 operator / (float3 a, float3 &b) {
 	float3 tmp;
 	tmp.x = a.x / b.x;
 	tmp.y = a.y / b.y;
@@ -133,7 +133,7 @@ __device__ float3 operator / (float3 a, float3 &b) {
 	return tmp;
 }
 
-__device__ int3 operator + (int3 a, int3 b) {
+__device__ __host__ int3 operator + (int3 a, int3 b) {
 	int3 tmp;
 	tmp.x = a.x + b.x;
 	tmp.y = a.y + b.y;
@@ -142,11 +142,11 @@ __device__ int3 operator + (int3 a, int3 b) {
 }
 
 
-__device__ double vector_length_k(float3 a) {
+__device__ __host__ double vector_length_k(float3 a) {
 	return sqrt(float(a.x*a.x + a.y * a.y + a.z * a.z));
 }
 
-__device__ float3 vector_normalized_k(float3 a) {
+__device__ __host__ float3 vector_normalized_k(float3 a) {
 	float3 tmp;
 	double norm = vector_length_k(a);
 	if (norm != 0) {
@@ -158,7 +158,7 @@ __device__ float3 vector_normalized_k(float3 a) {
 }
 
 
-__device__  float3	vector_cross_k(float3 a, float3 b) {
+__device__ __host__  float3	vector_cross_k(float3 a, float3 b) {
 	float3 tmp;
 	tmp.x = ((a.y*b.z) - (a.z*b.y));
 	tmp.y = ((a.z*b.x) - (a.x*b.z));
@@ -166,11 +166,11 @@ __device__  float3	vector_cross_k(float3 a, float3 b) {
 	return tmp;
 }
 
-__device__ double vector_dot_k(float3 a, float3 b) {
+__device__ __host__ double vector_dot_k(float3 a, float3 b) {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
-__device__ matrix3 operator +(matrix3 a, matrix3 b) {
+__device__ __host__ matrix3 operator +(matrix3 a, matrix3 b) {
 	matrix3 tmp;
 
 	tmp.x = make_float3(a.x.x + b.x.x, a.x.y + b.x.y, a.x.z + b.x.z);
@@ -180,7 +180,7 @@ __device__ matrix3 operator +(matrix3 a, matrix3 b) {
 	return tmp;
 }
 
-__device__ matrix3 operator *(matrix3 a, matrix3 b) {
+__device__ __host__ matrix3 operator *(matrix3 a, matrix3 b) {
 	matrix3 tmp;
 
 	tmp.x.x = a.x.x * b.x.x + a.x.y * b.y.x + a.x.z * b.z.x;
@@ -198,7 +198,7 @@ __device__ matrix3 operator *(matrix3 a, matrix3 b) {
 	return tmp;
 }
 
-__device__ matrix3 operator *(matrix3 a, float b) {
+__device__ __host__ matrix3 operator *(matrix3 a, float b) {
 	matrix3 tmp;
 
 	tmp.x = a.x * b;
@@ -207,13 +207,13 @@ __device__ matrix3 operator *(matrix3 a, float b) {
 	return tmp;
 }
 
-__device__ void set_identity(matrix3 &a) {
+__device__ __host__ void set_identity(matrix3 &a) {
 	a.x = make_float3(1, 0, 0);
 	a.y = make_float3(0, 1, 0);
 	a.z = make_float3(0, 0, 1);
 }
 
-__device__ float3 rot_vec_by_mat(float3 a, matrix3 b) {
+__device__ __host__ float3 rot_vec_by_mat(float3 a, matrix3 b) {
 	float3 tmp;
 	tmp.x = a.x * b.x.x + a.y * b.x.y + a.z * b.x.z;
 	tmp.y = a.x * b.y.x + a.y * b.y.y + a.z * b.y.z;
@@ -222,7 +222,22 @@ __device__ float3 rot_vec_by_mat(float3 a, matrix3 b) {
 	return tmp;
 }
 
-__device__ matrix3 rot_mat_from_two_vectors(float3 a, float3 b) {
+__device__ __host__ float mat_index(matrix3 mat, int i, int j) {
+	
+	if (i == 0 && j == 0)return mat.x.x;
+	if (i == 0 && j == 1)return mat.x.y;
+	if (i == 0 && j == 2)return mat.x.z;
+	if (i == 1 && j == 0)return mat.y.x;
+	if (i == 1 && j == 1)return mat.y.y;
+	if (i == 1 && j == 2)return mat.y.z;
+	if (i == 2 && j == 0)return mat.z.x;
+	if (i == 2 && j == 1)return mat.z.y;
+	if (i == 2 && j == 2)return mat.z.z;
+
+	return 0;
+}
+
+__device__ __host__ matrix3 rot_mat_from_two_vectors(float3 a, float3 b) {
 	a = vector_normalized_k(a);
 	b = vector_normalized_k(b);
 

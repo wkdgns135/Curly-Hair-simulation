@@ -98,7 +98,11 @@ void HairModel::params_init() {
 	float3 dx = make_float3(1.0f / res, 1.0f / res, 1.0f / res);
 	params_host.cell_size = dx;
 
-	params_host.particle_radius = (float)(4.0 * 0.5 / params_host.grid_size.x);;
+	params_host.particle_radius = (float)(4.0 * 0.5 / params_host.grid_size.x);
+
+	params_host.scaling = 0.7f;
+	params_host.sphere_rad = 0.28f;
+	params_host.sphere_pos = make_float3(0.5, -0.1, 0.5);
 }
 
 void HairModel::pre_compute() {

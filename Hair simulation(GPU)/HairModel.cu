@@ -444,12 +444,105 @@ __global__ void ComputeCurlyHairDensityKernel(HashTableDevice hashing, Particle 
 //	particles.n_position[p_index] = normal;
 //}
 
-__global__ void bouncing_test(Particle particle, float offset) {
+__global__ void bouncing_test_k(Particle particle, float offset) {
 	if (threadIdx.x != 0)return;
 	int tid = blockIdx.x * blockDim.x;
 	particle.position[tid].y += sin(offset * 0.25) * 0.5;
 
 };
+
+__global__ void rotating_test_k(Particle particle, matrix3 rot) {
+	if (threadIdx.x > 1) return;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	float3 pos = rot_vec_by_mat(particle.position[tid], rot);
+	particle.position[tid] = pos;
+}
+
+__global__ void collision_test_k(Particle particle, float dt)
+{
+	if (threadIdx.x == 0) return;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	float3 pos = particle.n_position[tid];
+	float3 vel = particle.velocity[tid];
+	float3 normal = pos - params.sphere_pos;
+	normal = vector_normalized_k(normal);
+	float sdf = powf(pos.x - params.sphere_pos.x, 2.0f) + powf(pos.y - params.sphere_pos.y, 2.0f) + powf(pos.z - params.sphere_pos.z, 2.0f) - (params.sphere_rad * params.sphere_rad);
+	dt = dt * 0.1;
+	float phi = sdf + dt * vector_dot_k(vel, normal);
+
+	if (phi < 0.0) {
+		float vn = vector_dot_k(vel, normal);
+		float3 vt = vel - normal * vn;
+		float v_new = vn - phi / dt;
+		float mu = 0.3f;
+		float friction = 1.0f - mu * ((v_new - vn) / vector_length_k(vt));
+		float3 v_rel;
+		if (friction < 0.0) {
+			v_rel = make_float3(0.0, 0.0, 0.0);
+		}
+		else {
+			v_rel = vt * friction;
+		}
+		particle.velocity[tid] = normal * v_new + v_rel;
+
+		// apply adhesion force
+		//float dist = fabs(phi); // Penetration depth
+		//float weight = 1300.0f;
+		//float3 diff = normal * dist;
+		//float3 adhesion = AdhesionCurlyHair(dist, _CurlyHairParam._particleRadius, diff);
+		//float mass = 1.0f;
+		//float3 adhesionForce = weight * mass * adhesion;
+		//particles._vel[tid] += adhesionForce * dt;
+	}
+}
+
+
+
+void HairModel::bouncing_test() {
+	static float bouncing_offset = 0;
+	bouncing_test_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device, bouncing_offset);
+	bouncing_offset += 1;
+}
+
+void HairModel::rotating_test(void)
+{
+	static double rot = 0.0;
+	auto radian = cos(rot) * 1.0;
+	auto theta = radian * 0.017453292519943295769236907684886;
+
+	float3 minB = min_b;
+	float3 maxB = max_b;
+	//float3 pivot =  vector_multiply_k((maxB + minB) , 0.5);
+	float3 normal = make_float3(0.0, 1.0, 0.0);
+	matrix3 rotM;
+	set_identity(rotM);
+
+	// compute rotate matrix
+	rotM.x.x = cos(theta) + (normal.x*normal.x)*(1.0 - cos(theta));
+	rotM.x.y = (normal.x*normal.y)*(1.0 - cos(theta)) - normal.z*sin(theta);
+	rotM.x.z = (normal.x*normal.z)*(1.0 - cos(theta)) + normal.y*sin(theta);
+	rotM.y.x = (normal.y*normal.x)*(1.0 - cos(theta)) + normal.z*sin(theta);
+	rotM.y.y = cos(theta) + (normal.y*normal.y)*(1.0 - cos(theta));
+	rotM.y.z = (normal.y*normal.z)*(1.0 - cos(theta)) - normal.x*sin(theta);
+	rotM.z.x = (normal.z*normal.x)*(1.0 - cos(theta)) - normal.y*sin(theta);
+	rotM.z.y = (normal.z*normal.y)*(1.0 - cos(theta)) + normal.x*sin(theta);
+	rotM.z.z = cos(theta) + (normal.z*normal.z)*(1.0 - cos(theta));
+
+	rotating_test_k<<<STRAND_SIZE, MAX_SIZE>>> (particle_device, rotM);
+	rot += 0.02; // angle range
+}
+
+void HairModel::collision_test() {
+	collision_test_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device, 0.001f);
+}
+
+void HairModel::sphere_moving() {
+	static float time = 0.0;
+	auto w = cos(time) * 0.018f;
+	params_host.sphere_pos.y += w;
+	time += 0.05f;
+	set_parameter();
+}
 
 void HairModel::move_root(int dst) {
 	if (dst == 0) {
@@ -499,7 +592,10 @@ void HairModel::simulation() {
 	//cudaMemcpy(particle_device.n_position, particle_host.n_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	//updateHashing();
 
-	if (state == BOUNCING_TEST)bouncing_test << <STRAND_SIZE, MAX_SIZE >> > (particle_device, bouncing_offset++);
+	if (state == BOUNCING_TEST)bouncing_test();
+	if (state == ROTATE_TEST)rotating_test();
+	if (state == COLLISION_TEST)sphere_moving();
+	
 	for (int iter1 = 0; iter1 < 10; iter1++) {
 
 		//collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
@@ -524,6 +620,7 @@ void HairModel::simulation() {
 			}
 		}
 		
+		if (state == COLLISION_TEST)collision_test();
 		update_position << <STRAND_SIZE, MAX_SIZE >> > (particle_device);
 	}
 
@@ -544,8 +641,8 @@ void HairModel::simulation() {
 	cudaMemcpy(particle_host.position, particle_device.position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 	cudaMemcpy(particle_host.test_pos, particle_device.test_pos, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 	
-	//normalize_position();
-	//cudaMemcpy(particle_device.n_position, particle_host.n_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
+	normalize_position();
+	cudaMemcpy(particle_device.n_position, particle_host.n_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 	//ComputeCurlyHairDensityKernel << <STRAND_SIZE, MAX_SIZE >> > (_hashing, particle_device);
 	//cudaMemcpy(particle_host.density, particle_device.density, sizeof(float) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 	//ComputeCurlyHairNormalKernel << <STRAND_SIZE, MAX_SIZE >> > (_hashing, particle_device);

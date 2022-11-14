@@ -241,8 +241,12 @@ private:
 };
 
 class MainScene : public nanogui::Screen {\
+
+private:
+	int w = 1920;
+	int h = 1080;
 public:
-	MainScene() : nanogui::Screen(Eigen::Vector2i(1980, 1080), "MainScene", false, true) {
+	MainScene() : nanogui::Screen(Eigen::Vector2i(w, h), "MainScene", false, true) {
 		using namespace nanogui;
 		//Simuation window
 		Window *simulation_window = new Window(this, "Simulation window");
@@ -266,9 +270,9 @@ public:
 			is_simulation = false;
 		});
 
-		Button *rest_btn = tool_btn_panel->add<Button>("", ENTYPO_ICON_CCW);
-		rest_btn->setFixedSize(nanogui::Vector2i(30, 30));
-		rest_btn->setCallback([this]() {
+		Button *reset_btn = tool_btn_panel->add<Button>("", ENTYPO_ICON_CCW);
+		reset_btn->setFixedSize(nanogui::Vector2i(30, 30));
+		reset_btn->setCallback([this]() {
 			float3 tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
 			char *dir = hm->hair_style;
 			hm = new HairModel(dir);
@@ -278,11 +282,11 @@ public:
 
 		simulation_canvas = new SimulationCanvas(simulation_window);
 		simulation_canvas->setBackgroundColor({ 100, 100, 100, 255 });
-		simulation_canvas->setSize({1980 - 1980 / 3 - 50, 1080 - 50});
+		simulation_canvas->setSize({w - w / 3 - 50, h - 50});
 
 		//Hair style window
 		Window *hair_style_window = new Window(this, "Select hair style");
-		hair_style_window->setPosition(Vector2i(1980 - 1980 / 3, 0));
+		hair_style_window->setPosition(Vector2i(w - w / 3, 0));
 		vector<pair<int, string>>icons = loadImageDirectory(mNVGContext, "icons");
 		new Label(hair_style_window, "Image panel & scroll panel", "sans-bold");
 		PopupButton *imagePanelBtn = new PopupButton(hair_style_window, "Select style");
@@ -291,7 +295,7 @@ public:
 		VScrollPanel *vscroll = new VScrollPanel(popup);
 		ImagePanel *imgPanel = new ImagePanel(vscroll);
 		imgPanel->setImages(icons);
-		popup->setFixedSize(Vector2i(245, 1080 / 3 - 100));
+		popup->setFixedSize(Vector2i(245, h / 3 - 100));
 
 		imgPanel->setCallback([this](int i) {
 			float3 tmp;
@@ -347,7 +351,7 @@ public:
 
 		//Physics test window
 		Window *physics_window = new Window(this, "Physics test window");
-		physics_window->setPosition(Vector2i(1980 - 1980 / 3, 1080 / 3));
+		physics_window->setPosition(Vector2i(w - w / 3, h / 3));
 
 		layout =
 			new GridLayout(Orientation::Horizontal, 2,
@@ -394,7 +398,7 @@ public:
 		});
 
 		Window *parameter_window = new Window(this, "Parmameter setting");
-		parameter_window->setPosition(Vector2i(1980 - 1980 / 3, 1080 / 3 * 2));
+		parameter_window->setPosition(Vector2i(w - w / 3, h / 3 * 2));
 
 		layout =
 			new GridLayout(Orientation::Horizontal, 2,
@@ -408,17 +412,17 @@ public:
 		Widget *parameter_panel = new Widget(parameter_window);
 		parameter_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		Slider *slider = new Slider(parameter_panel);
+		Slider *stretch_slider = new Slider(parameter_panel);
 
-		slider->setRange(pair<float, float>(0, 500000 * 2));
-		slider->setValue(500000);
-		slider->setFixedWidth(160);
-		TextBox *textBox = new TextBox(parameter_panel);
-		textBox->setFixedSize(Vector2i(100, 25));
-		textBox->setValue("500000");
+		stretch_slider->setRange(pair<float, float>(0, 500000 * 2));
+		stretch_slider->setValue(500000);
+		stretch_slider->setFixedWidth(160);
+		TextBox *stretch_textBox = new TextBox(parameter_panel);
+		stretch_textBox->setFixedSize(Vector2i(100, 25));
+		stretch_textBox->setValue("500000");
 
-		slider->setCallback([textBox](float value) {
-			textBox->setValue(std::to_string((int)(value)));
+		stretch_slider->setCallback([stretch_textBox](float value) {
+			stretch_textBox->setValue(std::to_string((int)(value)));
 			hm->params_host.K_S = value;
 			hm->set_parameter();
 		});
@@ -427,17 +431,17 @@ public:
 		parameter_panel = new Widget(parameter_window);
 		parameter_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		slider = new Slider(parameter_panel);
 
-		slider->setRange(pair<float, float>(0, 60000));
-		slider->setValue(30000);
-		slider->setFixedWidth(160);
-		textBox = new TextBox(parameter_panel);
-		textBox->setFixedSize(Vector2i(100, 25));
-		textBox->setValue("30000");
+		Slider *bending_slider = new Slider(parameter_panel);
+		bending_slider->setRange(pair<float, float>(0, 60000));
+		bending_slider->setValue(30000);
+		bending_slider->setFixedWidth(160);
+		TextBox *bending_textBox = new TextBox(parameter_panel);
+		bending_textBox->setFixedSize(Vector2i(100, 25));
+		bending_textBox->setValue("30000");
 
-		slider->setCallback([textBox](float value) {
-			textBox->setValue(std::to_string((int)(value)));
+		bending_slider->setCallback([bending_textBox](float value) {
+			bending_textBox->setValue(std::to_string((int)(value)));
 			hm->params_host.K_B = value;
 			hm->set_parameter();
 		});
@@ -446,17 +450,17 @@ public:
 		parameter_panel = new Widget(parameter_window);
 		parameter_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		slider = new Slider(parameter_panel);
+		Slider *core_slider = new Slider(parameter_panel);
 
-		slider->setRange(std::pair<float, float>(0, 30000));
-		slider->setValue(15000);
-		slider->setFixedWidth(160);
-		textBox = new TextBox(parameter_panel);
-		textBox->setFixedSize(Vector2i(100, 25));
-		textBox->setValue("15000");
+		core_slider->setRange(std::pair<float, float>(0, 30000));
+		core_slider->setValue(15000);
+		core_slider->setFixedWidth(160);
+		TextBox *core_textBox = new TextBox(parameter_panel);
+		core_textBox->setFixedSize(Vector2i(100, 25));
+		core_textBox->setValue("15000");
 
-		slider->setCallback([textBox](float value) {
-			textBox->setValue(std::to_string((int)(value)));
+		core_slider->setCallback([core_textBox](float value) {
+			core_textBox->setValue(std::to_string((int)(value)));
 			hm->params_host.K_C = value;
 			hm->set_parameter();
 		});
@@ -465,20 +469,45 @@ public:
 		parameter_panel = new Widget(parameter_window);
 		parameter_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
-		slider = new Slider(parameter_panel);
+		Slider *saturation_slider = new Slider(parameter_panel);
 
-		slider->setRange(std::pair<float, float>(0, 30000));
-		slider->setValue(0);
-		slider->setFixedWidth(160);
-		textBox = new TextBox(parameter_panel);
-		textBox->setFixedSize(Vector2i(100, 25));
-		textBox->setValue("0");
+		saturation_slider->setRange(std::pair<float, float>(0, 30000));
+		saturation_slider->setValue(0);
+		saturation_slider->setFixedWidth(160);
+		TextBox *saturation_textBox = new TextBox(parameter_panel);
+		saturation_textBox->setFixedSize(Vector2i(100, 25));
+		saturation_textBox->setValue("0");
 
-		slider->setCallback([textBox](float value) {
-			textBox->setValue(std::to_string((int)(value)));
+		saturation_slider->setCallback([saturation_textBox](float value) {
+			saturation_textBox->setValue(std::to_string((int)(value)));
 			hm->params_host.R_C = value;
 			hm->set_parameter();
 		});
+
+		Widget *reset_panel = new Widget(parameter_window);
+		reset_panel->setLayout(new BoxLayout(Orientation::Horizontal,
+			Alignment::Middle, 0, 5));
+		reset_btn = reset_panel->add<Button>("", ENTYPO_ICON_CCW);
+		reset_btn->setFixedSize(nanogui::Vector2i(30, 30));
+		reset_btn->setCallback([stretch_slider, stretch_textBox, bending_slider, bending_textBox,
+		core_slider, core_textBox, saturation_slider, saturation_textBox]() {
+			hm->params_host.K_S = 500000;
+			hm->params_host.K_B = 30000;
+			hm->params_host.K_C = 15000;
+			hm->params_host.R_C = 0; 
+			hm->set_parameter();
+
+			stretch_slider->setValue(500000);
+			bending_slider->setValue(30000);
+			core_slider->setValue(15000);
+			saturation_slider->setValue(0);
+
+			stretch_textBox->setValue("500000");
+			bending_textBox->setValue("30000");
+			core_textBox->setValue("15000");
+			saturation_textBox->setValue("0");
+		});
+		new Label(reset_panel, "                                   ", "sans-bold");
 
 		performLayout();
 	}

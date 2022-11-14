@@ -30,6 +30,11 @@ struct Params
 	int3 grid_size;
 	float3 cell_size;
 	float particle_radius;
+
+	float	sphere_rad;
+	float3	sphere_pos;
+	float	long_axis;
+	float	scaling;
 };
 
 enum State {
@@ -66,8 +71,10 @@ public:
 	void	get_colors();
 	State state;
 	
-	float bouncing_offset = 0;
-
+	void bouncing_test();
+	void rotating_test();
+	void collision_test();
+	void sphere_moving();
 public:
 	Particle particle_host;
 	Particle particle_device;
