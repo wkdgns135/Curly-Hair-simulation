@@ -30,6 +30,8 @@ struct Params
 	int3 grid_size;
 	float3 cell_size;
 	float particle_radius;
+	int	num_cells;
+	float max_density;
 
 	float	sphere_rad;
 	float3	sphere_pos;
@@ -45,15 +47,6 @@ enum State {
 	COHESION_TEST,
 };
 
-class Sphere {
-public:
-	float3 pos;
-	float radius;
-
-public:
-	void move_sphere(float3 dst);
-};
-
 class HairModel
 {
 public:
@@ -64,7 +57,7 @@ public:
 	float3 min_b, max_b;
 	
 public:
-	vector<vector<uint>> indices;
+	vector<vector<unsigned int>> indices;
 	char *hair_style;
 	float3 *colors;
 	float3 color;
@@ -83,9 +76,10 @@ public:
 	//collision
 	float3 sphere_pos;
 	float sphere_radius;
+
 public: // added by jhkim
 	HashTableDevice	_hashing;
-
+	void computeMaxDensity();
 public:
 	void pre_compute();
 	void velocity_smoothing_function(float3 *lambda, float3 *dst, double *l, double alpha, bool is_position);
@@ -121,6 +115,7 @@ public:
 public: // added by jhkim
 	void	saveParticle(char *filename);
 	void	updateHashing(void);
+	void	updateDensity(void);
 	void	freeHashing(void);
 };
 

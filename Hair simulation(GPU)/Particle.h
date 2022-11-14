@@ -15,6 +15,7 @@ public:
 	float3		*n_position;
 	float		*density;
 	float		*saturation;
+	float3		*wet_position;
 
 public:
 	float3		*test_pos;

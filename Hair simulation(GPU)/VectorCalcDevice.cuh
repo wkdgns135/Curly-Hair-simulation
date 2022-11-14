@@ -22,6 +22,7 @@ __device__ __host__ float3 operator - (float3 a, float &b);
 __device__ __host__ float3 operator * (float3 a, float3 &b);
 __device__ __host__ float3 operator * (float3 a, float &b);
 __device__ __host__ float3 operator / (float3 a, float3 &b);
+__device__ __host__ float3 operator / (float3 a, float &b);
 __device__ __host__ int3 operator + (int3 a, int3 b);
 __device__ __host__ double vector_length_k(float3 a);
 __device__ __host__ float3 vector_normalized_k(float3 a);

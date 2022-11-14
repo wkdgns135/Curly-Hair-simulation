@@ -37,6 +37,7 @@ HairModel::HairModel(char *filename) {
 	particle_host.density = (float*)malloc(sizeof(float) * TOTAL_SIZE);
 	particle_host.saturation = (float*)malloc(sizeof(float) * TOTAL_SIZE);
 	particle_host.test_pos = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
+	particle_host.wet_position = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 
 	colors = (float3*)malloc(sizeof(float3) * TOTAL_SIZE);
 
@@ -44,13 +45,11 @@ HairModel::HairModel(char *filename) {
 	vector2arr(v, particle_host.r_position);
 
 	params_init();
-
-	_hashing.init(TOTAL_SIZE, params_host.cell_size.x * params_host.cell_size.y * params_host.cell_size.z);
-
 	pre_compute();
 
+	normalize_position();
 	device_init();
-
+	computeMaxDensity();
 	//saveParticle("curlyHairs.txt");
 }
 
@@ -71,6 +70,7 @@ HairModel::~HairModel() {
 	free(particle_host.n_position);
 	free(particle_host.density);
 	free(particle_host.saturation);
+	free(particle_host.wet_position);
 	free(colors);
 
 	device_free();
@@ -92,13 +92,16 @@ void HairModel::params_init() {
 
 	params_host.R_C = 0;
 
+	//
+
 	// added by jhkim
 	float res = 128.0f;
 	params_host.grid_size = make_int3(res, res, res);
+	params_host.num_cells = res * res * res;
 	float3 dx = make_float3(1.0f / res, 1.0f / res, 1.0f / res);
 	params_host.cell_size = dx;
-
 	params_host.particle_radius = (float)(4.0 * 0.5 / params_host.grid_size.x);
+
 
 	params_host.scaling = 0.7f;
 	params_host.sphere_rad = 0.28f;
@@ -453,7 +456,6 @@ void HairModel::test_draw() {
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
-
 
 void HairModel::normalize_position(void)
 {

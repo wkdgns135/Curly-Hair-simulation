@@ -49,11 +49,13 @@ bool is_simulation = true;
 
 class SimulationCanvas : public nanogui::GLCanvas {
 private:
-	nanogui::GLShader mShader;
+	nanogui::GLShader hair_shader;
+	nanogui::GLShader sphere_shader;
 	Eigen::Vector3f mRotation;
 	Eigen::Matrix4f ModelMatrix;
 	Eigen::Matrix4f ViewMatrix;
 	Eigen::Matrix4f ProjectionMatrix;
+	
 	float initialRadius = -238.0; // modified by jhkim
 	float currentRadius = -238.0; // modified by jhkim
 	float horizontalAngle = 0.0f;//3.14f;
@@ -65,7 +67,7 @@ public:
 		hm = new HairModel("strands\\strands00000.txt");
 		hm->color = make_float3(1.0, 0.8, 0.0);
 
-		mShader.init(
+		hair_shader.init(
 			/* An identifying name */
 			"a_simple_shader",
 
@@ -88,6 +90,28 @@ public:
 			"    color = frag_color;\n"
 			"}"
 		);
+		//sphere_shader.init(
+		//	/* An identifying name */
+		//	"a_simple_shader",
+
+		//	/* Vertex shader */
+		//	"#version 330\n"
+		//	"uniform mat4 modelViewProj;\n"
+		//	"in vec3 position;\n"
+		//	"out vec4 frag_color;\n"
+		//	"void main() {\n"
+		//	"    frag_color = vec4(0.7, 0.7, 0.7, 1.0);\n"
+		//	"    gl_Position = modelViewProj * vec4(position, 1.0);\n"
+		//	"}",
+
+		//	/* Fragment shader */
+		//	"#version 330\n"
+		//	"out vec4 color;\n"
+		//	"in vec4 frag_color;\n"
+		//	"void main() {\n"
+		//	"    color = frag_color;\n"
+		//	"}"
+		//);
 
 		MatrixXu indices(2, hm->TOTAL_SIZE);
 		setIndex(indices);
@@ -99,15 +123,15 @@ public:
 		MatrixXf colors(3, hm->TOTAL_SIZE);
 		setColor(hm->colors, colors);
 
-		mShader.bind();
-		mShader.uploadIndices(indices);
+		hair_shader.bind();
+		hair_shader.uploadIndices(indices);
 
-		mShader.uploadAttrib("position", positions);
-		mShader.uploadAttrib("color", colors);
+		hair_shader.uploadAttrib("position", positions);
+		hair_shader.uploadAttrib("color", colors);
 	}
 
 	~SimulationCanvas() {
-		mShader.free();
+		hair_shader.free();
 	}
 
 	void init_mvp() {
@@ -176,6 +200,66 @@ public:
 		mat(3,3) = float(1);
 		return mat;
 	}
+	
+	void set_sphere_pos(nanogui::MatrixXf &mat, int stackCount, int sectorCount) {
+		float x, y, z, xy;                           // vertex position
+		float radius = hm->params_host.sphere_rad;
+		float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
+		float s, t;                                     // vertex texCoord
+		float PI = 3.14159265358979;
+
+		float sectorStep = 2 * PI / sectorCount;
+		float stackStep = PI / stackCount;
+		float sectorAngle, stackAngle;
+		for (int i = 0; i <= stackCount; ++i)
+		{
+			stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+			xy = radius * cosf(stackAngle);             // r * cos(u)
+			z = radius * sinf(stackAngle);              // r * sin(u)
+
+			// add (sectorCount+1) vertices per stack
+			// the first and last vertices have same position and normal, but different tex coords
+			for (int j = 0; j <= sectorCount; ++j)
+			{
+				sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+
+				// vertex position (x, y, z)
+				x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+				y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+
+				x = x + hm->params_host.sphere_pos.x;
+				y = y + hm->params_host.sphere_pos.y;
+				z = z + hm->params_host.sphere_pos.z;
+				mat.col(i*sectorCount + j) << x, y, z;
+			}
+		}
+	}
+
+	void set_sphere_index(nanogui::MatrixXu &mat, int stackCount, int sectorCount) {
+		int k1, k2;
+		for (int i = 0; i < stackCount; ++i)
+		{
+			k1 = i * (sectorCount + 1);     // beginning of current stack
+			k2 = k1 + sectorCount + 1;      // beginning of next stack
+
+			for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+			{
+				// 2 triangles per sector excluding first and last stacks
+				// k1 => k2 => k1+1
+				if (i != 0)
+				{
+					mat.col(i*sectorCount + j) << k1, k2, k1 + 1;
+
+				}
+
+				// k1+1 => k2 => k2+1
+				if (i != (stackCount - 1))
+				{
+					mat.col(i*sectorCount + j) << k1+1, k2, k2 + 1;
+				}
+			}
+		}
+	}
 
 	void setIndex(nanogui::MatrixXu &mat) {
 		for (int i = 0; i < hm->STRAND_SIZE; i++) {
@@ -207,7 +291,9 @@ public:
 	virtual void drawGL() override {
 		using namespace nanogui;
 
+		hair_shader.bind();
 		if (is_simulation) {
+
 			hm->simulation();
 			hm->get_colors();
 			MatrixXu indices(2, hm->TOTAL_SIZE); /* Draw a cube */
@@ -220,28 +306,18 @@ public:
 			MatrixXf colors(3, hm->TOTAL_SIZE);
 			setColor(hm->colors, colors);
 
-			mShader.uploadIndices(indices);
-			mShader.uploadAttrib("position", positions);
-			mShader.uploadAttrib("color", colors);
+			hair_shader.uploadIndices(indices);
+			hair_shader.uploadAttrib("position", positions);
+			hair_shader.uploadAttrib("color", colors);
+
 		}
-		mShader.bind();
-
-
-
-		Matrix4f mvp;
-		mvp.setIdentity();
-		//float fTime = (float)glfwGetTime();
-		//mvp.topLeftCorner<3, 3>() = Eigen::Matrix3f(Eigen::AngleAxisf(mRotation[0] * fTime, Vector3f::UnitX()) *
-		//	Eigen::AngleAxisf(mRotation[1] * fTime, Vector3f::UnitY()) *
-		//	Eigen::AngleAxisf(mRotation[2] * fTime, Vector3f::UnitZ())) * 0.25f;
-		
 		Matrix4f MVP = MVP.setIdentity();
 		MVP = MVP + translate(Vector3f(0, 1, 0));
-		mShader.setUniform("modelViewProj", MVP);
-
+		hair_shader.setUniform("modelViewProj", MVP);
+		
 		glEnable(GL_DEPTH_TEST);
 		/* Draw 12 triangles starting at index 0 */
-		mShader.drawIndexed(GL_LINES, 0, hm->TOTAL_SIZE);
+		hair_shader.drawIndexed(GL_LINES, 0, hm->TOTAL_SIZE);
 		glDisable(GL_DEPTH_TEST);
 
 	}
@@ -317,7 +393,7 @@ private:
 
 class MainScene : public nanogui::Screen {\
 public:
-	MainScene() : nanogui::Screen(Eigen::Vector2i(1920, 1080), "MainScene", false, true) {
+	MainScene() : nanogui::Screen(Eigen::Vector2i(1920, 1080), "MainScene", false, false) {
 		int w = 1920;
 		int h = 1080;
 		using namespace nanogui;

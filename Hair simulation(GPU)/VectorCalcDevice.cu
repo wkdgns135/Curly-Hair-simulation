@@ -133,6 +133,15 @@ __device__ __host__ float3 operator / (float3 a, float3 &b) {
 	return tmp;
 }
 
+__device__ __host__ float3 operator / (float3 a, float &b) {
+	float3 tmp;
+	tmp.x = a.x / b;
+	tmp.y = a.y / b;
+	tmp.z = a.z / b;
+
+	return tmp;
+}
+
 __device__ __host__ int3 operator + (int3 a, int3 b) {
 	int3 tmp;
 	tmp.x = a.x + b.x;
