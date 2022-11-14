@@ -48,6 +48,17 @@ HairModel *hm;
 bool is_simulation = true;
 
 class SimulationCanvas : public nanogui::GLCanvas {
+private:
+	nanogui::GLShader mShader;
+	Eigen::Vector3f mRotation;
+	Eigen::Matrix4f ModelMatrix;
+	Eigen::Matrix4f ViewMatrix;
+	Eigen::Matrix4f ProjectionMatrix;
+	float initialRadius = -238.0; // modified by jhkim
+	float currentRadius = -238.0; // modified by jhkim
+	float horizontalAngle = 0.0f;//3.14f;
+	float verticalAngle = 0.0f;
+
 public:
 	SimulationCanvas(Widget *parent) : nanogui::GLCanvas(parent), mRotation(nanogui::Vector3f(0.25f, 0.5f, 0.33f)) {
 		using namespace nanogui;
@@ -78,7 +89,7 @@ public:
 			"}"
 		);
 
-		MatrixXu indices(2, hm->TOTAL_SIZE); /* Draw a cube */
+		MatrixXu indices(2, hm->TOTAL_SIZE);
 		setIndex(indices);
 
 		MatrixXf positions(3, hm->TOTAL_SIZE);
@@ -99,25 +110,91 @@ public:
 		mShader.free();
 	}
 
-	
+	void init_mvp() {
+		using namespace Eigen;
+		using namespace nanogui;
+
+		Matrix3f rotmat_y;
+		rotmat_y <<
+			cos(horizontalAngle), 0.0, sin(horizontalAngle)
+			, 0.0, 1.0, 0.0
+			, -sin(horizontalAngle), 0.0, cos(horizontalAngle);
+
+		Matrix3f rotmat_x;
+		rotmat_x <<
+			1.0, 0.0, 0.0,
+			0.0, cos(verticalAngle), -sin(verticalAngle),
+			0.0, sin(verticalAngle), cos(verticalAngle);
+		Matrix3f rotmat = rotmat_x * rotmat_y;
+
+		Vector3f position = Vector3f(18.0, 25.0, 30.0);
+		Vector3f target = Vector3f(0.0, -20.0, 0.0);
+		position = rotmat * (Vector3f(0.0, 0.0, currentRadius) - target) + target;
+		Vector3f up = rotmat * Vector3f(0.0, 1.0, 0.0);
+
+		ModelMatrix = translate(Vector3f(0, 0, 0)) * get_orientate(0, 0, 0) * translate(Vector3f(0, -1.7, 0));
+		ViewMatrix = lookAt(position, target, up);
+		ProjectionMatrix = get_perspective(26.5, 6.0f / 6.0f, 0.1f, 2000.0f);
+	}
+
+	Eigen::Matrix4f get_perspective(float fovy, float aspect, float zNear, float zFar) {
+		Eigen::Matrix4f mat;
+		float tanHalfFovy = tan(fovy / 2.0);
+		mat(0, 0) = (1) / (aspect * tanHalfFovy);
+		mat(1, 1) = (1) / (tanHalfFovy);
+		mat(2, 2) = -(zFar + zNear) / (zFar - zNear);
+		mat(2, 3) = -(1);
+		mat(3, 2) = -((2) * zFar * zNear) / (zFar - zNear);
+
+		return mat;
+	}
+
+	Eigen::Matrix4f get_orientate(float yaw, float pitch, float roll) {
+		float tmp_ch = cos(yaw);
+		float tmp_sh = sin(yaw);
+		float tmp_cp = cos(pitch);
+		float tmp_sp = sin(pitch);
+		float tmp_cb = cos(roll);
+		float tmp_sb = sin(roll);
+
+		Eigen::Matrix4f mat;
+		mat(0,0) = tmp_ch * tmp_cb + tmp_sh * tmp_sp * tmp_sb;
+		mat(0,1) = tmp_sb * tmp_cp;
+		mat(0,2) = -tmp_sh * tmp_cb + tmp_ch * tmp_sp * tmp_sb;
+		mat(0,3) = float(0);
+		mat(1,0) = -tmp_ch * tmp_sb + tmp_sh * tmp_sp * tmp_cb;
+		mat(1,1) = tmp_cb * tmp_cp;
+		mat(1,2) = tmp_sb * tmp_sh + tmp_ch * tmp_sp * tmp_cb;
+		mat(1,3) = float(0);
+		mat(2,0) = tmp_sh * tmp_cp;
+		mat(2,1) = -tmp_sp;
+		mat(2,2) = tmp_ch * tmp_cp;
+		mat(2,3) = float(0);
+		mat(3,0) = float(0);
+		mat(3,1) = float(0);
+		mat(3,2) = float(0);
+		mat(3,3) = float(1);
+		return mat;
+	}
+
 	void setIndex(nanogui::MatrixXu &mat) {
 		for (int i = 0; i < hm->STRAND_SIZE; i++) {
-			for (int j = 0; j < hm->MAX_SIZE-1; j++) {
-				mat.col(i*hm->MAX_SIZE + j) << i * hm->MAX_SIZE + j, i * hm->MAX_SIZE + j + 1;
+			for (int j = 0; j < hm->MAX_SIZE; j++) {
+				if(j < hm->MAX_SIZE - 1)mat.col(i*hm->MAX_SIZE + j) << i * hm->MAX_SIZE + j, i * hm->MAX_SIZE + j + 1;
+				else mat.col(i*hm->MAX_SIZE + j) << i * hm->MAX_SIZE + j, i * hm->MAX_SIZE + j;
 			}
 		}
 	}
 
 	void setPosition(float3 *v, nanogui::MatrixXf &mat) {
 		for (int i = 0; i < hm->TOTAL_SIZE; i++) {
-
 			mat.col(i) << v[i].x * 0.02, v[i].y* 0.02, v[i].z* 0.02;
 		}
 	}
 
 	void setColor(float3 *v, nanogui::MatrixXf &mat) {
 		for (int i = 0; i < hm->STRAND_SIZE; i++) {
-			for (int j = 0; j < hm->MAX_SIZE - 1; j++) {
+			for (int j = 0; j < hm->MAX_SIZE; j++) {
 				mat.col(i*hm->MAX_SIZE + j) << v[i*hm->MAX_SIZE + j].x, v[i*hm->MAX_SIZE + j].y, v[i*hm->MAX_SIZE + j].z;
 			}
 		}
@@ -133,8 +210,6 @@ public:
 		if (is_simulation) {
 			hm->simulation();
 			hm->get_colors();
-
-
 			MatrixXu indices(2, hm->TOTAL_SIZE); /* Draw a cube */
 			setIndex(indices);
 
@@ -152,24 +227,24 @@ public:
 		mShader.bind();
 
 
+
 		Matrix4f mvp;
 		mvp.setIdentity();
 		//float fTime = (float)glfwGetTime();
 		//mvp.topLeftCorner<3, 3>() = Eigen::Matrix3f(Eigen::AngleAxisf(mRotation[0] * fTime, Vector3f::UnitX()) *
 		//	Eigen::AngleAxisf(mRotation[1] * fTime, Vector3f::UnitY()) *
 		//	Eigen::AngleAxisf(mRotation[2] * fTime, Vector3f::UnitZ())) * 0.25f;
-
-		mShader.setUniform("modelViewProj", mvp);
+		
+		Matrix4f MVP = MVP.setIdentity();
+		MVP = MVP + translate(Vector3f(0, 1, 0));
+		mShader.setUniform("modelViewProj", MVP);
 
 		glEnable(GL_DEPTH_TEST);
 		/* Draw 12 triangles starting at index 0 */
 		mShader.drawIndexed(GL_LINES, 0, hm->TOTAL_SIZE);
 		glDisable(GL_DEPTH_TEST);
-	}
 
-private:
-	nanogui::GLShader mShader;
-	Eigen::Vector3f mRotation;
+	}
 };
 
 class GLTexture {
@@ -241,12 +316,10 @@ private:
 };
 
 class MainScene : public nanogui::Screen {\
-
-private:
-	int w = 1920;
-	int h = 1080;
 public:
-	MainScene() : nanogui::Screen(Eigen::Vector2i(w, h), "MainScene", false, true) {
+	MainScene() : nanogui::Screen(Eigen::Vector2i(1920, 1080), "MainScene", false, true) {
+		int w = 1920;
+		int h = 1080;
 		using namespace nanogui;
 		//Simuation window
 		Window *simulation_window = new Window(this, "Simulation window");
