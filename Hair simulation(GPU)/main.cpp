@@ -509,7 +509,7 @@ public:
 		hair_density_slider->setValue(128);
 		hair_density_slider->setFixedWidth(160);
 		TextBox *hair_density_textBox = new TextBox(hair_density_panel);
-		hair_density_textBox->setFixedSize(Vector2i(100, 25));
+		hair_density_textBox->setFixedSize(Vector2i(64, 25));
 		hair_density_textBox->setValue("128");
 
 		hair_density_slider->setCallback([hair_density_textBox](float value) {
@@ -519,7 +519,6 @@ public:
 			num_strands = (int)value;
 			hm = new HairModel(dir, num_strands);
 			hm->color = tmp;
-
 		});
 
 
