@@ -71,7 +71,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glad\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\eigen;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glfw\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\nanovg\src;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ext\glad\include;ext\eigen;ext\glfw\include;ext\nanovg\src;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -105,7 +105,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glad\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\eigen;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glfw\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\nanovg\src;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ext\glad\include;ext\eigen;ext\glfw\include;ext\nanovg\src;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -141,7 +141,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glad\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\eigen;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glfw\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\nanovg\src;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ext\glad\include;ext\eigen;ext\glfw\include;ext\nanovg\src;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
@@ -177,7 +177,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glad\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\eigen;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\glfw\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\ext\nanovg\src;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU)\include;C:\Users\wkdgn\Desktop\Study\Projects\Artistic Simulation Of Curly Hair\Hair simulation\Hair simulation(GPU);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ext\glad\include;ext\eigen;ext\glfw\include;ext\nanovg\src;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Sync</ExceptionHandling>
