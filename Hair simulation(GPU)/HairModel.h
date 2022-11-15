@@ -73,10 +73,6 @@ public:
 	Particle particle_device;
 	Params params_host;
 
-	//collision
-	float3 sphere_pos;
-	float sphere_radius;
-
 public: // added by jhkim
 	HashTableDevice	_hashing;
 	void computeMaxDensity();

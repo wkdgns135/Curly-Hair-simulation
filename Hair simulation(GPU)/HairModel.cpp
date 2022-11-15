@@ -11,9 +11,6 @@ HairModel::HairModel(char *filename, int num_strands) {
 	
 	state = GENERAL_SIMULATION;
 
-	sphere_pos = make_float3(0, -30, 0);
-	sphere_radius = 10;
-
 	STRAND_SIZE = v.size();
 	for (int i = 0; i < v.size(); i++) {
 		MAX_SIZE = MAX_SIZE < v[i].size() ? v[i].size() : MAX_SIZE;
@@ -227,10 +224,6 @@ void HairModel::saveParticle(char *filename)
 		}
 	}
 	fclose(fp);
-}
-
-void HairModel::move_sphere(float3 dst) {
-	sphere_pos = sphere_pos +  dst;
 }
 
 

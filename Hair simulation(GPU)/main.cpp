@@ -30,6 +30,7 @@
 #include <stb_image.h>
 
 #include "HairModel.h"
+#include "vector_calc.h"
 
 // Includes for the GLTexture class.
 #include <cstdint>
@@ -91,29 +92,30 @@ public:
 			"    color = frag_color;\n"
 			"}"
 		);
-		//sphere_shader.init(
-		//	/* An identifying name */
-		//	"a_simple_shader",
+		
+		sphere_shader.init(
+			/* an identifying name */
+			"a_simple_sphere_shader",
 
-		//	/* Vertex shader */
-		//	"#version 330\n"
-		//	"uniform mat4 modelViewProj;\n"
-		//	"in vec3 position;\n"
-		//	"out vec4 frag_color;\n"
-		//	"void main() {\n"
-		//	"    frag_color = vec4(0.7, 0.7, 0.7, 1.0);\n"
-		//	"    gl_Position = modelViewProj * vec4(position, 1.0);\n"
-		//	"}",
+			/* Vertex shader */
+			"#version 330\n"
+			"uniform mat4 modelViewProj;\n"
+			"in vec3 position;\n"
+			"out vec4 frag_color;\n"
+			"void main() {\n"
+			"    frag_color = vec4(0.7, 0.7, 0.7, 1.0);\n"
+			"    gl_Position = modelViewProj * vec4(position, 1.0);\n"
+			"}",
 
-		//	/* Fragment shader */
-		//	"#version 330\n"
-		//	"out vec4 color;\n"
-		//	"in vec4 frag_color;\n"
-		//	"void main() {\n"
-		//	"    color = frag_color;\n"
-		//	"}"
-		//);
-
+			/* Fragment shader */
+			"#version 330\n"
+			"out vec4 color;\n"
+			"in vec4 frag_color;\n"
+			"void main() {\n"
+			"    color = frag_color;\n"
+			"}"
+		);
+		
 		MatrixXu indices(2, hm->TOTAL_SIZE);
 		setIndex(indices);
 
@@ -129,10 +131,22 @@ public:
 
 		hair_shader.uploadAttrib("position", positions);
 		hair_shader.uploadAttrib("color", colors);
+
+
+		MatrixXf sphere_pos(3, 20402);
+		MatrixXu sphere_index(3, 20402);
+
+		set_sphere(sphere_pos, sphere_index);
+
+		sphere_shader.bind();
+		sphere_shader.uploadIndices(sphere_index);
+		sphere_shader.uploadAttrib("position", sphere_pos);
+
 	}
 
 	~SimulationCanvas() {
 		hair_shader.free();
+		sphere_shader.free();
 	}
 
 	void init_mvp() {
@@ -202,36 +216,68 @@ public:
 		return mat;
 	}
 	
-	void set_sphere_pos(nanogui::MatrixXf &mat, int stackCount, int sectorCount) {
-		float x, y, z, xy;                           // vertex position
+	void set_sphere(nanogui::MatrixXf &pos, nanogui::MatrixXu &indices) {
 		float radius = hm->params_host.sphere_rad;
-		float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
-		float s, t;                                     // vertex texCoord
-		float PI = 3.14159265358979;
+		int i, j;
+		int lats = 100;
+		int longs = 100;
+		int indicator = 1;
+		float pi = 3.141592;
+		int pos_index = 0;
+		int indice_index = 0;
+		// angular distance between two latitudinal lines
+		float deltaPhi = -pi / longs;
+		// angular distance between two longitudinal lines
+		float deltaTheta = 2.0f * pi / lats;
+		float3 c;
+		float3 n;
+		float2 u;
+		float3 v;
+		for (i = 0; i <= lats; i++) {
+			// azimuth angles of the two arcs defining the stack (longitudes)
+			float theta = i * deltaTheta;
+			float thetaPrime = theta + deltaTheta;
 
-		float sectorStep = 2 * PI / sectorCount;
-		float stackStep = PI / stackCount;
-		float sectorAngle, stackAngle;
-		for (int i = 0; i <= stackCount; ++i)
-		{
-			stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
-			xy = radius * cosf(stackAngle);             // r * cos(u)
-			z = radius * sinf(stackAngle);              // r * sin(u)
+			// projection of the first theta in the horizontal plane
+			float x0 = cos(theta);
+			float y0 = sin(theta);
 
-			// add (sectorCount+1) vertices per stack
-			// the first and last vertices have same position and normal, but different tex coords
-			for (int j = 0; j <= sectorCount; ++j)
-			{
-				sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+			// projection of the second theta in the horizontal plane
+			float x1 = cos(thetaPrime);
+			float y1 = sin(thetaPrime);
 
-				// vertex position (x, y, z)
-				x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
-				y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+			for (j = 0; j <= longs; j++) {
 
-				x = x + hm->params_host.sphere_pos.x;
-				y = y + hm->params_host.sphere_pos.y;
-				z = z + hm->params_host.sphere_pos.z;
-				mat.col(i*sectorCount + j) << x, y, z;
+				c = make_float3(0.4, 0.4, 0.4);
+
+				// polar angle
+				float phi = j * deltaPhi;
+
+				// polar vector in a vertical plane 
+				float xPolar = cos(phi);
+				float yPolar = sin(phi);
+
+				// vertex #2 (theta , phiPrime)
+				n = make_float3(yPolar * x1, yPolar * y1, xPolar);
+				v = n * radius;
+				u = make_float2((float)i / lats, (float)j / longs);
+				v = v + hm->params_host.sphere_pos;
+				v = v * 1.75f;
+				pos.col(pos_index++) << v.x, v.y, v.z;
+				//indices.push_back(indicator);
+				indicator++;
+
+				n = make_float3(yPolar * x0, yPolar * y0, xPolar);
+				v = n * radius;
+				v = v + hm->params_host.sphere_pos;
+				u = make_float2((float)i / lats, (float)j / longs);
+				v = v * 1.75f;
+				pos.col(pos_index++) << v.x, v.y, v.z;
+				//indices.push_back(indicator);
+				indicator++;
+
+				indices.col(indice_index++) << indicator - 3, indicator, indicator - 1;
+				indices.col(indice_index++) << indicator - 2, indicator , indicator - 3;
 			}
 		}
 	}
@@ -250,7 +296,6 @@ public:
 				if (i != 0)
 				{
 					mat.col(i*sectorCount + j) << k1, k2, k1 + 1;
-
 				}
 
 				// k1+1 => k2 => k2+1
@@ -297,14 +342,13 @@ public:
 
 			hm->simulation();
 			hm->get_colors();
-			MatrixXu indices(2, hm->TOTAL_SIZE); /* Draw a cube */
+			MatrixXu indices(2, hm->TOTAL_SIZE);
 			setIndex(indices);
-
+			
 			MatrixXf positions(3, hm->TOTAL_SIZE);
 			if (hm->state == COHESION_TEST)	setPosition(hm->particle_host.wet_position, positions);
 			else setPosition(hm->particle_host.n_position, positions);
 		
-
 			hm->get_colors();
 			MatrixXf colors(3, hm->TOTAL_SIZE);
 			setColor(hm->colors, colors);
@@ -312,17 +356,27 @@ public:
 			hair_shader.uploadIndices(indices);
 			hair_shader.uploadAttrib("position", positions);
 			hair_shader.uploadAttrib("color", colors);
-
 		}
 		Matrix4f MVP = MVP.setIdentity();
 		MVP = MVP + translate(Vector3f(-1.75, -1.5, -2.0));
 		hair_shader.setUniform("modelViewProj", MVP);
-		
-		glEnable(GL_DEPTH_TEST);
-		/* Draw 12 triangles starting at index 0 */
-		hair_shader.drawIndexed(GL_LINES, 0, hm->TOTAL_SIZE);
-		glDisable(GL_DEPTH_TEST);
 
+		glEnable(GL_DEPTH_TEST);
+		hair_shader.drawIndexed(GL_LINES, 0, hm->TOTAL_SIZE);
+
+		MatrixXf sphere_pos(3, 20402);
+		MatrixXu sphere_index(3, 20402);
+
+		set_sphere(sphere_pos, sphere_index);
+		
+		sphere_shader.bind();
+		
+		sphere_shader.uploadIndices(sphere_index);
+		sphere_shader.uploadAttrib("position", sphere_pos);
+		
+		sphere_shader.setUniform("modelViewProj", MVP);
+		sphere_shader.drawIndexed(GL_TRIANGLES, 0, 20402);
+		glDisable(GL_DEPTH_TEST);
 	}
 };
 
