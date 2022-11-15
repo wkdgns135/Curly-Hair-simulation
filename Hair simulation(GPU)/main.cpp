@@ -303,6 +303,7 @@ public:
 			MatrixXf positions(3, hm->TOTAL_SIZE);
 			if (hm->state == COHESION_TEST)	setPosition(hm->particle_host.wet_position, positions);
 			else setPosition(hm->particle_host.n_position, positions);
+		
 
 			hm->get_colors();
 			MatrixXf colors(3, hm->TOTAL_SIZE);

@@ -135,6 +135,11 @@ __global__ void integrate(Particle particle, double dt) {
 	float staticStiff = 0.999995f;
 	particle.velocity[tid] = particle.velocity[tid] * staticStiff;
 
+	// apply dynamic-stiffness for wetting
+	float stiffMin = 0.9999f;
+	float stiffMax = 1.0f;
+	float dynamicStiff = (particle.saturation[tid]) * stiffMin + (1.0 - particle.saturation[tid]) * stiffMax;
+	particle.velocity[tid] = particle.velocity[tid] * dynamicStiff;
 }
 
 __global__ void integrate_internal_hair_force(Particle particle) {
@@ -191,10 +196,9 @@ __global__ void integrate_external_hair_force(Particle particle) {
 }
 
 __global__ void integrate_damping_force(Particle particle) {
-	if (threadIdx.x > blockDim.x - 2)return;
-	//if (blockIdx.x > x)return;
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-
+	if (threadIdx.x > blockDim.x - 2) return;
+	//if (blockIdx.x > x)return;
 	float3 d_v = vector_sub_k(particle.velocity[tid + 1], particle.velocity[tid]);
 	float3 e = vector_sub_k(particle.position[tid + 1], particle.position[tid]);
 	float3 e_hat = vector_normalized_k(e);
@@ -214,7 +218,6 @@ __global__ void integrate_damping_force(Particle particle) {
 	particle.force[tid] = vector_add_k(particle.force[tid], result);
 	__syncthreads();
 	particle.force[tid + 1] = vector_sub_k(particle.force[tid + 1], result);
-
 }
 
 __global__ void update_position(Particle particle) {
@@ -468,47 +471,6 @@ __global__ void DeformWetCurlyHairKernel(HashTableDevice hashing, Particle parti
 	particles.wet_position[p_index] = particles.wet_position[p_index] + displacement;
 }
 
-
-
-
-//__global__ void ComputeCurlyHairNormalKernel(HashTableDevice hashing, Particle particles)
-//{
-//	unsigned int index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-//
-//	unsigned int p_index = hashing._gridIndex[index];
-//	float3 p_pos = particles.n_position[p_index];
-//	int3 gridPos = GetGridPosCurlyHair(p_pos);
-//	float3 normal = make_float3(0.0f, 0.0f, 0.0f);
-//
-//	for (int z = -3; z <= 3; z++) {
-//		for (int y = -3; y <= 3; y++) {
-//			for (int x = -3; x <= 3; x++) {
-//				int3 neighborPos = gridPos + make_int3(x, y, z);
-//				unsigned int gridHash = GetGridHashCurlyHair(neighborPos);
-//				unsigned int startIndex = FETCH(hashing._cellStart, gridHash);
-//				float force = 0.0f;
-//				if (startIndex != 0xffffffff) {
-//					unsigned int endIndex = FETCH(hashing._cellEnd, gridHash);
-//					for (unsigned int j = startIndex; j < endIndex; j++) {
-//						unsigned int np_index = hashing._gridIndex[j];
-//						float3 np_pos = particles.n_position[np_index];
-//						float np_dens = particles.density[np_index];
-//						float3 diff = p_pos - np_pos;
-//						//float lenSq = dot(diff, diff);
-//						float dx = np_pos.x - p_pos.x;
-//						float dy = np_pos.y - p_pos.y;
-//						float dz = np_pos.z - p_pos.z;
-//						float lenSq = (dx*dx + dy * dy + dz * dz);
-//						float w = fmax(1.0 - lenSq / (params.particle_radius*params.particle_radius), 0.0);
-//						normal = normal + (diff * w) / np_dens;
-//					}
-//				}
-//			}
-//		}
-//	}
-//	particles.n_position[p_index] = normal;
-//}
-
 __global__ void bouncing_test_k(Particle particle, float offset) {
 	if (threadIdx.x != 0)return;
 	int tid = blockIdx.x * blockDim.x;
@@ -712,7 +674,7 @@ void HairModel::simulation() {
 	//cudaMemcpy(particle_host.test_pos, particle_device.test_pos, sizeof(float3) * TOTAL_SIZE, cudaMemcpyDeviceToHost);
 	normalize_position();
 	cudaMemcpy(particle_device.n_position, particle_host.n_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	freeHashing();
+	if (state == COHESION_TEST)freeHashing();
 }
 
 #endif // !__HAIR_MODEL_DEVICE__
