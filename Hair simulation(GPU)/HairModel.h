@@ -66,9 +66,12 @@ public:
 	State state;
 	
 	void bouncing_test();
+	float bouncing_offset = 0;
 	void rotating_test();
+	float rotating_offset = 0;
 	void collision_test();
 	void adhesion_test();
+	float sphere_offset = 0;
 	void sphere_moving();
 public:
 	Particle particle_host;

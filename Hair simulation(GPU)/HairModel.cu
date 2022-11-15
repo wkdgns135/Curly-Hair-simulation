@@ -569,15 +569,13 @@ __global__ void adhesion_test_k(Particle particle, float dt)
 
 
 void HairModel::bouncing_test() {
-	static float bouncing_offset = 0;
 	bouncing_test_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device, bouncing_offset);
 	bouncing_offset += 1;
 }
 
 void HairModel::rotating_test(void)
 {
-	static double rot = 0.0;
-	auto radian = cos(rot) * 1.0;
+	auto radian = cos(rotating_offset) * 1.0;
 	auto theta = radian * 0.017453292519943295769236907684886;
 
 	float3 minB = min_b;
@@ -599,7 +597,7 @@ void HairModel::rotating_test(void)
 	rotM.z.z = cos(theta) + (normal.z*normal.z)*(1.0 - cos(theta));
 
 	rotating_test_k<<<STRAND_SIZE, MAX_SIZE>>> (particle_device, rotM);
-	rot += 0.02; // angle range
+	rotating_offset += 0.02; // angle range
 }
 
 void HairModel::collision_test() {
@@ -611,10 +609,9 @@ void HairModel::adhesion_test() {
 }
 
 void HairModel::sphere_moving() {
-	static float time = 0.0;
-	auto w = cos(time) * 0.018f;
+	auto w = cos(sphere_offset) * 0.018f;
 	params_host.sphere_pos.y += w;
-	time += 0.05f;
+	sphere_offset += 0.05f;
 	set_parameter();
 }
 
