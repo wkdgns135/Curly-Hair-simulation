@@ -4,8 +4,8 @@ if you want a test this project you should follow https://pig-tag.tistory.com/6
 
 # Build sequence
 
--> unzip HairSimulation(GPU)/nanogui.zip
--> build cmake vs2017, 64x same directory
+-> unzip HairSimulation(GPU)/nanogui.zip<br>
+-> build cmake vs2017, 64x same directory<br>
 -> visual studio -> project setting -> projects "nanogui, nanogui-obj, glfw_objects" output directory change to inheritance parent
 
 
