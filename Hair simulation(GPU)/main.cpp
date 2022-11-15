@@ -273,7 +273,7 @@ public:
 
 	void setPosition(float3 *v, nanogui::MatrixXf &mat) {
 		for (int i = 0; i < hm->TOTAL_SIZE; i++) {
-			mat.col(i) << v[i].x * 0.02, v[i].y* 0.02, v[i].z* 0.02;
+			mat.col(i) << v[i].x * 1.75f , v[i].y * 1.75f , v[i].z * 1.75f;
 		}
 	}
 
@@ -301,7 +301,8 @@ public:
 			setIndex(indices);
 
 			MatrixXf positions(3, hm->TOTAL_SIZE);
-			setPosition(hm->particle_host.position, positions);
+			if (hm->state == COHESION_TEST)	setPosition(hm->particle_host.wet_position, positions);
+			else setPosition(hm->particle_host.n_position, positions);
 
 			hm->get_colors();
 			MatrixXf colors(3, hm->TOTAL_SIZE);
@@ -313,7 +314,7 @@ public:
 
 		}
 		Matrix4f MVP = MVP.setIdentity();
-		MVP = MVP + translate(Vector3f(0, 1, 0));
+		MVP = MVP + translate(Vector3f(-1.75, -1.5, -2.0));
 		hair_shader.setUniform("modelViewProj", MVP);
 		
 		glEnable(GL_DEPTH_TEST);

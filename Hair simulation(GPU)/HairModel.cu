@@ -517,8 +517,8 @@ __global__ void bouncing_test_k(Particle particle, float offset) {
 };
 
 __global__ void rotating_test_k(Particle particle, matrix3 rot) {
-	if (threadIdx.x > 1) return;
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (threadIdx.x != 0) return;
+	int tid = blockIdx.x * blockDim.x;
 	float3 pos = rot_vec_by_mat(particle.position[tid], rot);
 	particle.position[tid] = pos;
 }
