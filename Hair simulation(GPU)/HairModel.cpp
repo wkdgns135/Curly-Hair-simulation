@@ -49,7 +49,8 @@ HairModel::HairModel(char *filename, int num_strands) {
 
 	normalize_position();
 	device_init();
-	//computeMaxDensity();
+	computeMaxDensity();
+
 	//saveParticle("curlyHairs.txt");
 }
 

@@ -88,7 +88,7 @@ void HairModel::device_init() {
 	cudaMemcpy(particle_device.saturation, particle_host.saturation, sizeof(float) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 
 	cudaMemcpy(particle_device.n_position, particle_host.n_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
-	cudaMemcpy(particle_host.wet_position, particle_host.n_position, sizeof(float) * TOTAL_SIZE, cudaMemcpyHostToHost);
+	cudaMemcpy(particle_host.wet_position, particle_host.n_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToHost);
 
 
 	array_init << <STRAND_SIZE, MAX_SIZE >> > (particle_device.force);
