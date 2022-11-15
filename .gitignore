@@ -7,6 +7,49 @@
 *.userosscache
 *.sln.docstates
 
+#nanogui files
+Hair simulation(GPU)/CMakeFiles
+Hair simulation(GPU)/docs
+Hair simulation(GPU)/ext
+Hair simulation(GPU)/python
+Hair simulation(GPU)/resources
+
+Hair simulation(GPU)/.appveyor.yml
+Hair simulation(GPU)/.gitignore
+Hair simulation(GPU)/.gitmodules
+Hair simulation(GPU)/.travis.yml
+Hair simulation(GPU)/CMakeLists.txt
+Hair simulation(GPU)/CONTRIBUTING.rst
+Hair simulation(GPU)/ALL_BUILD.vcxproj
+Hair simulation(GPU)/ALL_BUILD.vcxproj.filters
+Hair simulation(GPU)/ALL_BUILD.vcxproj.user
+Hair simulation(GPU)/example_icons.vcxproj
+Hair simulation(GPU)/example_icons.vcxproj.filters
+Hair simulation(GPU)/example1.vcxproj
+Hair simulation(GPU)/example1.vcxproj.filters
+Hair simulation(GPU)/example2.vcxproj
+Hair simulation(GPU)/example2.vcxproj.filters
+Hair simulation(GPU)/example3.vcxproj
+Hair simulation(GPU)/example3.vcxproj.filters
+Hair simulation(GPU)/example4.vcxproj
+Hair simulation(GPU)/example4.vcxproj.filters
+Hair simulation(GPU)/INSTALL.vcxproj
+Hair simulation(GPU)/INSTALL.vcxproj.filters
+Hair simulation(GPU)/mkdoc.vcxproj
+Hair simulation(GPU)/mkdoc.vcxproj.filters
+Hair simulation(GPU)/NanoGUI.sln
+Hair simulation(GPU)/nanogui.vcxproj
+Hair simulation(GPU)/nanogui.vcxproj.filters
+Hair simulation(GPU)/nanogui.vcxproj.user
+Hair simulation(GPU)/nanogui_resources.cpp
+Hair simulation(GPU)/nanogui_resources.h
+Hair simulation(GPU)/nanogui-obj.vcxproj
+Hair simulation(GPU)/nanogui-obj.vcxproj.filters
+Hair simulation(GPU)/nanogui-obj.vcxproj.user
+Hair simulation(GPU)/ZERO_CHECK.vcxproj
+Hair simulation(GPU)/ZERO_CHECK.vcxproj.filters
+
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
