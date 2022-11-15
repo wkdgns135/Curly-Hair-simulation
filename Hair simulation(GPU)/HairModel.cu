@@ -536,7 +536,7 @@ __global__ void adhesion_test_k(Particle particle, float dt)
 	float3 vel = particle.velocity[tid];
 	float3 normal = pos - params.sphere_pos;
 	normal = vector_normalized_k(normal);
-	float sdf = powf(pos.x - params.sphere_pos.x, 2.0f) + powf(pos.y - params.sphere_pos.y, 2.0f) + powf(pos.z - params.sphere_pos.z, 2.0f) - ((params.sphere_rad + 0.02) * (params.sphere_rad + 0.02));
+	float sdf = powf(pos.x - params.sphere_pos.x, 2.0f) + powf(pos.y - params.sphere_pos.y, 2.0f) + powf(pos.z - params.sphere_pos.z, 2.0f) - ((params.sphere_rad + 0.01) * (params.sphere_rad + 0.01));
 	dt = dt * 0.1;
 	float phi = sdf + dt * vector_dot_k(vel, normal);
 
