@@ -35,9 +35,11 @@ Hair simulation(GPU)/example4.vcxproj
 Hair simulation(GPU)/example4.vcxproj.filters
 Hair simulation(GPU)/INSTALL.vcxproj
 Hair simulation(GPU)/INSTALL.vcxproj.filters
+Hair simulation(GPU)/LICENSE.txt
 Hair simulation(GPU)/mkdoc.vcxproj
 Hair simulation(GPU)/mkdoc.vcxproj.filters
 Hair simulation(GPU)/NanoGUI.sln
+Hair simulation(GPU)/README.rst
 Hair simulation(GPU)/nanogui.vcxproj
 Hair simulation(GPU)/nanogui.vcxproj.filters
 Hair simulation(GPU)/nanogui.vcxproj.user
