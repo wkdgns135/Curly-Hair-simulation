@@ -45,6 +45,7 @@ enum State {
 	ROTATE_TEST,
 	COLLISION_TEST,
 	COHESION_TEST,
+	ADHESION_TEST,
 };
 
 class HairModel
@@ -67,6 +68,7 @@ public:
 	void bouncing_test();
 	void rotating_test();
 	void collision_test();
+	void adhesion_test();
 	void sphere_moving();
 public:
 	Particle particle_host;

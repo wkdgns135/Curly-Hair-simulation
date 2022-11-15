@@ -114,6 +114,7 @@ void HairModel::device_free() {
 	cudaFree(particle_device.density);
 	cudaFree(particle_device.saturation);
 	cudaFree(particle_device.wet_position);
+	cudaFree(&params);
 }
 
 void HairModel::set_parameter() {
@@ -511,15 +512,57 @@ __global__ void collision_test_k(Particle particle, float dt)
 			v_rel = vt * friction;
 		}
 		particle.velocity[tid] = normal * v_new + v_rel;
+	}
+}
+
+__device__ float3 AdhesionCurlyHair(float r, float h, float3 dir)
+{
+	float half_h = h / 2.0f;
+	float3 force = make_float3(0.0f, 0.0f , 0.0f);
+	if (r <= half_h) {
+		float w = 0.007f / powf(h, 3.25f);
+		float value = -(4.0f * r * r) / h + 6.0f * r - 2.0f * h;
+		force = dir * w * value / r;
+		return force;
+	}
+	return force;
+}
+
+__global__ void adhesion_test_k(Particle particle, float dt)
+{
+	if (threadIdx.x == 0) return;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	float3 pos = particle.n_position[tid];
+	float3 vel = particle.velocity[tid];
+	float3 normal = pos - params.sphere_pos;
+	normal = vector_normalized_k(normal);
+	float sdf = powf(pos.x - params.sphere_pos.x, 2.0f) + powf(pos.y - params.sphere_pos.y, 2.0f) + powf(pos.z - params.sphere_pos.z, 2.0f) - ((params.sphere_rad + 0.02) * (params.sphere_rad + 0.02));
+	dt = dt * 0.1;
+	float phi = sdf + dt * vector_dot_k(vel, normal);
+
+	if (phi < 0.0) {
+		float vn = vector_dot_k(vel, normal);
+		float3 vt = vel - normal * vn;
+		float v_new = vn - phi / dt;
+		float mu = 0.3f;
+		float friction = 1.0f - mu * ((v_new - vn) / vector_length_k(vt));
+		float3 v_rel;
+		if (friction < 0.0) {
+			v_rel = make_float3(0.0, 0.0, 0.0);
+		}
+		else {
+			v_rel = vt * friction;
+		}
+		particle.velocity[tid] = normal * v_new + v_rel;
 
 		// apply adhesion force
-		//float dist = fabs(phi); // Penetration depth
-		//float weight = 1300.0f;
-		//float3 diff = normal * dist;
-		//float3 adhesion = AdhesionCurlyHair(dist, _CurlyHairParam._particleRadius, diff);
-		//float mass = 1.0f;
-		//float3 adhesionForce = weight * mass * adhesion;
-		//particles._vel[tid] += adhesionForce * dt;
+		float dist = fabs(phi); // Penetration depth
+		float weight = 1300.0f;
+		float3 diff = normal * dist;
+		float3 adhesion = AdhesionCurlyHair(dist, params.particle_radius, diff);
+		float mass = 1.0f;
+		float3 adhesionForce = adhesion * weight * mass;
+		particle.velocity[tid] = particle.velocity[tid] + adhesionForce * dt;
 	}
 }
 
@@ -561,6 +604,10 @@ void HairModel::rotating_test(void)
 
 void HairModel::collision_test() {
 	collision_test_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device, 0.001f);
+}
+
+void HairModel::adhesion_test() {
+	adhesion_test_k << <STRAND_SIZE, MAX_SIZE >> > (particle_device, 0.001f);
 }
 
 void HairModel::sphere_moving() {
@@ -635,11 +682,10 @@ void HairModel::simulation() {
 
 	if (state == BOUNCING_TEST)bouncing_test();
 	if (state == ROTATE_TEST)rotating_test();
-	if (state == COLLISION_TEST)sphere_moving();
+	if (state == COLLISION_TEST || state == ADHESION_TEST)sphere_moving();
 	
 	for (int iter1 = 0; iter1 < 10; iter1++) {
 
-		//collision_detect << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, sphere_pos, sphere_radius, STRAND_SIZE, MAX_SIZE);
 		position_smoothing_function(particle_host.position, particle_host.s_position, particle_host.r_length, params_host.A_B, true);
 		cudaMemcpy(particle_device.s_position, particle_host.s_position, sizeof(float3) * TOTAL_SIZE, cudaMemcpyHostToDevice);
 		//position_smoothing_function_k << <STRAND_SIZE, MAX_SIZE >> > (p_p_d, s_p_p_d, d,r_p_l_d, A_B);
@@ -662,6 +708,7 @@ void HairModel::simulation() {
 		}
 
 		if (state == COLLISION_TEST)collision_test();
+		if (state == ADHESION_TEST)adhesion_test();
 		update_position << <STRAND_SIZE, MAX_SIZE >> > (particle_device);
 		
 		if (state == COHESION_TEST) {

@@ -363,19 +363,21 @@ public:
 
 		glEnable(GL_DEPTH_TEST);
 		hair_shader.drawIndexed(GL_LINES, 0, hm->TOTAL_SIZE);
+		if (hm->state == COLLISION_TEST || hm->state == ADHESION_TEST) {
 
-		MatrixXf sphere_pos(3, 20402);
-		MatrixXu sphere_index(3, 20402);
+			MatrixXf sphere_pos(3, 20402);
+			MatrixXu sphere_index(3, 20402);
 
-		set_sphere(sphere_pos, sphere_index);
-		
-		sphere_shader.bind();
-		
-		sphere_shader.uploadIndices(sphere_index);
-		sphere_shader.uploadAttrib("position", sphere_pos);
-		
-		sphere_shader.setUniform("modelViewProj", MVP);
-		sphere_shader.drawIndexed(GL_TRIANGLES, 0, 20402);
+			set_sphere(sphere_pos, sphere_index);
+
+			sphere_shader.bind();
+
+			sphere_shader.uploadIndices(sphere_index);
+			sphere_shader.uploadAttrib("position", sphere_pos);
+
+			sphere_shader.setUniform("modelViewProj", MVP);
+			sphere_shader.drawIndexed(GL_TRIANGLES, 0, 20402);
+		}
 		glDisable(GL_DEPTH_TEST);
 	}
 };
@@ -624,6 +626,13 @@ public:
 		rb->setFlags(Button::RadioButton);
 		rb->setCallback([]() {
 			hm->state = COHESION_TEST;
+		});
+
+		new Label(physics_window, "Adhesion test", "sans-bold");
+		rb = new Button(physics_window, "Adhesion Simulation");
+		rb->setFlags(Button::RadioButton);
+		rb->setCallback([]() {
+			hm->state = ADHESION_TEST;
 		});
 
 		Window *parameter_window = new Window(this, "Parmameter setting");
