@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hair simulation", "Hair sim
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hair simulation(GPU)", "Hair simulation(GPU)\Hair simulation(GPU).vcxproj", "{E66BE584-5771-4902-9F1C-254A208D0C8D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HairRenderer", "HairRenderer\HairRenderer.vcxproj", "{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nanogui", "Hair simulation(GPU)\nanogui.vcxproj", "{BF18496E-5926-3247-8635-BD429242AA15}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nanogui-obj", "Hair simulation(GPU)\nanogui-obj.vcxproj", "{CD9E90B5-8C77-3AEB-B172-4580B5B45EE9}"
@@ -69,24 +67,6 @@ Global
 		{E66BE584-5771-4902-9F1C-254A208D0C8D}.RelWithDebInfo|x64.Build.0 = Release|x64
 		{E66BE584-5771-4902-9F1C-254A208D0C8D}.RelWithDebInfo|x86.ActiveCfg = Release|x64
 		{E66BE584-5771-4902-9F1C-254A208D0C8D}.RelWithDebInfo|x86.Build.0 = Release|x64
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Debug|Win32.Build.0 = Debug|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Debug|x64.ActiveCfg = Debug|x64
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Debug|x64.Build.0 = Debug|x64
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Debug|x86.ActiveCfg = Debug|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Debug|x86.Build.0 = Debug|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.MinSizeRel|Win32.ActiveCfg = Release|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.MinSizeRel|x64.ActiveCfg = Release|x64
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.MinSizeRel|x86.ActiveCfg = Release|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Release|Win32.ActiveCfg = Release|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Release|Win32.Build.0 = Release|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Release|x64.ActiveCfg = Release|x64
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Release|x64.Build.0 = Release|x64
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Release|x86.ActiveCfg = Release|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.Release|x86.Build.0 = Release|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.RelWithDebInfo|Win32.ActiveCfg = Release|Win32
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.RelWithDebInfo|x64.ActiveCfg = Release|x64
-		{B595BD9A-E0F0-43D3-A4B0-0608C407E5A9}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
 		{BF18496E-5926-3247-8635-BD429242AA15}.Debug|Win32.ActiveCfg = Debug|x64
 		{BF18496E-5926-3247-8635-BD429242AA15}.Debug|x64.ActiveCfg = Debug|x64
 		{BF18496E-5926-3247-8635-BD429242AA15}.Debug|x64.Build.0 = Debug|x64
