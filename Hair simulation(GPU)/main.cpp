@@ -64,7 +64,7 @@ private:
 	float verticalAngle = 0.0f;
 
 public:
-	SimulationCanvas(Widget *parent) : nanogui::GLCanvas(parent), mRotation(nanogui::Vector3f(0.25f, 0.5f, 0.33f)) {
+	SimulationCanvas(Widget *parent) : nanogui::GLCanvas(parent), mRotation(nanogui::Vector3f(0,9.8 ,0)) {
 		using namespace nanogui;
 		hm = new HairModel("strands\\strands00000.txt", num_strands);
 		hm->color = make_float3(1.0, 0.8, 0.0);
@@ -357,10 +357,23 @@ public:
 			hair_shader.uploadAttrib("position", positions);
 			hair_shader.uploadAttrib("color", colors);
 		}
-		Matrix4f MVP = MVP.setIdentity();
-		MVP = MVP + translate(Vector3f(-1.75, -1.5, -2.0));
-		hair_shader.setUniform("modelViewProj", MVP);
+		Matrix4f MVP;
+		MVP.setIdentity();
 
+		//float theta = 180 * 3.1415 / 57.2958;
+		//
+		//MVP << cos(theta), 0, sin(theta), 0,
+		//	0, 1, 0, 0,
+		//	-sin(theta), 0, cos(theta), 0,
+		//	0, 0, 0, 1;
+
+		//MVP.topLeftCorner<3, 3>() = Eigen::Matrix3f(Eigen::AngleAxisf(mRotation[0], Vector3f::UnitX()) *
+		//	Eigen::AngleAxisf(mRotation[1], Vector3f::UnitY()) *
+		//	Eigen::AngleAxisf(mRotation[2], Vector3f::UnitZ())) ;
+
+		MVP = MVP + translate(Vector3f(-1.75, -1.75, -2.0));
+
+		hair_shader.setUniform("modelViewProj", MVP);
 		glEnable(GL_DEPTH_TEST);
 		hair_shader.drawIndexed(GL_LINES, 0, hm->TOTAL_SIZE);
 		if (hm->state == COLLISION_TEST || hm->state == ADHESION_TEST) {
@@ -494,9 +507,9 @@ public:
 
 		//Hair style window
 		Window *hair_style_window = new Window(this, "Select hair style");
-		hair_style_window->setPosition(Vector2i(w - w / 3, 0));
+		hair_style_window->setPosition(Vector2i(w - w / 3 - 50, 0));
 		vector<pair<int, string>>icons = loadImageDirectory(mNVGContext, "icons");
-		new Label(hair_style_window, "Image panel & scroll panel", "sans-bold");
+		new Label(hair_style_window, "Select hair style", "sans-bold");
 		PopupButton *imagePanelBtn = new PopupButton(hair_style_window, "Select style");
 		imagePanelBtn->setIcon(ENTYPO_ICON_FOLDER);
 		Popup *popup = imagePanelBtn->popup();
@@ -516,22 +529,42 @@ public:
 				break;
 			case 1:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00001.txt", num_strands);
+				hm = new HairModel("strands\\strands00027.txt", num_strands);
 				hm->color = tmp;
 				break;
 			case 2:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00002.txt", num_strands);
+				hm = new HairModel("strands\\strands00047.txt", num_strands);
 				hm->color = tmp;
 				break;
 			case 3:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00003.txt", num_strands);
+				hm = new HairModel("strands\\strands00050.txt", num_strands);
 				hm->color = tmp;
 				break;
 			case 4:
 				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
-				hm = new HairModel("strands\\strands00004.txt", num_strands);
+				hm = new HairModel("strands\\strands00053.txt", num_strands);
+				hm->color = tmp;
+				break;
+			case 5:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00057.txt", num_strands);
+				hm->color = tmp;
+				break;
+			case 6:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00075.txt", num_strands);
+				hm->color = tmp;
+				break;
+			case 7:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00091.txt", num_strands);
+				hm->color = tmp;
+				break;
+			case 8:
+				tmp = make_float3(hm->color.x, hm->color.y, hm->color.z);
+				hm = new HairModel("strands\\strands00094.txt", num_strands);
 				hm->color = tmp;
 				break;
 			}
@@ -545,7 +578,7 @@ public:
 		layout->setSpacing(0, 10);
 		hair_style_window->setLayout(layout);
 
-		new Label(hair_style_window, "Color picker :", "sans-bold");
+		new Label(hair_style_window, "Select hair color :", "sans-bold");
 		auto cp = new ColorPicker(hair_style_window, { 255, 200, 0, 255 });
 		cp->setFixedSize({ 150, 30 });
 		cp->setFinalCallback([](const Color &c) {
@@ -557,7 +590,7 @@ public:
 				<< c.w() << "]" << std::endl;
 		});
 
-		new Label(hair_style_window, "Hair density", "sans-bold");
+		new Label(hair_style_window, "Select hair density", "sans-bold");
 		Widget *hair_density_panel = new Widget(hair_style_window);
 		hair_density_panel->setLayout(new BoxLayout(Orientation::Horizontal,
 			Alignment::Middle, 0, 5));
