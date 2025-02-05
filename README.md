@@ -11,14 +11,10 @@ if you want a test this project you should follow https://pig-tag.tistory.com/6
 
 # Hair model
 
-## Stretch spring
+|Hair simulation|
+|:--:|
+|![ezgif com-optimize](https://github.com/user-attachments/assets/bad2e562-6ca9-4fa6-b0fb-b665c038b3ea)|
 
-## Bending spring
-|<img src="https://user-images.githubusercontent.com/82528291/163705545-6ef91bbc-d293-44de-b119-794f224eafa2.gif"/>|![bending frame](https://user-images.githubusercontent.com/82528291/165365474-5e22d450-238e-42af-916c-a39515be4c2c.gif)|
+|Collision hair simulation | Wet hair simulation|
 |:--:|:--:|
-|Bending spring|Smoothing function with Parallel transport frame|
-
-## Core spring
-|![no_core_normal_bending](https://user-images.githubusercontent.com/82528291/165364832-7883cecf-c7fd-4a0f-8217-320cef452e71.gif)|![no_core_high_bending](https://user-images.githubusercontent.com/82528291/165364857-0b12bf77-8702-43a2-a988-1dbff3097d58.gif)|![core_spring_normal_bendinggif](https://user-images.githubusercontent.com/82528291/165364884-17c5e230-d6c2-4647-a9d9-d7d7f0f3bfe3.gif)|
-|:--:|:--:|:--:|
-|No core springs, normal bending springs|No core springs, high bending springs|Core springs with, normal bending springs|
+|![KakaoTalk_20221110_141114525](https://github.com/user-attachments/assets/a833ebe9-0c5a-4917-8fe8-7817c1432bae)|![KakaoTalk_20221110_141019812](https://github.com/user-attachments/assets/08adb49f-3732-413e-8e10-8e4dbb7385de)|
